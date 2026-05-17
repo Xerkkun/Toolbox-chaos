@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in,headheight=15pt]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\definecolor{Accent}{HTML}{0B4F6C}
+\titleformat{\section}{\large\bfseries\color{Accent}}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{Accent}}{}{0pt}{}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Diccionario de sistemas caóticos}
+\fancyhead[R]{Banco de pruebas}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+{\LARGE\bfseries Diccionario de conceptos de sistemas caóticos}\par
+{\small Documento de referencia para la pestaña \emph{Diccionario}.}\par
+\vspace{0.8em}
+
+\section*{Conceptos fundamentales}
+
+\subsection*{Sistema dinámico continuo}
+Un sistema dinámico continuo suele escribirse como
+\[
+\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x},\mu), \qquad \mathbf{x}(t)\in\mathbb{R}^n,
+\]
+donde $\mathbf{x}$ es el vector de estado y $\mu$ representa parámetros.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Dynamical_system}{Dynamical system}.
+
+\subsection*{Caos}
+En la práctica, un régimen caótico combina sensibilidad a condiciones iniciales, aperiodicidad acotada y geometría no trivial en el espacio de fases. Una separación infinitesimal puede crecer como
+\[
+\|\delta \mathbf{x}(t)\| \approx \|\delta \mathbf{x}(0)\|e^{\lambda t},
+\]
+con un exponente de Lyapunov máximo positivo.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Chaos_theory}{Chaos theory}.
+
+\subsection*{Espacio de fases, trayectoria y órbita}
+La evolución $\mathbf{x}(t)$ se visualiza como una curva en el espacio de fases. La órbita generada por una condición inicial $\mathbf{x}_0$ es
+\[
+\mathcal{O}(\mathbf{x}_0)=\{\mathbf{x}(t;\mathbf{x}_0): t\ge 0\}.
+\]
+Wikipedia: \href{https://en.wikipedia.org/wiki/Phase_space}{Phase space}.
+
+\subsection*{Atractor y atractor extraño}
+Un atractor $A$ es un conjunto invariante hacia el que convergen trayectorias cercanas. Un atractor extraño añade geometría no suave o fractal y sensibilidad a condiciones iniciales. La cuenca de atracción se define por
+\[
+\mathcal{B}(A)=\{\mathbf{x}_0: \omega(\mathbf{x}_0)\subseteq A\},
+\]
+donde $\omega(\mathbf{x}_0)$ es el conjunto límite omega.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Attractor}{Attractor} y \href{https://en.wikipedia.org/wiki/Strange_attractor}{Strange attractor}.
+
+\subsection*{Multiestabilidad y atractores coexistentes}
+Existe multiestabilidad cuando varios atractores coexistentes son válidos para el mismo conjunto de parámetros. El destino asintótico depende entonces de la condición inicial.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Multistability}{Multistability}.
+
+\subsection*{Atractor autoexcitado y atractor oculto}
+Un atractor autoexcitado tiene cuenca que intersecta una vecindad de un equilibrio inestable, por lo que puede localizarse iniciando trayectorias cerca de ese equilibrio. Un atractor oculto tiene una cuenca que no intersecta vecindades de los equilibrios, por lo que su localización es numéricamente más delicada.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Hidden_attractor}{Hidden attractor}.
+
+\section*{Equilibrios y análisis local}
+
+\subsection*{Puntos de equilibrio}
+Los equilibrios satisfacen
+\[
+\mathbf{f}(\mathbf{x}^*,\mu)=\mathbf{0}.
+\]
+Wikipedia: \href{https://en.wikipedia.org/wiki/Equilibrium_point_(mathematics)}{Equilibrium point}.
+
+\subsection*{Jacobiano y linealización}
+La linealización local alrededor de $\mathbf{x}^*$ usa el Jacobiano
+\[
+J(\mathbf{x})=\frac{\partial \mathbf{f}}{\partial \mathbf{x}},
+\qquad
+\delta\dot{\mathbf{x}}=J(\mathbf{x}^*)\,\delta\mathbf{x}.
+\]
+Wikipedia: \href{https://en.wikipedia.org/wiki/Linearization}{Linearization}.
+
+\subsection*{Autovalores y clasificación local}
+Sea $\lambda_i$ el espectro de $J(\mathbf{x}^*)$. Entonces
+\[
+\Re(\lambda_i)<0\;\forall i \Rightarrow \text{estable localmente},
+\]
+\[
+\exists i: \Re(\lambda_i)>0 \Rightarrow \text{inestable},
+\]
+\[
+\text{partes reales de signos mezclados} \Rightarrow \text{silla},
+\]
+\[
+\exists i: \Re(\lambda_i)=0 \Rightarrow \text{caso no hiperbólico}.
+\]
+En tres dimensiones se usan etiquetas como nodo, foco, silla y silla-foco.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors}{Eigenvalues and eigenvectors}.
+
+\subsection*{Ciclo límite}
+Una órbita periódica aislada satisface
+\[
+\mathbf{x}(t+T)=\mathbf{x}(t), \qquad T>0,
+\]
+y se denomina ciclo límite cuando es aislada dentro del conjunto de órbitas periódicas.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Limit_cycle}{Limit cycle}.
+
+\section*{Herramientas cualitativas y cuantitativas}
+
+\subsection*{Diagrama de bifurcación}
+Un diagrama de bifurcación muestra cómo cambian los estados asintóticos al variar un parámetro de control $\mu$. Puede construirse por máximos locales, secciones de Poincaré o continuación numérica.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Bifurcation_diagram}{Bifurcation diagram}.
+
+\subsection*{Sección y mapa de Poincaré}
+Una sección de Poincaré es una hipersuperficie transversal $\Sigma$ que corta a las trayectorias. El mapa de retorno se escribe como
+\[
+P: \Sigma \to \Sigma.
+\]
+Wikipedia: \href{https://en.wikipedia.org/wiki/Poincar%C3%A9_map}{Poincaré map}.
+
+\subsection*{Estado transitorio}
+La parte inicial de una trayectoria, antes de aproximarse al comportamiento asintótico, se denomina transitorio. En simulación suele descartarse un intervalo $[0,T_{\mathrm{trans}}]$.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Transient_response}{Transient response}.
+
+\subsection*{Exponente de Lyapunov}
+El exponente máximo de Lyapunov se define por
+\[
+\lambda_{\max}=\lim_{t\to\infty}\frac{1}{t}\ln\frac{\|\delta \mathbf{x}(t)\|}{\|\delta \mathbf{x}(0)\|}.
+\]
+Si $\lambda_{\max}>0$, hay divergencia exponencial promedio de trayectorias cercanas.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Lyapunov_exponent}{Lyapunov exponent}.
+
+\subsection*{Dimensión de Kaplan--Yorke}
+Si $\lambda_1\ge\lambda_2\ge\cdots\ge\lambda_n$ y $j$ es el mayor índice tal que $\sum_{i=1}^{j}\lambda_i\ge 0$, entonces
+\[
+D_{KY}=j+\frac{\sum_{i=1}^{j}\lambda_i}{|\lambda_{j+1}|}.
+\]
+Wikipedia: \href{https://en.wikipedia.org/wiki/Kaplan%E2%80%93Yorke_conjecture}{Kaplan--Yorke conjecture}.
+
+\subsection*{Caos transitorio}
+Puede existir comportamiento aparentemente caótico durante un tiempo finito antes de que la trayectoria termine en un equilibrio o ciclo límite.
+Wikipedia: \href{https://en.wikipedia.org/wiki/Transient_chaos}{Transient chaos}.
+
+\subsection*{Variedades estable e inestable}
+Para un equilibrio hiperbólico,
+\[
+W^s(\mathbf{x}^*)=\{\mathbf{x}_0: \lim_{t\to\infty}\mathbf{x}(t;\mathbf{x}_0)=\mathbf{x}^*\},
+\]
+\[
+W^u(\mathbf{x}^*)=\{\mathbf{x}_0: \lim_{t\to-\infty}\mathbf{x}(t;\mathbf{x}_0)=\mathbf{x}^*\}.
+\]
+Wikipedia: \href{https://en.wikipedia.org/wiki/Stable_manifold}{Stable manifold}.
+
+\vfill
+{\small Este PDF se carga en la interfaz cuando QtPdf está disponible.}
+
+\end{document}
