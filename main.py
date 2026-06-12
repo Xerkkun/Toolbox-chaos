@@ -1,4 +1,5 @@
 import os
+import multiprocessing as mp
 import sys
 
 from PyQt6.QtWidgets import QApplication
@@ -23,5 +24,21 @@ def main():
     sys.exit(app.exec())
 
 
+def configure_multiprocessing():
+    mp.freeze_support()
+
+    start_method = os.environ.get('CHAOS_MP_START_METHOD')
+    if start_method is None and (sys.platform.startswith('win') or sys.platform == 'darwin'):
+        start_method = 'spawn'
+    if not start_method:
+        return
+
+    try:
+        mp.set_start_method(start_method)
+    except RuntimeError:
+        pass
+
+
 if __name__ == '__main__':
+    configure_multiprocessing()
     main()

@@ -363,7 +363,14 @@ def simulate_system_native(system_key: str, initial, params, dt: float, T: float
 
 def _effective_workers(workers: int | None, jobs: int) -> int:
     if workers is None:
-        workers = max(1, (os.cpu_count() or 1) - 1)
+        configured = os.environ.get('CHAOS_WORKERS')
+        if configured:
+            try:
+                workers = int(configured)
+            except ValueError as exc:
+                raise NativeChaosError('CHAOS_WORKERS debe ser un entero positivo.') from exc
+        else:
+            workers = max(1, (os.cpu_count() or 1) - 1)
     return min(max(1, int(workers)), max(1, int(jobs)))
 
 

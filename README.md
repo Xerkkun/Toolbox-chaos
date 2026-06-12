@@ -32,6 +32,32 @@ From PowerShell:
 .\run.ps1
 ```
 
+Limit worker processes on Windows:
+
+```powershell
+.\run.ps1 -Workers 4
+```
+
+From Linux:
+
+```bash
+chmod +x run-linux.sh
+./run-linux.sh
+```
+
+From macOS:
+
+```bash
+chmod +x run-macos.command
+./run-macos.command
+```
+
+Linux/macOS can also limit workers with `CHAOS_WORKERS`, for example:
+
+```bash
+CHAOS_WORKERS=4 ./run-linux.sh
+```
+
 Or directly:
 
 ```powershell
