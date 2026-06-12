@@ -45,11 +45,21 @@ class Mpl3DCanvas(_BaseCanvas):
         self.fig.subplots_adjust(left=0.05, right=0.98, bottom=0.07, top=0.92)
         self.draw_idle()
 
-    def plot_lorenz(self, x, y, z):
+    def plot_lorenz(self, x, y, z, show_projections=False, color='#111827'):
         self.ax.clear()
-        self.ax.plot(x, y, z, linewidth=0.8)
+        self.ax.plot(x, y, z, linewidth=0.8, color=color)
         self.ax.scatter([x[0]], [y[0]], [z[0]], s=30)
         self.ax.scatter([x[-1]], [y[-1]], [z[-1]], s=30)
+        if show_projections and len(x) > 1:
+            xmin, xmax = float(np.nanmin(x)), float(np.nanmax(x))
+            ymin, ymax = float(np.nanmin(y)), float(np.nanmax(y))
+            zmin, zmax = float(np.nanmin(z)), float(np.nanmax(z))
+            self.ax.plot(x, y, np.full_like(z, zmin), linewidth=0.55, color='#2563eb', alpha=0.45)
+            self.ax.plot(x, np.full_like(y, ymax), z, linewidth=0.55, color='#16a34a', alpha=0.45)
+            self.ax.plot(np.full_like(x, xmin), y, z, linewidth=0.55, color='#dc2626', alpha=0.45)
+            self.ax.set_xlim(xmin, xmax)
+            self.ax.set_ylim(ymin, ymax)
+            self.ax.set_zlim(zmin, zmax)
         self.ax.set_title('Atractor 3D')
         self.ax.set_xlabel('x')
         self.ax.set_ylabel('y')
@@ -62,10 +72,14 @@ class MplBifCanvas(_BaseCanvas):
     def __init__(self, parent=None):
         self.fig = Figure(figsize=(6, 5), dpi=100)
         self.ax = self.fig.add_subplot(111)
+        self.cbar = None
         super().__init__(self.fig, parent)
         self.reset_plot()
 
     def reset_plot(self):
+        if self.cbar is not None:
+            self.cbar.remove()
+            self.cbar = None
         self.ax.clear()
         self.ax.set_title('Diagrama de bifurcación')
         self.ax.set_xlabel(r'$\rho$')
@@ -73,16 +87,19 @@ class MplBifCanvas(_BaseCanvas):
         self.fig.subplots_adjust(left=0.10, right=0.98, bottom=0.12, top=0.92)
         self.draw_idle()
 
-    def plot_bifurcation(self, param_values, event_values, title, xlabel, ylabel):
+    def plot_bifurcation(self, param_values, event_values, title, xlabel, ylabel, color='#111827'):
+        if self.cbar is not None:
+            self.cbar.remove()
+            self.cbar = None
         self.ax.clear()
         if len(param_values) > 0:
-            self.ax.plot(
+            self.ax.scatter(
                 param_values,
                 event_values,
-                linestyle='None',
+                color=color,
+                s=1.8,
                 marker='.',
-                markersize=1.2,
-                color='black',
+                linewidths=0,
                 rasterized=True,
             )
             xmin = float(np.min(param_values))
@@ -100,6 +117,94 @@ class MplBifCanvas(_BaseCanvas):
         self.ax.set_ylabel(ylabel)
         self.ax.grid(alpha=0.14, linewidth=0.6)
         self.fig.subplots_adjust(left=0.10, right=0.98, bottom=0.12, top=0.92)
+        self.draw_idle()
+
+
+class MplMethodComparisonCanvas(_BaseCanvas):
+    def __init__(self, parent=None):
+        self.fig = Figure(figsize=(7, 6), dpi=100)
+        self.axes = self.fig.subplots(3, 1, sharex=True)
+        super().__init__(self.fig, parent)
+        self.reset_plot()
+
+    def reset_plot(self):
+        for idx, ax in enumerate(self.axes):
+            ax.clear()
+            ax.set_facecolor('white')
+            ax.grid(alpha=0.22, linewidth=0.7)
+            ax.set_ylabel(('x', 'y', 'z')[idx])
+        self.axes[-1].set_xlabel('t')
+        self.fig.subplots_adjust(left=0.08, right=0.98, bottom=0.08, top=0.94, hspace=0.12)
+        self.draw_idle()
+
+    def plot_comparison(self, series_by_method, title):
+        self.reset_plot()
+        colors = ['#111827', '#2563eb', '#dc2626', '#16a34a', '#7c3aed', '#ea580c', '#0891b2', '#db2777', '#65a30d']
+        for method_idx, item in enumerate(series_by_method):
+            if len(item) == 4:
+                label, t, X, color = item
+            else:
+                label, t, X = item
+                color = colors[method_idx % len(colors)]
+            for var_idx, ax in enumerate(self.axes):
+                ax.plot(t, X[:, var_idx], linewidth=0.9, color=color, label=label)
+        self.axes[0].set_title(title)
+        self.axes[0].legend(loc='best', fontsize=8)
+        self.draw_idle()
+
+
+class MplFFTCanvas(_BaseCanvas):
+    def __init__(self, parent=None):
+        self.fig = Figure(figsize=(7, 6), dpi=100)
+        self.axes = self.fig.subplots(3, 1, sharex=True)
+        super().__init__(self.fig, parent)
+        self.reset_plot()
+
+    def reset_plot(self):
+        for idx, ax in enumerate(self.axes):
+            ax.clear()
+            ax.set_facecolor('white')
+            ax.grid(alpha=0.22, linewidth=0.7)
+            ax.set_ylabel(f"|FFT {('x', 'y', 'z')[idx]}|")
+        self.axes[-1].set_xlabel('frecuencia')
+        self.fig.subplots_adjust(left=0.10, right=0.98, bottom=0.08, top=0.94, hspace=0.12)
+        self.draw_idle()
+
+    def plot_fft(self, freqs, spectra, title):
+        self.reset_plot()
+        colors = ['#111827', '#2563eb', '#dc2626', '#16a34a', '#7c3aed', '#ea580c']
+        for idx, ax in enumerate(self.axes):
+            ax.plot(freqs, spectra[:, idx], linewidth=0.9, color=colors[idx])
+        self.axes[0].set_title(title)
+        self.draw_idle()
+
+
+class MplLyapunovCanvas(_BaseCanvas):
+    def __init__(self, parent=None):
+        self.fig = Figure(figsize=(7, 6), dpi=100)
+        self.ax_conv = self.fig.add_subplot(111)
+        super().__init__(self.fig, parent)
+        self.reset_plot()
+
+    def reset_plot(self):
+        self.ax_conv.clear()
+        self.ax_conv.set_title('Convergencia de exponentes de Lyapunov')
+        self.ax_conv.set_xlabel('t')
+        self.ax_conv.set_ylabel('lambda(t)')
+        self.ax_conv.grid(alpha=0.22)
+        self.fig.subplots_adjust(left=0.10, right=0.98, bottom=0.08, top=0.94)
+        self.draw_idle()
+
+    def plot_lyapunov(self, exponents, times, convergence, title):
+        self.reset_plot()
+        labels = [f"lambda {idx + 1}" for idx in range(len(exponents))]
+        self.ax_conv.set_title(title)
+        if convergence.size:
+            line_colors = ['#111827', '#2563eb', '#dc2626', '#16a34a', '#7c3aed', '#ea580c']
+            for idx in range(convergence.shape[1]):
+                self.ax_conv.plot(times, convergence[:, idx], linewidth=0.9, color=line_colors[idx % len(line_colors)], label=labels[idx])
+            self.ax_conv.legend(loc='best', fontsize=8)
+        self.ax_conv.axhline(0.0, color='#111827', linewidth=0.8)
         self.draw_idle()
 
 
@@ -128,13 +233,13 @@ class MplBasinCanvas(_BaseCanvas):
         self.cax.clear()
         self.cax.set_visible(True)
 
-        cmap = ListedColormap([
-            '#000000',
-            '#87ceeb',
-            '#d62728',
-            '#2ca02c',
-            '#1f77b4',
-        ])
+        eq_names = [eq.get('name', f'E{idx + 1}') for idx, eq in enumerate(equilibrium_data or [])]
+        colors = ['#000000', '#87ceeb', '#d62728', '#2ca02c', '#1f77b4', '#9467bd', '#ff7f0e', '#8c564b', '#e377c2']
+        max_class = int(np.nanmax(basin)) if np.size(basin) else 1
+        needed = max(2 + len(eq_names), max_class + 1, 2)
+        while len(colors) < needed:
+            colors.append('#7f7f7f')
+        cmap = ListedColormap(colors[:needed])
 
         im = self.ax.imshow(
             basin,
@@ -144,10 +249,10 @@ class MplBasinCanvas(_BaseCanvas):
             aspect='auto',
             cmap=cmap,
             vmin=-0.5,
-            vmax=4.5,
+            vmax=needed - 0.5,
         )
 
-        self.ax.set_title(f'Cuenca en el plano z={z0_fixed:.4g} (rho={rho_value:.4g})')
+        self.ax.set_title(f'Cuenca en el plano z={z0_fixed:.4g} (param={rho_value:.4g})')
         self.ax.set_xlabel(r'$x_0$')
         self.ax.set_ylabel(r'$y_0$')
         self.ax.set_aspect('auto')
@@ -155,9 +260,12 @@ class MplBasinCanvas(_BaseCanvas):
         if show_equilibria and equilibrium_data:
             self._draw_equilibria_projection(equilibrium_data, extent)
 
-        self.cbar = self.fig.colorbar(im, cax=self.cax, ticks=np.arange(5))
-        self.cbar.ax.set_yticklabels(['escape', 'caótica', 'E+', 'E-', 'origen'])
+        labels = ['escape', 'acotada'] + eq_names
+        labels.extend([f'clase {idx}' for idx in range(len(labels), needed)])
+        self.cbar = self.fig.colorbar(im, cax=self.cax, ticks=np.arange(needed))
+        self.cbar.ax.set_yticklabels(labels[:needed])
         self.draw_idle()
+
 
     def _draw_equilibria_projection(self, equilibrium_data, extent):
         x_min, x_max, y_min, y_max = extent
