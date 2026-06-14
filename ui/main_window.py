@@ -205,6 +205,12 @@ class MainWindow(QMainWindow):
         self.y_time_color_combo.setCurrentIndex(max(0, self.y_time_color_combo.findText('Rojo')))
         self.z_time_color_combo.setCurrentIndex(max(0, self.z_time_color_combo.findText('Verde')))
         self.bif_color_combo.setCurrentIndex(max(0, self.bif_color_combo.findText('Negro')))
+        self.attractor_color_combo.setToolTip('Color de la trayectoria en las vistas clasicas. Sprott tiene controles de estilo propios dentro de su pestana.')
+        self.x_time_color_combo.setToolTip('Color de x(t) en la serie temporal de sistemas clasicos.')
+        self.y_time_color_combo.setToolTip('Color de y(t) en la serie temporal de sistemas clasicos.')
+        self.z_time_color_combo.setToolTip('Color de z(t) en la serie temporal de sistemas clasicos.')
+        self.bif_color_combo.setToolTip('Color de los puntos del diagrama de bifurcacion clasico.')
+        self.method_combo.setToolTip('Metodo numerico para sistemas clasicos. En Sprott se ajusta dentro de la pestana Explorador Sprott.')
         self.attractor_color_combo.currentIndexChanged.connect(self.refresh_current_colors)
         self.x_time_color_combo.currentIndexChanged.connect(self.refresh_current_colors)
         self.y_time_color_combo.currentIndexChanged.connect(self.refresh_current_colors)
@@ -288,6 +294,7 @@ class MainWindow(QMainWindow):
         bif_form.addRow(make_help_label('Continuación', HELP['bif_cont']), self.bif_use_cont)
 
         btn_bif = QPushButton('Calcular bifurcación')
+        btn_bif.setToolTip('Calcula un barrido del parametro seleccionado para el sistema clasico actual.')
         btn_bif.clicked.connect(self.compute_bifurcation)
 
         basin_box = QGroupBox('Cuenca / clasificación en el plano (x0,y0)')
@@ -314,6 +321,7 @@ class MainWindow(QMainWindow):
         basin_form.addRow(make_help_label('Tiempo total', HELP['basin_T_total']), self.basin_T_total)
 
         btn_basin = QPushButton('Calcular cuenca / clasificación')
+        btn_basin.setToolTip('Calcula una cuenca en el plano inicial para flujos 3D soportados; Lorenz usa ruta especializada.')
         btn_basin.clicked.connect(self.compute_basin)
 
         diag_box = QGroupBox('Diagnosticos')
@@ -334,6 +342,9 @@ class MainWindow(QMainWindow):
         btn_compare_methods = QPushButton('Comparar integradores')
         btn_fft = QPushButton('Calcular FFT normalizada')
         btn_lyap = QPushButton('Calcular Lyapunov')
+        btn_compare_methods.setToolTip('Compara integradores disponibles para el sistema clasico actual.')
+        btn_fft.setToolTip('Calcula espectro FFT normalizado de x(t), y(t), z(t) tras simular la trayectoria.')
+        btn_lyap.setToolTip('Estima exponentes de Lyapunov con QR-Benettin entero para flujos ODE 3D soportados.')
         btn_compare_methods.clicked.connect(self.compute_method_comparison)
         btn_fft.clicked.connect(self.compute_fft)
         btn_lyap.clicked.connect(self.compute_lyapunov)
@@ -783,6 +794,8 @@ class MainWindow(QMainWindow):
             self.controls_scroll.setVisible(not is_sprott)
         if hasattr(self, 'main_splitter'):
             self.main_splitter.setSizes([0, 1720] if is_sprott else [410, 1310])
+        if hasattr(self, 'info_label') and is_sprott:
+            self.info_label.setText('Explorador Sprott: los controles de sistemas clasicos quedan ocultos; carga/crea codigos, simula, ajusta estilo y guarda/exporta dentro de esta pestana.')
 
     def open_dictionary_pdf(self):
         if hasattr(self, 'dictionary_pdf_path') and os.path.exists(self.dictionary_pdf_path):

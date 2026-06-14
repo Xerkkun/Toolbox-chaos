@@ -10,3 +10,8 @@ them into the repository.
 
 External `.DIC` codes loaded by the user should be treated as local external
 references. Keep them separate from public assets and from generated favorites.
+
+Images generated from user-local `.DIC` codes should be saved in the local
+Sprott gallery under the user's application-data folder, not in this public
+`assets/` tree. Public assets here must remain synthetic or newly generated from
+equations documented in this repository.
