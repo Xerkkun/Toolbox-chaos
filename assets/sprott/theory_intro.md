@@ -1,87 +1,130 @@
 # Explorador Sprott
 
-## What is a strange attractor?
+Esta pagina resume la idea teorica que inspira el Explorador Sprott de Chaos
+Toolbox. La referencia principal es el libro de Julien C. Sprott, *Strange
+Attractors: Creating Patterns in Chaos* (M&T Books, 1993), junto con el
+manuscrito oficial que Sprott mantiene en su sitio de la University of
+Wisconsin. El codigo, los ejemplos y las figuras de esta app son una
+reimplementacion educativa independiente; no redistribuyen los diccionarios,
+programas ni laminas originales del libro.
 
-A strange attractor is a long-term geometric pattern produced by a deterministic
-system whose nearby trajectories separate in a sensitive way. The orbit remains
-bounded, but it does not settle to a simple equilibrium or a short periodic
-cycle. This makes the object useful both as a mathematical diagnostic and as a
-visual signature of nonlinear dynamics.
+## Idea central
 
-$$\|x_n-y_n\|\approx \|x_0-y_0\|e^{\lambda n}$$
+Sprott presenta el caos como una combinacion de determinismo, sensibilidad a
+condiciones iniciales y acotamiento no trivial. Una regla puede ser
+completamente determinista y aun asi tener horizonte predictivo corto: dos
+estados iniciales casi iguales se separan hasta que la no linealidad limita el
+crecimiento y confina la orbita en una region complicada.
 
-## What did Sprott's software explore?
+$$\lVert x_n-y_n\rVert \approx \lVert x_0-y_0\rVert e^{\lambda n}$$
 
-Sprott's historical software made it practical to search large families of
-compactly encoded equations and visualize the resulting dynamics. The important
-idea for this toolbox is not to copy that implementation, but to preserve the
-research pattern: generate a compact code, decode it into equations, simulate,
-filter, and visualize.
+Para la exploracion computacional esto se traduce en una lectura practica:
 
-## Discrete maps
+- no basta con que la figura sea bonita;
+- no basta con que la trayectoria sea irregular durante pocos pasos;
+- un candidato util debe estar acotado, no colapsar a punto fijo o ciclo corto,
+  y conservar ecuaciones, codigo, parametros, transitorio y diagnosticos.
 
-A map updates a state directly from one step to the next. In a polynomial map,
-each next variable is a weighted sum of monomials such as `1`, `x`, `y`, `x^2`,
-or `x*y`. Iterating the map can reveal fixed points, cycles, or bounded
-irregular motion.
+## De reglas simples a formas complejas
+
+El libro insiste en que sistemas muy simples pueden producir estructuras
+visuales complejas. El primer ejemplo didactico es la ecuacion logistica:
+
+$$x_{n+1}=R x_n(1-x_n)$$
+
+Al variar $R$, la orbita pasa de punto fijo a ciclos periodicos, duplicaciones
+de periodo y regiones caoticas con ventanas periodicas. Por eso esta pagina usa
+la bifurcacion logistica como primer ejemplo: muestra que una sola ecuacion
+cuadratica ya contiene la ruta basica de orden a caos.
+
+![Bifurcacion logistica generada por Chaos Toolbox con 1000 valores de R, 1200 iteraciones por valor y descarte de 700 iteraciones transitorias.](images/logistic_bifurcation_sprott_theory.png)
+
+## Mapas polinomiales
+
+Un mapa discreto calcula directamente el siguiente estado:
 
 $$x_{n+1}=F(x_n), \qquad F_i(x)=\sum_j c_{ij}m_j(x)$$
 
-## Continuous flows
+En dos dimensiones, cada iteracion produce un punto del plano. La no linealidad
+puede contraer areas en unas direcciones y estirar en otras, generando objetos
+que tienen mas detalle que una curva simple pero no llenan todo el plano. Esa
+lectura es la base del flujo de trabajo de la app: decodificar coeficientes,
+iterar, descartar transitorios y mirar la proyeccion post-transitorio.
 
-A flow defines derivatives such as `dx/dt`, `dy/dt`, and `dz/dt`. This module
-supports polynomial right-hand sides and integrates them with Euler or RK4.
-Euler with larger historical steps is useful for comparison, while RK4 is a
-modern numerical option for cleaner experiments.
+![Mapa de Henon generado por Chaos Toolbox con x'=1-1.4*x^2+y, y'=0.3*x, 26000 iteraciones y descarte de 1000.](images/henon_like_synthetic_sprott_theory.png)
+
+## Flujos polinomiales
+
+Un flujo continuo define derivadas:
 
 $$\dot{x}=F(x), \qquad x(t+h)\approx x(t)+hF(x(t))$$
 
-## Compact codes
+El capitulo de campos y flujos del libro conecta esta idea con Lorenz y
+Rossler, y el epilogo propone buscar ejemplos simples de caos en EDO
+polinomiales. Como ejemplo teorico, Sprott da un sistema 3D de cinco terminos:
 
-The first character selects a family: dimension, order, and whether the system
-is a map or a flow. Later characters encode coefficients. In this first phase,
-families A-X cover polynomial maps and flows; special-function families are
-documented as pending.
+$$x'=yz, \qquad y'=x-y, \qquad z'=1-xy$$
 
-$$c=\frac{\operatorname{ord}(\mathrm{letter})-77}{10}$$
+La grafica siguiente se genero desde esas ecuaciones con RK4. Es una figura
+educativa propia de esta app, no una reproduccion de una lamina del libro.
 
-## Automatic search
+![Flujo 3D de cinco terminos citado por Sprott, integrado con RK4, h=0.01, 60000 pasos y descarte de 10000.](images/sprott_five_term_flow_theory.png)
 
-Automatic search generates many coefficient strings, simulates them, rejects
-divergent or collapsed trajectories, and keeps bounded candidates for deeper
-diagnostics. The current implementation is deliberately small and synchronous;
-future versions can move search into a worker thread.
+## Codigos compactos
 
-## Maximum Lyapunov exponent
+El programa historico de Sprott codificaba familias de ecuaciones y
+coeficientes en cadenas compactas. Chaos Toolbox conserva esa idea como
+interfaz educativa: la primera letra selecciona familia, dimension, tipo y
+orden; las letras siguientes se leen como coeficientes.
 
-A positive maximum Lyapunov estimate is a useful early filter for sensitive
-dependence. It is not a final proof of chaos. This toolbox uses a simple
-two-trajectory estimate for quick screening and reserves full spectra for a
-later phase.
+$$c=\frac{\mathrm{ord}(\mathrm{letter})-77}{10}$$
 
-## Fractal and correlation dimensions
+En esta reimplementacion:
 
-Dimension estimates describe how an attractor fills space across scales. They
-are sensitive to data length, noise, transients, and sampling. This phase keeps
-clean placeholders for correlation dimension and Kaplan-Yorke dimension.
+- `M` representa `0.0`;
+- letras antes de `M` dan coeficientes negativos;
+- letras despues de `M` dan coeficientes positivos;
+- las familias `A-X` cubren mapas y flujos polinomiales;
+- las familias especiales quedan documentadas como trabajo pendiente.
 
-$$C(r)=\frac{2}{N(N-1)}\sum_{i<j}\mathbf{1}\{\|x_i-x_j\|<r\}$$
+## Busqueda automatica
 
-## 2D, 3D, and 4D visualization
+El patron de busqueda de Sprott es experimental: generar muchas reglas simples,
+simularlas, descartar las triviales y estudiar las candidatas. En esta app el
+boton **Buscar candidato** aplica filtros rapidos:
 
-Low-dimensional systems can be plotted directly. Four-dimensional systems need
-projections, component views, or interactive slicing. The explorer starts with
-2D projections and stores enough metadata to add richer views later.
+- rechaza trayectorias divergentes o con valores no finitos;
+- rechaza colapso a punto fijo;
+- marca como baja complejidad las colas con poca dispersion o muchos estados
+  repetidos;
+- etiqueta como `candidate_chaotic` solo a una trayectoria acotada y no
+  colapsada.
 
-## Art and science
+Esa etiqueta no es una demostracion de caos. Para afirmar caos hacen falta
+diagnosticos mas fuertes, por ejemplo exponentes de Lyapunov, espectro,
+secciones, dimension y pruebas de sensibilidad con integracion mas larga.
 
-Sprott's work is important because the same computation can support rigorous
-experiments and striking visual forms. Chaos Toolbox treats images as evidence
-only when paired with equations, parameters, simulation settings, and metrics.
+## Como generar estas graficas
 
-## Modern extensions
+Desde la raiz del repositorio:
 
-Planned extensions include detailed `.DIC` import from user-local files,
-thumbnail generation, background search workers, full Lyapunov spectra,
-correlation dimension, and side-by-side comparison with historical references
-loaded locally by the user.
+`python assets/sprott/generate_theory_figures.py`
+
+El script escribe las imagenes en `assets/sprott/images/` y usa parametros
+fijos para que la pagina sea reproducible. Despues abre la pestana
+**Explorador Sprott > Teoria** para verlas dentro de la app.
+
+## Referencias
+
+Sprott, J. C. (1993). *Strange Attractors: Creating Patterns in Chaos*. M&T
+Books.
+
+Sprott, J. C. (1993). *Strange Attractors: Creating Patterns in Chaos*,
+manuscrito oficial en linea, University of Wisconsin:
+https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM
+
+Sprott, J. C. *Sprott's Fractal Gallery*, University of Wisconsin:
+https://sprott.physics.wisc.edu/FRACTALS.HTM
+
+Sprott, J. C. (1994). Some simple chaotic flows. *Physical Review E*, 50,
+R647-R650. DOI: 10.1103/PhysRevE.50.R647.

@@ -2,15 +2,18 @@
 
 ## Family letters
 
-| Letters | Kind | Dimension | Orders |
-| --- | --- | ---: | --- |
-| A-D | Polynomial map | 1 | 2, 3, 4, 5 |
-| E-H | Polynomial map | 2 | 2, 3, 4, 5 |
-| I-L | Polynomial map | 3 | 2, 3, 4, 5 |
-| M-P | Polynomial map | 4 | 2, 3, 4, 5 |
-| Q-T | Polynomial flow | 3 | 2, 3, 4, 5 |
-| U-X | Polynomial flow | 4 | 2, 3, 4, 5 |
-| Y-Z | Special functions | pending | pending |
+$$
+\begin{array}{c c c c}
+\mathrm{Letters} & \mathrm{Kind} & \mathrm{Dimension} & \mathrm{Orders}\\
+A-D & \mathrm{Polynomial\ map} & 1 & 2,3,4,5\\
+E-H & \mathrm{Polynomial\ map} & 2 & 2,3,4,5\\
+I-L & \mathrm{Polynomial\ map} & 3 & 2,3,4,5\\
+M-P & \mathrm{Polynomial\ map} & 4 & 2,3,4,5\\
+Q-T & \mathrm{Polynomial\ flow} & 3 & 2,3,4,5\\
+U-X & \mathrm{Polynomial\ flow} & 4 & 2,3,4,5\\
+Y-Z & \mathrm{Special\ functions} & \mathrm{pending} & \mathrm{pending}
+\end{array}
+$$
 
 Within each four-letter group, the first letter means order 2, the second order
 3, the third order 4, and the fourth order 5.

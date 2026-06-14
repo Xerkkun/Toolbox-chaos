@@ -10,6 +10,7 @@ import numpy as np
 import pyqtgraph as pg
 
 from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -55,6 +56,7 @@ from core.sprott import decode_code, describe_family
 from core.sprott.catalog import favorites_path, load_favorites, load_synthetic_examples, save_favorite
 from core.sprott.references import index_local_reference_folder, read_dic_entries
 from core.sprott.search import classify_candidate, generate_random_code, simulate_candidate
+from ui.math_render import render_math_to_path
 from ui.widgets import make_help_label
 
 
@@ -104,7 +106,6 @@ class SprottExplorerTab(QWidget):
         self._build_examples_tab()
         self._build_gallery_tab()
         self._build_importer_tab()
-        self._build_references_tab()
 
     def _read_asset(self, name: str, fallback: str = '') -> str:
         path = self.assets_dir / name
@@ -113,7 +114,7 @@ class SprottExplorerTab(QWidget):
         return path.read_text(encoding='utf-8')
 
     def _markdown_browser(self, markdown: str) -> QTextBrowser:
-        html_doc = _markdown_to_clean_html(markdown, webengine=WEBENGINE_AVAILABLE)
+        html_doc = _markdown_to_clean_html(markdown, webengine=WEBENGINE_AVAILABLE, asset_root=self.assets_dir)
         if WEBENGINE_AVAILABLE:
             browser = QWebEngineView()
             browser.setHtml(html_doc, QUrl.fromLocalFile(str(self.repo_root / 'assets' / 'sprott' / 'index.html')))
@@ -146,7 +147,7 @@ class SprottExplorerTab(QWidget):
     def _build_theory_tab(self):
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.addWidget(self._pdf_guide_or_browser())
+        layout.addWidget(self._theory_page_browser())
         self.sections.addTab(widget, 'Teoria')
 
     def _build_codes_tab(self):
@@ -404,11 +405,44 @@ class SprottExplorerTab(QWidget):
         layout.addWidget(self.import_table, stretch=1)
         self.sections.addTab(widget, 'Importador local')
 
-    def _build_references_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.addWidget(self._pdf_guide_or_browser())
-        self.sections.addTab(widget, 'Referencias')
+    def _theory_page_browser(self):
+        pdf_path = self.assets_dir / 'sprott_theory.pdf'
+        if pdf_path.exists() and not QT_PDF_AVAILABLE:
+            browser = QTextBrowser()
+            browser.setOpenExternalLinks(True)
+            pdf_uri = QUrl.fromLocalFile(str(pdf_path)).toString()
+            browser.setHtml(
+                '<html><body style="font-family: Segoe UI, Arial, sans-serif; margin: 14px;">'
+                '<h2>Teoria del Explorador Sprott</h2>'
+                '<p>Esta pestana esta preparada como PDF compilado para mantener tipografia, '
+                'ecuaciones y maquetacion estables. QtPdf no esta disponible en este entorno.</p>'
+                f'<p><a href="{html.escape(pdf_uri)}">Abrir sprott_theory.pdf</a></p>'
+                '</body></html>'
+            )
+            return browser
+        if QT_PDF_AVAILABLE and pdf_path.exists():
+            widget = QWidget()
+            layout = QVBoxLayout(widget)
+            note = QLabel('Esta pestana usa un PDF compilado para mantener tipografia, ecuaciones y maquetacion estables.')
+            note.setWordWrap(True)
+            note.setStyleSheet('font-weight: bold; padding: 4px;')
+            layout.addWidget(note, stretch=0)
+            open_button = QPushButton('Abrir PDF externo')
+            open_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(pdf_path))))
+            layout.addWidget(open_button, stretch=0)
+            view = QPdfView(widget)
+            document = QPdfDocument(view)
+            view.setDocument(document)
+            document.load(str(pdf_path))
+            if hasattr(view, 'setZoomMode'):
+                view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
+            if hasattr(view, 'setPageMode'):
+                view.setPageMode(QPdfView.PageMode.MultiPage)
+            view._sprott_pdf_document = document
+            layout.addWidget(view, stretch=1)
+            return widget
+        text = self._read_asset('theory_intro.md') + '\n\n' + self._read_asset('code_grammar.md') + '\n\n' + self._read_asset('examples_readme.md')
+        return self._markdown_browser(text)
 
     def _pdf_guide_or_browser(self):
         pdf_path = self.assets_dir / 'sprott_explorer_guide.pdf'
@@ -840,7 +874,7 @@ def _double_spin(value: float, minimum: float, maximum: float, decimals: int, to
     return spin
 
 
-def _markdown_to_clean_html(markdown: str, *, webengine: bool = False) -> str:
+def _markdown_to_clean_html(markdown: str, *, webengine: bool = False, asset_root: Path | None = None) -> str:
     parts = []
     css = """
     body { font-family: Segoe UI, Arial, sans-serif; color: #172033; background: #ffffff; margin: 22px; line-height: 1.52; font-size: 15px; }
@@ -851,8 +885,12 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False) -> str:
     ul { margin-top: 4px; }
     li { margin: 4px 0; }
     code { background: #eef2f7; padding: 1px 4px; border-radius: 3px; font-family: Consolas, monospace; }
-    .equation { margin: 14px auto; padding: 12px 16px; text-align: center; border: 1px solid #ccd6e0; border-left: 4px solid #2563eb; background: #f8fafc; color: #0f172a; font-family: Cambria Math, STIX Two Math, Times New Roman, serif; font-size: 22px; max-width: 860px; border-radius: 6px; box-shadow: 0 1px 3px rgba(15,23,42,0.08); }
-    .inline-eq { font-family: Cambria Math, STIX Two Math, Times New Roman, serif; color: #0f172a; background: #f8fafc; border: 1px solid #e1e7ef; padding: 0 4px; border-radius: 3px; }
+    figure { margin: 14px 0 18px 0; }
+    figure img { max-width: 100%; border: 1px solid #d8dee9; border-radius: 6px; background: #ffffff; }
+    figcaption { margin-top: 5px; color: #526070; font-size: 13px; }
+    .equation { margin: 14px auto; padding: 12px 16px; text-align: center; border: 1px solid #ccd6e0; border-left: 4px solid #2563eb; background: #f8fafc; max-width: 860px; border-radius: 6px; box-shadow: 0 1px 3px rgba(15,23,42,0.08); }
+    .equation img { max-width: 100%; border: 0; background: transparent; }
+    .inline-eq { vertical-align: middle; border: 0; background: transparent; }
     """
     if webengine:
         css += """
@@ -875,7 +913,9 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False) -> str:
             continue
         if block.startswith('$$') and block.endswith('$$'):
             close_list()
-            parts.append(f'<div class="equation">{_latex_to_unicode(block[2:-2].strip())}</div>')
+            expr = block[2:-2].strip()
+            uri = render_math_to_path(f'${expr}$', size=19, color='#0f172a')
+            parts.append(f'<div class="equation"><img src="{html.escape(uri)}" alt="{html.escape(expr)}"></div>')
             continue
         for raw_line in block.splitlines():
             line = raw_line.strip()
@@ -887,6 +927,17 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False) -> str:
                 level = min(3, len(line) - len(line.lstrip('#')))
                 title = line[level:].strip()
                 parts.append(f'<h{level}>{_inline_html(title)}</h{level}>')
+            elif re.match(r'^!\[[^\]]*\]\([^)]+\)$', line):
+                close_list()
+                alt, src = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)$', line).groups()
+                image_src = _asset_image_src(src.strip(), asset_root)
+                caption = _inline_html(alt.strip())
+                parts.append(
+                    '<figure>'
+                    f'<img src="{html.escape(image_src)}" alt="{html.escape(alt.strip())}">'
+                    f'<figcaption>{caption}</figcaption>'
+                    '</figure>'
+                )
             elif line.startswith(('- ', '* ')):
                 if not in_list:
                     parts.append('<ul>')
@@ -903,6 +954,20 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False) -> str:
     return ''.join(parts)
 
 
+def _asset_image_src(src: str, asset_root: Path | None) -> str:
+    if re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:', src):
+        return src
+    if asset_root is None:
+        return src
+    path = Path(src)
+    if not path.is_absolute():
+        path = asset_root / path
+    try:
+        return path.resolve().as_uri()
+    except ValueError:
+        return src
+
+
 def _inline_html(text: str) -> str:
     protected = []
 
@@ -915,42 +980,12 @@ def _inline_html(text: str) -> str:
     out = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', out)
 
     def replace_inline(match):
-        return f'<span class="inline-eq">{_latex_to_unicode(match.group(1).strip())}</span>'
+        expr = match.group(1).strip()
+        uri = render_math_to_path(f'${expr}$', size=14, color='#0f172a')
+        return f'<img class="inline-eq" src="{html.escape(uri)}" alt="{html.escape(expr)}">'
 
     out = re.sub(r'(?<!\\)\$([^$\n]+?)(?<!\\)\$', replace_inline, out)
     out = out.replace(r'\$', '$')
     for idx, value in enumerate(protected):
         out = out.replace(f'\x00{idx}\x00', value)
     return out
-
-
-def _latex_to_unicode(expr: str) -> str:
-    text = html.escape(expr)
-    replacements = {
-        r'\qquad': '   ',
-        r'\quad': '  ',
-        r'\approx': '≈',
-        r'\lambda': 'λ',
-        r'\dot{x}': 'ẋ',
-        r'\operatorname{ord}': 'ord',
-        r'\mathrm{letter}': 'letter',
-        r'\mathbf{1}': '𝟙',
-        r'\sum': '∑',
-        r'\frac': 'frac',
-        r'\binom': 'C',
-        r'\|': '‖',
-        r'\{': '{',
-        r'\}': '}',
-        r'\left': '',
-        r'\right': '',
-    }
-    for src, dst in replacements.items():
-        text = text.replace(src, dst)
-    text = text.replace('x_{n+1}', 'xₙ₊₁').replace('x_n', 'xₙ').replace('y_n', 'yₙ')
-    text = text.replace('x_0', 'x₀').replace('y_0', 'y₀')
-    text = text.replace('F_i', 'Fᵢ').replace('c_{ij}', 'cᵢⱼ').replace('m_j', 'mⱼ')
-    text = text.replace('N_m', 'Nₘ').replace('N_c', 'N꜀')
-    text = text.replace('e^{\\lambda n}', 'e^(λn)')
-    text = text.replace('\\', '')
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text

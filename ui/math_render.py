@@ -22,12 +22,15 @@ def render_math_to_path(expression: str, *, size: int = 14, color: str = 'black'
     Falls back to plain text rendering if MathText parsing fails, so the GUI does
     not crash because of a malformed or unsupported expression.
     """
-    key = hashlib.sha256(f'{expression}|{size}|{color}'.encode('utf-8')).hexdigest()
+    key = hashlib.sha256(f'v2|{expression}|{size}|{color}'.encode('utf-8')).hexdigest()
     out_path = _CACHE_DIR / f'{key}.png'
     if not out_path.exists():
         prop = FontProperties(size=size)
         try:
-            math_to_image(expression, str(out_path), prop=prop, dpi=180, format='png', color=color)
+            if _is_latex_array(expression):
+                _render_latex_array(expression, out_path, size=size, color=color)
+            else:
+                math_to_image(expression, str(out_path), prop=prop, dpi=180, format='png', color=color)
         except Exception:
             fig = Figure(figsize=(8, 0.55), dpi=180)
             FigureCanvasAgg(fig)
@@ -47,6 +50,83 @@ def render_math_to_path(expression: str, *, size: int = 14, color: str = 'black'
                 facecolor='white',
             )
     return out_path.as_uri() if os.name != 'nt' else out_path.resolve().as_uri()
+
+
+def _is_latex_array(expression: str) -> bool:
+    return r'\begin{array}' in expression and r'\end{array}' in expression
+
+
+def _render_latex_array(expression: str, out_path: Path, *, size: int, color: str):
+    rows = _parse_latex_array(expression)
+    if not rows:
+        raise ValueError('empty LaTeX array')
+    header = rows[0]
+    data = rows[1:] if len(rows) > 1 else []
+    n_rows = max(1, len(rows))
+    n_cols = max(len(row) for row in rows)
+    normalized = [row + [''] * (n_cols - len(row)) for row in data]
+    header = header + [''] * (n_cols - len(header))
+
+    fig_width = min(11.5, max(6.8, 1.85 * n_cols))
+    fig_height = max(1.8, 0.42 * (n_rows + 1))
+    fig = Figure(figsize=(fig_width, fig_height), dpi=180)
+    FigureCanvasAgg(fig)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
+    table = ax.table(
+        cellText=normalized,
+        colLabels=header,
+        cellLoc='center',
+        colLoc='center',
+        loc='center',
+        bbox=[0.015, 0.04, 0.97, 0.92],
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(max(9, size - 3))
+    for (row, _col), cell in table.get_celld().items():
+        cell.set_edgecolor('#94a3b8')
+        cell.set_linewidth(0.55)
+        cell.get_text().set_color(color)
+        if row == 0:
+            cell.set_facecolor('#eaf1fb')
+            cell.get_text().set_weight('bold')
+        else:
+            cell.set_facecolor('#ffffff' if row % 2 else '#f8fafc')
+    fig.savefig(out_path, format='png', dpi=180, bbox_inches='tight', pad_inches=0.02, facecolor='white')
+
+
+def _parse_latex_array(expression: str) -> list[list[str]]:
+    body = expression.strip()
+    if body.startswith('$') and body.endswith('$') and len(body) >= 2:
+        body = body[1:-1].strip()
+    match = re.search(r'\\begin\{array\}\{[^}]*\}(.*?)\\end\{array\}', body, flags=re.DOTALL)
+    if not match:
+        return []
+    content = match.group(1)
+    rows = []
+    for raw_row in re.split(r'\\\\', content):
+        row = raw_row.strip()
+        if not row:
+            continue
+        rows.append([_clean_latex_array_cell(cell) for cell in row.split('&')])
+    return rows
+
+
+def _clean_latex_array_cell(cell: str) -> str:
+    text = cell.strip()
+
+    def replace_text_command(match):
+        return match.group(1).replace(r'\ ', ' ')
+
+    previous = None
+    while previous != text:
+        previous = text
+        text = re.sub(r'\\(?:mathrm|text)\{([^{}]*)\}', replace_text_command, text)
+    text = text.replace(r'\ ', ' ')
+    text = text.replace(r'\-', '-')
+    text = text.replace('\\', '')
+    text = text.replace('{', '').replace('}', '')
+    return re.sub(r'\s+', ' ', text).strip()
 
 
 def markdown_math_to_html(markdown: str, *, text_color: str = '#111827') -> str:

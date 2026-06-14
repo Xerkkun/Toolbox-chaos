@@ -3,9 +3,7 @@ import multiprocessing as mp
 import sys
 
 from PyQt6.QtWidgets import QApplication
-
 from ui.main_window import MainWindow
-
 
 def configure_qt_platform():
     if 'QT_QPA_PLATFORM' in os.environ:
