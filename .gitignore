@@ -17,6 +17,13 @@ dist/
 installer/
 *.egg-info/
 
+external/sprott_site/
+external/sprott_site_bookdisk/
+external/sprott_site_full/
+external/sprott_site_theory/
+external/sprott_originals/
+sprott_originals/
+
 .idea/
 .vscode/
 
