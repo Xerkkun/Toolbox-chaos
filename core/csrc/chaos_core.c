@@ -966,3 +966,193 @@ CHAOS_API int chaos_basin_plane_generic(
     }
     return 0;
 }
+
+static int sprott_monomial_count(int dimension, int order) {
+    int n = dimension + order;
+    int k = order;
+    if (k > n - k) k = n - k;
+    int result = 1;
+    for (int i = 1; i <= k; ++i) {
+        result = (result * (n - k + i)) / i;
+    }
+    return result;
+}
+
+static double pow_int_nonnegative(double x, int power) {
+    double out = 1.0;
+    for (int i = 0; i < power; ++i) out *= x;
+    return out;
+}
+
+static void sprott_fill_degree_terms_rec(
+    int dimension,
+    int position,
+    int remaining_degree,
+    const double *state,
+    int *powers,
+    double *terms,
+    int *term_index
+) {
+    if (position == dimension - 1) {
+        powers[position] = remaining_degree;
+        double value = 1.0;
+        for (int j = 0; j < dimension; ++j) {
+            value *= pow_int_nonnegative(state[j], powers[j]);
+        }
+        terms[*term_index] = value;
+        *term_index += 1;
+        return;
+    }
+
+    for (int power = remaining_degree; power >= 0; --power) {
+        powers[position] = power;
+        sprott_fill_degree_terms_rec(
+            dimension,
+            position + 1,
+            remaining_degree - power,
+            state,
+            powers,
+            terms,
+            term_index
+        );
+    }
+}
+
+static int sprott_fill_monomials(int dimension, int order, const double *state, double *terms, int max_terms) {
+    int powers[4] = {0, 0, 0, 0};
+    int term_index = 0;
+    for (int degree = 0; degree <= order; ++degree) {
+        sprott_fill_degree_terms_rec(dimension, 0, degree, state, powers, terms, &term_index);
+        if (term_index > max_terms) return -1;
+    }
+    return term_index;
+}
+
+static int sprott_eval_polynomial(
+    int dimension,
+    int order,
+    const double *coefficients,
+    int n_coefficients,
+    const double *state,
+    double *out
+) {
+    int monomial_count = sprott_monomial_count(dimension, order);
+    int expected = dimension * monomial_count;
+    double terms[126];
+    if (dimension < 1 || dimension > 4 || order < 0 || order > 5) return -1;
+    if (monomial_count > 126) return -1;
+    if (sprott_fill_monomials(dimension, order, state, terms, monomial_count) != monomial_count) return -1;
+
+    for (int row = 0; row < dimension; ++row) {
+        double sum = 0.0;
+        for (int col = 0; col < monomial_count; ++col) {
+            int coeff_idx = row * monomial_count + col;
+            double coeff = coeff_idx < n_coefficients && coeff_idx < expected ? coefficients[coeff_idx] : 0.0;
+            sum += coeff * terms[col];
+        }
+        out[row] = sum;
+    }
+    return 0;
+}
+
+static int sprott_state_invalid(const double *state, int dimension, double threshold) {
+    double norm2 = 0.0;
+    for (int i = 0; i < dimension; ++i) {
+        if (!isfinite(state[i])) return 1;
+        norm2 += state[i] * state[i];
+    }
+    return sqrt(norm2) >= threshold;
+}
+
+static int sprott_flow_step(
+    int dimension,
+    int order,
+    const double *coefficients,
+    int n_coefficients,
+    double h,
+    int method,
+    const double *state,
+    double *next
+) {
+    double k1[4], k2[4], k3[4], k4[4], tmp[4];
+    if (method == 0) {
+        if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, state, k1) != 0) return -1;
+        for (int i = 0; i < dimension; ++i) next[i] = state[i] + h * k1[i];
+        return 0;
+    }
+
+    if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, state, k1) != 0) return -1;
+    for (int i = 0; i < dimension; ++i) tmp[i] = state[i] + 0.5 * h * k1[i];
+    if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, tmp, k2) != 0) return -1;
+    for (int i = 0; i < dimension; ++i) tmp[i] = state[i] + 0.5 * h * k2[i];
+    if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, tmp, k3) != 0) return -1;
+    for (int i = 0; i < dimension; ++i) tmp[i] = state[i] + h * k3[i];
+    if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, tmp, k4) != 0) return -1;
+    for (int i = 0; i < dimension; ++i) {
+        next[i] = state[i] + (h / 6.0) * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]);
+    }
+    return 0;
+}
+
+CHAOS_API int sprott_simulate_polynomial(
+    int kind,
+    int dimension,
+    int order,
+    const double *coefficients,
+    int n_coefficients,
+    const double *initial,
+    int n_steps,
+    double h,
+    int method,
+    double divergence_threshold,
+    double *t_out,
+    double *x_out,
+    int *status_out
+) {
+    if (dimension < 1 || dimension > 4 || order < 2 || order > 5 ||
+        coefficients == NULL || initial == NULL || n_steps < 1 || h <= 0.0 ||
+        t_out == NULL || x_out == NULL || status_out == NULL) {
+        return -1;
+    }
+
+    double state[4] = {0.0, 0.0, 0.0, 0.0};
+    double next[4] = {0.0, 0.0, 0.0, 0.0};
+    *status_out = 0;
+    for (int j = 0; j < dimension; ++j) {
+        state[j] = initial[j];
+        x_out[j] = state[j];
+    }
+    t_out[0] = 0.0;
+
+    for (int step = 1; step <= n_steps; ++step) {
+        if (kind == 0) {
+            if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, state, next) != 0) {
+                return -2;
+            }
+        } else if (kind == 1) {
+            if (sprott_flow_step(dimension, order, coefficients, n_coefficients, h, method, state, next) != 0) {
+                return -2;
+            }
+        } else {
+            return -1;
+        }
+
+        t_out[step] = ((double)step) * h;
+        for (int j = 0; j < dimension; ++j) {
+            state[j] = next[j];
+            x_out[step * dimension + j] = state[j];
+        }
+
+        if (sprott_state_invalid(state, dimension, divergence_threshold)) {
+            *status_out = 1;
+            for (int k = step + 1; k <= n_steps; ++k) {
+                t_out[k] = ((double)k) * h;
+                for (int j = 0; j < dimension; ++j) {
+                    x_out[k * dimension + j] = NAN;
+                }
+            }
+            return 0;
+        }
+    }
+    return 0;
+}

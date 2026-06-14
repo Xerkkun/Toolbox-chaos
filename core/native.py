@@ -189,6 +189,23 @@ def _load_library() -> ctypes.CDLL:
         ctypes.POINTER(ctypes.c_uint8),
     ]
     lib.chaos_basin_plane_generic.restype = ctypes.c_int
+
+    lib.sprott_simulate_polynomial.argtypes = [
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.c_int,
+        ctypes.c_double,
+        ctypes.c_int,
+        ctypes.c_double,
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_double),
+        ctypes.POINTER(ctypes.c_int),
+    ]
+    lib.sprott_simulate_polynomial.restype = ctypes.c_int
     return lib
 
 
@@ -590,3 +607,51 @@ def basin_plane_generic_native(
     if rc != 0:
         raise NativeChaosError(f'Fallo el calculo nativo de cuenca para {system_key}.')
     return out
+
+
+def sprott_simulate_polynomial_native(
+    kind: str,
+    dimension: int,
+    order: int,
+    coefficients,
+    initial,
+    n_steps: int,
+    h: float,
+    method_key: str = 'rk4',
+    divergence_threshold: float = 1e6,
+):
+    kind_code = {'map': 0, 'flow': 1}.get(str(kind).lower())
+    if kind_code is None:
+        raise NativeChaosError(f'Familia Sprott no simulable en C: {kind}')
+    dimension = int(dimension)
+    n_steps = int(n_steps)
+    if dimension < 1 or dimension > 4 or n_steps < 1:
+        raise NativeChaosError('Parametros Sprott nativos invalidos.')
+
+    coeff = _params_array(coefficients)
+    init = np.ascontiguousarray(np.asarray(initial, dtype=np.float64)[:dimension])
+    if init.size != dimension:
+        raise NativeChaosError('La condicion inicial Sprott no coincide con la dimension.')
+
+    t = np.empty(n_steps + 1, dtype=np.float64)
+    X = np.empty((n_steps + 1, dimension), dtype=np.float64)
+    status = ctypes.c_int(0)
+
+    rc = library().sprott_simulate_polynomial(
+        kind_code,
+        dimension,
+        int(order),
+        coeff.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        int(coeff.size),
+        init.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        n_steps,
+        float(h),
+        get_method_code(method_key),
+        float(divergence_threshold),
+        t.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        X.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        ctypes.byref(status),
+    )
+    if rc != 0:
+        raise NativeChaosError(f'Fallo la simulacion nativa C de Sprott, codigo {rc}.')
+    return t, X, int(status.value)

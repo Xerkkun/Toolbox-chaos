@@ -3,12 +3,15 @@ __pycache__/
 *$py.class
 
 .venv/
+.venv-webengine/
 .venv-build/
 venv/
 env/
 ENV/
 
 .pytest_cache/
+.pytest_tmp/
+pytest-cache-files-*/
 .mypy_cache/
 .ruff_cache/
 
@@ -18,15 +21,30 @@ installer/
 *.egg-info/
 
 external/sprott_site/
+external/sprott_bookdisk/
 external/sprott_site_bookdisk/
 external/sprott_site_full/
 external/sprott_site_theory/
 external/sprott_originals/
+external/sprott_originals/
+external/sprott_bookdisk/
 sprott_originals/
+references/sprott_originals/
+*.DIC
+SADISK.ZIP
+SA.EXE
+SAWIN.EXE
+VBRUN200.DLL
 
 .idea/
 .vscode/
 
 *.log
+assets/sprott/*.aux
+assets/sprott/*.fls
+assets/sprott/*.fdb_latexmk
+assets/sprott/*.log
+assets/sprott/*.out
+assets/sprott/*.toc
 Thumbs.db
 Desktop.ini

@@ -40,6 +40,18 @@ if ($LASTEXITCODE -ne 0) {
     & $python -m pip install -r requirements.txt
 }
 
+& $python -c "import PyQt6, numpy, matplotlib, pyqtgraph" 2>$null
+if ($LASTEXITCODE -ne 0 -and $python -ne "python") {
+    Write-Host "El entorno .venv local no tiene las dependencias de la app; usando python del sistema."
+    $python = "python"
+    & $python -c "import PyQt6, numpy, matplotlib, pyqtgraph"
+}
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "No se pudieron cargar PyQt6, numpy, matplotlib y pyqtgraph. Instala requirements.txt en el Python elegido."
+    exit $LASTEXITCODE
+}
+
 & $python -c "from core.native import library; library(); print('Backend nativo listo para multiproceso.')"
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE

@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "description": "Synthetic educational examples for the Sprott-inspired Explorer. These are not copied from historical Sprott dictionaries.",
+  "examples": [
+    {
+      "id": "synthetic_a_quadratic",
+      "name": "Quadratic 1D bounded map",
+      "source": "synthetic educational example",
+      "code": "AWMA",
+      "equations": "x' = 1 - 1.2*x^2",
+      "notes": "A compact 1D quadratic map used only as a small decoding and plotting example.",
+      "parameters": {
+        "kind": "map",
+        "dimension": 1,
+        "order": 2,
+        "iterations": 800,
+        "transient": 100
+      }
+    },
+    {
+      "id": "synthetic_e_henon_like",
+      "name": "Henon-like quadratic map",
+      "source": "synthetic educational example",
+      "code": "EWMWAMMMPMMMM",
+      "equations": "x' = 1 + y - 1.2*x^2; y' = 0.3*x",
+      "notes": "Simple 2D polynomial map created for this toolbox; not a historical dictionary entry.",
+      "parameters": {
+        "kind": "map",
+        "dimension": 2,
+        "order": 2,
+        "iterations": 1500,
+        "transient": 200
+      }
+    },
+    {
+      "id": "synthetic_q_linear_flow",
+      "name": "Linear 3D flow scaffold",
+      "source": "synthetic educational example",
+      "code": "QMMWMMMMMMMMCMMMMMMMMMKMMMMMMMM",
+      "equations": "dx/dt = y; dy/dt = -x - 0.2*y; dz/dt = -0.3*z",
+      "notes": "Stable flow scaffold for testing flow decoding and integration paths.",
+      "parameters": {
+        "kind": "flow",
+        "dimension": 3,
+        "order": 2,
+        "iterations": 1200,
+        "transient": 100,
+        "h": 0.01
+      }
+    }
+  ]
+}

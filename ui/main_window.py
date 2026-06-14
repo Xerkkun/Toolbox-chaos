@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
+
+if __package__ in {None, ''}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 import pyqtgraph as pg
@@ -59,6 +64,7 @@ from ui.canvases import (
     MplSpectrumCanvas,
 )
 from ui.widgets import make_double_spin, make_help_label, make_int_spin
+from ui.sprott_explorer_tab import SprottExplorerTab
 
 try:
     from PyQt6.QtPdf import QPdfDocument
@@ -156,9 +162,11 @@ class MainWindow(QMainWindow):
 
         main_layout = QHBoxLayout(central)
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.main_splitter = splitter
         main_layout.addWidget(splitter)
 
         controls_scroll = QScrollArea()
+        self.controls_scroll = controls_scroll
         controls_scroll.setWidgetResizable(True)
 
         controls = QWidget()
@@ -362,6 +370,8 @@ class MainWindow(QMainWindow):
         self.build_basin_tab()
         self.build_spectrum_tab()
         self.build_dictionary_tab()
+        self.build_sprott_explorer_tab()
+        self.tabs.currentChanged.connect(self.on_main_tab_changed)
 
         splitter.addWidget(controls_scroll)
         splitter.addWidget(self.tabs)
@@ -762,6 +772,17 @@ class MainWindow(QMainWindow):
             layout.addWidget(self.dict_browser, stretch=1)
 
         self.tabs.addTab(self.tab_dict, 'Diccionario')
+
+    def build_sprott_explorer_tab(self):
+        self.tab_sprott = SprottExplorerTab(self)
+        self.tabs.addTab(self.tab_sprott, 'Explorador Sprott')
+
+    def on_main_tab_changed(self, _index):
+        is_sprott = hasattr(self, 'tab_sprott') and self.tabs.currentWidget() is self.tab_sprott
+        if hasattr(self, 'controls_scroll'):
+            self.controls_scroll.setVisible(not is_sprott)
+        if hasattr(self, 'main_splitter'):
+            self.main_splitter.setSizes([0, 1720] if is_sprott else [410, 1310])
 
     def open_dictionary_pdf(self):
         if hasattr(self, 'dictionary_pdf_path') and os.path.exists(self.dictionary_pdf_path):
@@ -1375,3 +1396,10 @@ class MainWindow(QMainWindow):
             return f'{real:.6g}'
         sign = '+' if imag >= 0 else '-'
         return f'{real:.6g}{sign}{abs(imag):.6g}j'
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())

@@ -1,0 +1,178 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.82in,headheight=15pt]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.42em}
+\setlist[itemize]{nosep,leftmargin=1.35em}
+\setlist[enumerate]{nosep,leftmargin=1.55em}
+\definecolor{Accent}{HTML}{0B4F6C}
+\definecolor{Soft}{HTML}{F2F6FA}
+\titleformat{\section}{\large\bfseries\color{Accent}}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{Accent}}{}{0pt}{}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Chaos Toolbox}
+\fancyhead[R]{Explorador Sprott}
+\fancyfoot[C]{\thepage}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\R}{\mathbb{R}}
+
+\begin{document}
+
+{\LARGE\bfseries Explorador Sprott}\par
+{\small Guia matematica y de uso para la reimplementacion educativa inspirada en Julien C. Sprott.}\par
+\vspace{0.8em}
+\tableofcontents
+\newpage
+
+\section{Que hace esta pestana}
+
+El Explorador Sprott no es una coleccion fija de sistemas como Lorenz o Rossler. Es un
+laboratorio de \emph{ecuaciones compactas}: un codigo corto representa una familia de
+mapas o flujos polinomiales, la toolbox lo decodifica, lo simula con el backend C y
+clasifica rapidamente el resultado.
+
+El flujo correcto es:
+\begin{enumerate}
+  \item elegir un codigo de ejemplo o cargar un diccionario local \code{.DIC};
+  \item decodificarlo para ver que familia, dimension, orden y coeficientes representa;
+  \item simularlo y descartar un transitorio;
+  \item mirar la proyeccion graficada;
+  \item interpretar la etiqueta: divergente, punto fijo, baja complejidad o candidato.
+\end{enumerate}
+
+La etiqueta \emph{candidate\_chaotic} significa solamente que la trayectoria quedo acotada
+y no colapso en los filtros rapidos. No es una prueba formal de caos.
+
+\section{Decodificador}
+
+Un codigo tipo Sprott se separa en dos partes:
+\[
+\boxed{\text{letra de familia}}\quad\boxed{\text{caracteres de coeficientes}}
+\]
+
+La primera letra define el tipo de ecuacion:
+\begin{longtable}{p{0.16\linewidth}p{0.22\linewidth}p{0.18\linewidth}p{0.26\linewidth}}
+\toprule
+Letras & Tipo & Dimension & Ordenes \\
+\midrule
+\endhead
+A--D & mapa polinomial & 1 & 2, 3, 4, 5 \\
+E--H & mapa polinomial & 2 & 2, 3, 4, 5 \\
+I--L & mapa polinomial & 3 & 2, 3, 4, 5 \\
+M--P & mapa polinomial & 4 & 2, 3, 4, 5 \\
+Q--T & flujo polinomial & 3 & 2, 3, 4, 5 \\
+U--X & flujo polinomial & 4 & 2, 3, 4, 5 \\
+Y--Z & funciones especiales & pendiente & pendiente \\
+\bottomrule
+\end{longtable}
+
+Los coeficientes se decodifican inicialmente con
+\[
+c=\frac{\operatorname{ord}(\chi)-77}{10}.
+\]
+Asi, \(\chi=M\) produce \(c=0\), letras antes de \(M\) producen coeficientes negativos
+y letras despues de \(M\) producen coeficientes positivos. Los diccionarios historicos
+tambien pueden contener otros caracteres imprimibles; esta reimplementacion los acepta
+solo como datos locales cargados por el usuario.
+
+\section{Mapas}
+
+Un mapa discreto actualiza el estado por iteraciones:
+\[
+x_{n+1}=F(x_n), \qquad x_n\in\R^D.
+\]
+En una familia polinomial, cada componente usa la misma base de monomios:
+\[
+F_i(x)=\sum_{j=1}^{N_m} c_{ij}m_j(x).
+\]
+El numero de monomios de grado total menor o igual a \(O\) en dimension \(D\) es
+\[
+N_m=\binom{D+O}{O},
+\]
+y el numero total de coeficientes es
+\[
+N_c=D\binom{D+O}{O}.
+\]
+
+Para ver figuras interesantes en mapas:
+\begin{itemize}
+  \item usa ejemplos de \code{SELECTED.DIC} o \code{BOOKFIGS.DIC};
+  \item usa al menos 8\,000 a 20\,000 iteraciones;
+  \item descarta 1\,000 a 3\,000 puntos de transitorio;
+  \item mira primero la proyeccion \(x\)-\(y\).
+\end{itemize}
+
+\section{Flujos}
+
+Un flujo continuo define una ecuacion diferencial:
+\[
+\dot{x}=F(x).
+\]
+La toolbox puede integrar estos sistemas con Euler o RK4. Euler es util para reproducir
+el espiritu de programas historicos; RK4 suele ser mas estable para exploracion moderna:
+\[
+x(t+h)\approx x(t)+hF(x(t)) \quad \text{(Euler)}.
+\]
+
+Para flujos, reduce \(h\) si la trayectoria explota. Si no aparece estructura, aumenta
+el numero de pasos antes de concluir.
+
+\section{Exploracion y botones}
+
+\begin{longtable}{p{0.24\linewidth}p{0.64\linewidth}}
+\toprule
+Control & Uso recomendado \\
+\midrule
+\endhead
+Preset & Carga parametros razonables. Empieza por mapas 2D rapidos. \\
+Tipo & \code{map} itera directamente; \code{flow} integra una EDO. \\
+Dimension & Numero de variables. En la grafica se muestra \(x\)-\(y\) si hay dos o mas. \\
+Orden & Grado maximo del polinomio. Orden alto aumenta mucho el numero de coeficientes. \\
+Iteraciones/pasos & Mas puntos pueden revelar estructura, pero tardan mas. \\
+Transitorio & Puntos descartados al inicio. Evita graficar el arranque. \\
+Tolerancia divergencia & Si la norma supera ese umbral, se detiene y se marca divergente. \\
+Generar codigo & Crea un codigo sintetico. Es didactico, no garantiza atractor interesante. \\
+Simular y graficar & Ejecuta el codigo actual y actualiza la grafica. \\
+Buscar candidato & Si hay \code{.DIC} local cargado, prueba codigos del libro primero; si no, usa aleatorios sinteticos. \\
+\bottomrule
+\end{longtable}
+
+\section{Ejemplos locales del libro}
+
+Los archivos \code{BOOKFIGS.DIC}, \code{SELECTED.DIC} y \code{SPECIAL.DIC} no se
+redistribuyen en el repositorio. La pestana puede leerlos desde una carpeta local que
+el usuario ya tenga descargada.
+
+Uso recomendado:
+\begin{enumerate}
+  \item abrir \emph{Ejemplos};
+  \item revisar la columna \emph{Ejemplos del libro desde .DIC local};
+  \item si no aparece nada, pulsar \emph{Elegir .DIC};
+  \item seleccionar \code{SELECTED.DIC} o \code{BOOKFIGS.DIC};
+  \item pulsar \emph{Cargar codigos};
+  \item seleccionar una linea y pulsar \emph{Simular codigo local}.
+\end{enumerate}
+
+\section{Atribucion y limites legales}
+
+Inspirado por Julien C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos},
+M\&T Books, 1993.
+
+Esta toolbox es una reimplementacion educativa independiente, no una version oficial.
+El software original, diccionarios, ejecutables, figuras y archivos del disco permanecen
+copyright de J. C. Sprott y no se redistribuyen en este repositorio.
+
+\end{document}
