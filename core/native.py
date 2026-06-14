@@ -41,6 +41,10 @@ class NativeChaosError(RuntimeError):
     pass
 
 
+def _is_frozen() -> bool:
+    return bool(getattr(sys, 'frozen', False))
+
+
 def _shared_library_name() -> str:
     if sys.platform.startswith('win'):
         return 'chaos_core.dll'
@@ -62,11 +66,21 @@ def _compile_command(src: Path, out: Path) -> list[str] | None:
 def _ensure_library() -> Path:
     base_dir = Path(__file__).resolve().parent
     lib_dir = base_dir / 'bin'
-    lib_dir.mkdir(parents=True, exist_ok=True)
     lib_path = lib_dir / _shared_library_name()
     src_path = base_dir / 'csrc' / 'chaos_core.c'
 
-    if lib_path.exists() and lib_path.stat().st_mtime >= src_path.stat().st_mtime:
+    if _is_frozen():
+        if lib_path.exists():
+            return lib_path
+        raise NativeChaosError(
+            'La biblioteca nativa de Chaos Toolbox no esta instalada: '
+            f'no se encontro {lib_path}. La instalacion esta incompleta; '
+            'reinstale la aplicacion o regenere el paquete de distribucion.'
+        )
+
+    lib_dir.mkdir(parents=True, exist_ok=True)
+
+    if lib_path.exists() and (not src_path.exists() or lib_path.stat().st_mtime >= src_path.stat().st_mtime):
         return lib_path
 
     cmd = _compile_command(src_path, lib_path)
