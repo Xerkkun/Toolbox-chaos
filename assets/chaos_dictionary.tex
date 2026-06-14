@@ -1,161 +1,498 @@
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[margin=1in,headheight=15pt]{geometry}
+\usepackage[margin=0.82in,headheight=15pt]{geometry}
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
+\graphicspath{{assets/doc_figures/}{doc_figures/}}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{0.45em}
+\setlength{\parskip}{0.42em}
+\setlist[itemize]{nosep,leftmargin=1.35em}
+\setlist[enumerate]{nosep,leftmargin=1.55em}
 \definecolor{Accent}{HTML}{0B4F6C}
 \titleformat{\section}{\large\bfseries\color{Accent}}{}{0pt}{}
 \titleformat{\subsection}{\normalsize\bfseries\color{Accent}}{}{0pt}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{}{0pt}{}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{Diccionario de sistemas caóticos}
-\fancyhead[R]{Banco de pruebas}
+\fancyhead[L]{Chaos Theory Toolbox}
+\fancyhead[R]{Manual matematico y tecnico}
 \fancyfoot[C]{\thepage}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\sysfig}[4]{
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{systems/#1_phase_timeseries.png}
+\caption{#2: (a) atractor o trayectoria visible en el espacio tridimensional usado por la herramienta y (b) series temporales de las variables \(x\), \(y\) y \(z\). Parametros reportados: #3. #4.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\linewidth]{systems/#1_projections.png}
+\caption{Retratos 2-D de #2: (a) \(x\) contra \(y\), (b) \(x\) contra \(z\) y (c) \(y\) contra \(z\). Parametros reportados: #3. #4.}
+\end{figure}
+}
+\newcommand{\examplefig}[3]{
+\begin{figure}[H]
+\centering
+\includegraphics[width=#2\linewidth]{#1}
+\caption{#3}
+\end{figure}
+}
 
 \begin{document}
 
-{\LARGE\bfseries Diccionario de conceptos de sistemas caóticos}\par
-{\small Documento de referencia para la pestaña \emph{Diccionario}.}\par
+{\LARGE\bfseries Diccionario, manual y referencia tecnica}\par
+{\small Documento de referencia para la pestana \emph{Diccionario}. El contenido describe el estado actual del codigo, las funciones implementadas, sus limites y la interpretacion matematica de las graficas.}\par
 \vspace{0.8em}
+\tableofcontents
+\newpage
 
-\section*{Conceptos fundamentales}
+\section{Alcance y limites}
 
-\subsection*{Sistema dinámico continuo}
-Un sistema dinámico continuo suele escribirse como
+La herramienta es un banco de pruebas para sistemas dinamicos no lineales. Usa PyQt6 para la interfaz, Matplotlib/pyqtgraph para graficas y un backend nativo en C para calculos pesados. Permite simular trayectorias, retratos 2D, vista 3D, series temporales, comparacion de integradores, FFT normalizada, bifurcaciones, autovalores locales, cuencas de clasificacion y exponentes de Lyapunov finitos.
+
+El resultado es numerico y exploratorio. La palabra ``caotico'' en una cuenca significa que el clasificador rapido no detecto escape, convergencia a equilibrio ni periodicidad simple dentro del horizonte elegido. No es una demostracion formal de caos.
+
+\begin{longtable}{p{0.18\linewidth}p{0.19\linewidth}p{0.51\linewidth}}
+\toprule
+Clase & Dimension interna & Alcance actual \\
+\midrule
+\endhead
+Flujos ODE 3D & $(x,y,z)$ & Trayectorias, series, retratos, 3D, bifurcacion, cuencas, equilibrios, autovalores y Lyapunov QR-Benettin. \\
+Mapas & 1D o 2D, guardados en 3 columnas & Trayectorias e iteraciones, series visibles y bifurcacion por ultimos valores. Sin cuencas ni Lyapunov en la UI actual. \\
+DDE Mackey--Glass & estado escalar con retardo & Se muestran $x(t)$, $x(t-\tau)$ y $\dot{x}(t)$. Sin cuencas ni Lyapunov en la UI actual. \\
+Lorenz--96 & $J$ variables, $4\le J\le256$ & Se integra el anillo completo pero se grafican $X_1,X_2,X_3$. \\
+\bottomrule
+\end{longtable}
+
+\section{Manual de uso}
+
+Windows:
+\begin{verbatim}
+.\run.ps1
+.\run.ps1 -Workers 4
+\end{verbatim}
+Linux/macOS:
+\begin{verbatim}
+CHAOS_WORKERS=4 ./run-linux.sh
+CHAOS_WORKERS=4 ./run-macos.command
+\end{verbatim}
+
+Flujo recomendado:
+\begin{enumerate}
+  \item seleccionar sistema e integrador;
+  \item ajustar parametros, condiciones iniciales, paso \code{dt} y tiempo total \code{T};
+  \item simular trayectoria y revisar series;
+  \item calcular bifurcacion con una malla pequena antes de aumentar resolucion;
+  \item calcular cuenca con baja resolucion, ajustar ventana y despues subir \code{Nx,Ny};
+  \item para Lyapunov, aumentar primero el tiempo de quemado y luego el tiempo final;
+  \item guardar graficas desde la barra de cada pestana.
+\end{enumerate}
+
+\section{Sistemas implementados, ecuaciones, parametros y referencias}
+
+Las ecuaciones se escriben en forma de sistema. En las figuras se usaron los parametros por defecto registrados en \code{SYSTEM\_REGISTRY} y el integrador RK4, salvo mapas discretos donde la iteracion no depende de RK4. Todas las graficas de sistemas usan el mismo color magenta y la misma distribucion: primero trayectoria 3D con series temporales y despues tres retratos planos. En mapas 1D/2D y en DDE, las coordenadas auxiliares que no existen fisicamente pueden ser cero o variables reconstruidas para mantener la misma interfaz visual.
+
+\subsection{Lorenz}
+Referencia base: \cite{lorenz1963}.
 \[
-\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x},\mu), \qquad \mathbf{x}(t)\in\mathbb{R}^n,
+\left\{\begin{aligned}
+\dot{x}&=\sigma(y-x),\\
+\dot{y}&=x(\rho-z)-y,\\
+\dot{z}&=xy-\beta z.
+\end{aligned}\right.
 \]
-donde $\mathbf{x}$ es el vector de estado y $\mu$ representa parámetros.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Dynamical_system}{Dynamical system}.
+\sysfig{lorenz}{Sistema de Lorenz}{\(\sigma=10,\rho=28,\beta=8/3\)}{Condicion inicial \((0.1,0.1,0.1)\), ancho de paso \(h=0.01\), \(T=40\), \(n=4001\).}
 
-\subsection*{Caos}
-En la práctica, un régimen caótico combina sensibilidad a condiciones iniciales, aperiodicidad acotada y geometría no trivial en el espacio de fases. Una separación infinitesimal puede crecer como
+\newpage
+\subsection{Rossler}
+Referencia base: \cite{rossler1976}.
 \[
-\|\delta \mathbf{x}(t)\| \approx \|\delta \mathbf{x}(0)\|e^{\lambda t},
+\left\{\begin{aligned}
+\dot{x}&=-y-z,\\
+\dot{y}&=x+ay,\\
+\dot{z}&=b+z(x-c).
+\end{aligned}\right.
 \]
-con un exponente de Lyapunov máximo positivo.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Chaos_theory}{Chaos theory}.
+\sysfig{rossler}{Sistema de Rossler}{\(a=0.2,b=0.2,c=5.7\)}{Condicion inicial \((0.1,0,0)\), ancho de paso \(h=0.02\), \(T=160\), \(n=8001\).}
 
-\subsection*{Espacio de fases, trayectoria y órbita}
-La evolución $\mathbf{x}(t)$ se visualiza como una curva en el espacio de fases. La órbita generada por una condición inicial $\mathbf{x}_0$ es
+\newpage
+\subsection{Chua / doble scroll}
+Referencias base: \cite{chua1984,chua1986}.
 \[
-\mathcal{O}(\mathbf{x}_0)=\{\mathbf{x}(t;\mathbf{x}_0): t\ge 0\}.
+\left\{\begin{aligned}
+\dot{x}&=\alpha(y-x-f(x)),\\
+\dot{y}&=x-y+z,\\
+\dot{z}&=-\beta y,\\
+f(x)&=m_1x+\frac{m_0-m_1}{2}\left(|x+1|-|x-1|\right).
+\end{aligned}\right.
 \]
-Wikipedia: \href{https://en.wikipedia.org/wiki/Phase_space}{Phase space}.
+\sysfig{chua}{Circuito de Chua adimensional}{\(\alpha=15.6,\beta=28,m_0=-1.143,m_1=-0.714\)}{Condicion inicial \((0.1,0,0)\), ancho de paso \(h=0.01\), \(T=80\), \(n=8001\).}
 
-\subsection*{Atractor y atractor extraño}
-Un atractor $A$ es un conjunto invariante hacia el que convergen trayectorias cercanas. Un atractor extraño añade geometría no suave o fractal y sensibilidad a condiciones iniciales. La cuenca de atracción se define por
+\newpage
+\subsection{Chen}
+Referencia base: \cite{chen1999}.
 \[
-\mathcal{B}(A)=\{\mathbf{x}_0: \omega(\mathbf{x}_0)\subseteq A\},
+\left\{\begin{aligned}
+\dot{x}&=a(y-x),\\
+\dot{y}&=(c-a)x-xz+cy,\\
+\dot{z}&=xy-bz.
+\end{aligned}\right.
 \]
-donde $\omega(\mathbf{x}_0)$ es el conjunto límite omega.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Attractor}{Attractor} y \href{https://en.wikipedia.org/wiki/Strange_attractor}{Strange attractor}.
+\sysfig{chen}{Sistema de Chen--Ueta}{\(a=35,b=3,c=28\)}{Condicion inicial \((0.1,0.1,0.1)\), ancho de paso \(h=0.005\), \(T=40\), \(n=8001\).}
 
-\subsection*{Multiestabilidad y atractores coexistentes}
-Existe multiestabilidad cuando varios atractores coexistentes son válidos para el mismo conjunto de parámetros. El destino asintótico depende entonces de la condición inicial.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Multistability}{Multistability}.
-
-\subsection*{Atractor autoexcitado y atractor oculto}
-Un atractor autoexcitado tiene cuenca que intersecta una vecindad de un equilibrio inestable, por lo que puede localizarse iniciando trayectorias cerca de ese equilibrio. Un atractor oculto tiene una cuenca que no intersecta vecindades de los equilibrios, por lo que su localización es numéricamente más delicada.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Hidden_attractor}{Hidden attractor}.
-
-\section*{Equilibrios y análisis local}
-
-\subsection*{Puntos de equilibrio}
-Los equilibrios satisfacen
+\newpage
+\subsection{Lu}
+Referencia base: \cite{lu2002}.
 \[
-\mathbf{f}(\mathbf{x}^*,\mu)=\mathbf{0}.
+\left\{\begin{aligned}
+\dot{x}&=a(y-x),\\
+\dot{y}&=-xz+cy,\\
+\dot{z}&=xy-bz.
+\end{aligned}\right.
 \]
-Wikipedia: \href{https://en.wikipedia.org/wiki/Equilibrium_point_(mathematics)}{Equilibrium point}.
+\sysfig{lu}{Sistema de Lu}{\(a=36,b=3,c=20\)}{Condicion inicial \((0.1,0.1,0.1)\), ancho de paso \(h=0.005\), \(T=40\), \(n=8001\).}
 
-\subsection*{Jacobiano y linealización}
-La linealización local alrededor de $\mathbf{x}^*$ usa el Jacobiano
+\newpage
+\subsection{Henon}
+Referencia base: \cite{henon1976}.
 \[
-J(\mathbf{x})=\frac{\partial \mathbf{f}}{\partial \mathbf{x}},
-\qquad
-\delta\dot{\mathbf{x}}=J(\mathbf{x}^*)\,\delta\mathbf{x}.
+\left\{\begin{aligned}
+x_{n+1}&=1-a x_n^2+y_n,\\
+y_{n+1}&=b x_n.
+\end{aligned}\right.
 \]
-Wikipedia: \href{https://en.wikipedia.org/wiki/Linearization}{Linearization}.
+\sysfig{henon}{Mapa de Henon}{\(a=1.4,b=0.3\)}{Condicion inicial \((0.1,0.1,0)\), iteracion directa con \(h=1\), \(T=1800\), \(n=1801\).}
 
-\subsection*{Autovalores y clasificación local}
-Sea $\lambda_i$ el espectro de $J(\mathbf{x}^*)$. Entonces
+\newpage
+\subsection{Logistico}
+Referencia base: \cite{may1976}.
 \[
-\Re(\lambda_i)<0\;\forall i \Rightarrow \text{estable localmente},
+\left\{\begin{aligned}
+x_{n+1}&=r x_n(1-x_n),\\
+y_{n+1}&=0,\qquad z_{n+1}=0.
+\end{aligned}\right.
 \]
-\[
-\exists i: \Re(\lambda_i)>0 \Rightarrow \text{inestable},
-\]
-\[
-\text{partes reales de signos mezclados} \Rightarrow \text{silla},
-\]
-\[
-\exists i: \Re(\lambda_i)=0 \Rightarrow \text{caso no hiperbólico}.
-\]
-En tres dimensiones se usan etiquetas como nodo, foco, silla y silla-foco.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors}{Eigenvalues and eigenvectors}.
+\sysfig{logistic}{Mapa logistico}{\(r=3.9\)}{Condicion inicial \((0.2,0,0)\), iteracion directa con \(h=1\), \(T=1200\), \(n=1201\).}
 
-\subsection*{Ciclo límite}
-Una órbita periódica aislada satisface
+\newpage
+\subsection{Ikeda}
+Referencia base: \cite{ikeda1979}.
 \[
-\mathbf{x}(t+T)=\mathbf{x}(t), \qquad T>0,
+\left\{\begin{aligned}
+\theta_n&=0.4-\frac{6}{1+x_n^2+y_n^2},\\
+x_{n+1}&=1+u(x_n\cos\theta_n-y_n\sin\theta_n),\\
+y_{n+1}&=u(x_n\sin\theta_n+y_n\cos\theta_n).
+\end{aligned}\right.
 \]
-y se denomina ciclo límite cuando es aislada dentro del conjunto de órbitas periódicas.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Limit_cycle}{Limit cycle}.
+\sysfig{ikeda}{Mapa de Ikeda}{\(u=0.918\)}{Condicion inicial \((0.1,0.1,0)\), iteracion directa con \(h=1\), \(T=1200\), \(n=1201\).}
 
-\section*{Herramientas cualitativas y cuantitativas}
-
-\subsection*{Diagrama de bifurcación}
-Un diagrama de bifurcación muestra cómo cambian los estados asintóticos al variar un parámetro de control $\mu$. Puede construirse por máximos locales, secciones de Poincaré o continuación numérica.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Bifurcation_diagram}{Bifurcation diagram}.
-
-\subsection*{Sección y mapa de Poincaré}
-Una sección de Poincaré es una hipersuperficie transversal $\Sigma$ que corta a las trayectorias. El mapa de retorno se escribe como
+\newpage
+\subsection{Mackey--Glass}
+Referencia base: \cite{mackey1977}.
 \[
-P: \Sigma \to \Sigma.
+\left\{\begin{aligned}
+\dot{x}(t)&=\frac{\beta x(t-\tau)}{1+|x(t-\tau)|^n}-\gamma x(t),\\
+y(t)&=x(t-\tau),\\
+z(t)&=\dot{x}(t).
+\end{aligned}\right.
 \]
-Wikipedia: \href{https://en.wikipedia.org/wiki/Poincar%C3%A9_map}{Poincaré map}.
+\sysfig{mackey_glass}{Mackey--Glass}{\(\beta=0.2,\gamma=0.1,n=10,\tau=17\)}{Historia inicial \(x(t)=1.2\), ancho de paso \(h=0.1\), \(T=600\), \(N=6001\).}
 
-\subsection*{Estado transitorio}
-La parte inicial de una trayectoria, antes de aproximarse al comportamiento asintótico, se denomina transitorio. En simulación suele descartarse un intervalo $[0,T_{\mathrm{trans}}]$.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Transient_response}{Transient response}.
-
-\subsection*{Exponente de Lyapunov}
-El exponente máximo de Lyapunov se define por
+\newpage
+\subsection{Duffing--Ueda}
+Referencias base: \cite{ueda1979,holmes1979}.
 \[
-\lambda_{\max}=\lim_{t\to\infty}\frac{1}{t}\ln\frac{\|\delta \mathbf{x}(t)\|}{\|\delta \mathbf{x}(0)\|}.
+\left\{\begin{aligned}
+\dot{x}&=y,\\
+\dot{y}&=-\delta y-\alpha x-\beta x^3+\gamma\cos\theta,\\
+\dot{\theta}&=\omega.
+\end{aligned}\right.
 \]
-Si $\lambda_{\max}>0$, hay divergencia exponencial promedio de trayectorias cercanas.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Lyapunov_exponent}{Lyapunov exponent}.
+\sysfig{duffing_ueda}{Oscilador Duffing--Ueda autonomizado}{\(\delta=0.2,\alpha=-1,\beta=1,\gamma=0.3,\omega=1.2\)}{Condicion inicial \((0.1,0,0)\), ancho de paso \(h=0.01\), \(T=120\), \(n=12001\).}
 
-\subsection*{Dimensión de Kaplan--Yorke}
-Si $\lambda_1\ge\lambda_2\ge\cdots\ge\lambda_n$ y $j$ es el mayor índice tal que $\sum_{i=1}^{j}\lambda_i\ge 0$, entonces
+\newpage
+\subsection{Rabinovich--Fabrikant}
+Referencia base: \cite{rabinovich1979}.
 \[
-D_{KY}=j+\frac{\sum_{i=1}^{j}\lambda_i}{|\lambda_{j+1}|}.
+\left\{\begin{aligned}
+\dot{x}&=y(z-1+x^2)+\gamma x,\\
+\dot{y}&=x(3z+1-x^2)+\gamma y,\\
+\dot{z}&=-2z(\alpha+xy).
+\end{aligned}\right.
 \]
-Wikipedia: \href{https://en.wikipedia.org/wiki/Kaplan%E2%80%93Yorke_conjecture}{Kaplan--Yorke conjecture}.
+\sysfig{rabinovich_fabrikant}{Rabinovich--Fabrikant}{\(\alpha=1.1,\gamma=0.87\)}{Condicion inicial \((-1,0,0.5)\), ancho de paso \(h=0.005\), \(T=40\), \(n=8001\).}
 
-\subsection*{Caos transitorio}
-Puede existir comportamiento aparentemente caótico durante un tiempo finito antes de que la trayectoria termine en un equilibrio o ciclo límite.
-Wikipedia: \href{https://en.wikipedia.org/wiki/Transient_chaos}{Transient chaos}.
+\newpage
+\subsection{Rikitake}
+Referencia base: \cite{rikitake1958}.
+\[
+\left\{\begin{aligned}
+\dot{x}&=-\mu x+yz,\\
+\dot{y}&=-\mu y+x(z-a),\\
+\dot{z}&=1-xy.
+\end{aligned}\right.
+\]
+\sysfig{rikitake}{Dinamo de Rikitake}{\(\mu=2,a=5\)}{Condicion inicial \((0.1,0.1,0.1)\), ancho de paso \(h=0.01\), \(T=100\), \(n=10001\).}
 
-\subsection*{Variedades estable e inestable}
-Para un equilibrio hiperbólico,
+\newpage
+\subsection{Sprott A}
+Referencia base: \cite{sprott1994}.
 \[
-W^s(\mathbf{x}^*)=\{\mathbf{x}_0: \lim_{t\to\infty}\mathbf{x}(t;\mathbf{x}_0)=\mathbf{x}^*\},
+\left\{\begin{aligned}
+\dot{x}&=y,\\
+\dot{y}&=-x+yz,\\
+\dot{z}&=1-y^2.
+\end{aligned}\right.
 \]
+\sysfig{sprott_a}{Flujo Sprott A}{sin parametros}{Condicion inicial \((0.1,0.1,0.1)\), ancho de paso \(h=0.01\), \(T=80\), \(n=8001\).}
+
+\newpage
+\subsection{Thomas}
+Referencia base: \cite{thomas1999}.
 \[
-W^u(\mathbf{x}^*)=\{\mathbf{x}_0: \lim_{t\to-\infty}\mathbf{x}(t;\mathbf{x}_0)=\mathbf{x}^*\}.
+\left\{\begin{aligned}
+\dot{x}&=\sin y-bx,\\
+\dot{y}&=\sin z-by,\\
+\dot{z}&=\sin x-bz.
+\end{aligned}\right.
 \]
-Wikipedia: \href{https://en.wikipedia.org/wiki/Stable_manifold}{Stable manifold}.
+\sysfig{thomas}{Flujo de Thomas}{\(b=0.18\)}{Condicion inicial \((0.1,0,0)\), ancho de paso \(h=0.02\), \(T=140\), \(n=7001\).}
+
+\newpage
+\subsection{Hindmarsh--Rose}
+Referencia base: \cite{hindmarsh1984}.
+\[
+\left\{\begin{aligned}
+\dot{x}&=y-ax^3+bx^2-z+I,\\
+\dot{y}&=c-dx^2-y,\\
+\dot{z}&=r(s(x-x_r)-z),\qquad x_r=-1.6.
+\end{aligned}\right.
+\]
+\sysfig{hindmarsh_rose}{Hindmarsh--Rose}{\(a=1,b=3,c=1,d=5,r=0.006,s=4,I=3.25\)}{Condicion inicial \((0.1,0,0)\), ancho de paso \(h=0.02\), \(T=500\), \(n=25001\).}
+
+\newpage
+\subsection{Lorenz--96}
+Referencia base: \cite{lorenz1996}.
+\[
+\left\{\begin{aligned}
+\dot{X}_j&=(X_{j+1}-X_{j-2})X_{j-1}-X_j+F,\\
+j&=0,\ldots,J-1,\qquad X_{j+J}=X_j.
+\end{aligned}\right.
+\]
+\sysfig{lorenz96}{Lorenz--96, primeras tres variables visibles}{\(F=8,J=8\)}{Condicion inicial visible \((X_1,X_2,X_3)=(8.01,8,8)\), ancho de paso \(h=0.01\), \(T=40\), \(n=4001\).}
+
+\newpage
+\section{Metodos numericos implementados}
+
+\subsection{Euler explicito}
+Euler aproxima el campo vectorial como constante durante un paso:
+\[
+\left\{\begin{aligned}
+k_1&=f(x_n,t_n),\\
+x_{n+1}&=x_n+h k_1.
+\end{aligned}\right.
+\]
+Es de orden local \(O(h^2)\) y orden global \(O(h)\). Sirve para inspeccion rapida y para explicar la dinamica, pero en sistemas caoticos puede crear o destruir estructuras por error numerico si \(h\) es grande. Si una trayectoria cambia cualitativamente al pasar de Euler a RK4, la simulacion no debe interpretarse como robusta.
+
+\subsection{Heun / Euler mejorado}
+Heun usa un predictor y luego corrige con la pendiente al final del paso:
+\[
+\left\{\begin{aligned}
+k_1&=f(x_n,t_n),\\
+\tilde{x}_{n+1}&=x_n+h k_1,\\
+k_2&=f(\tilde{x}_{n+1},t_n+h),\\
+x_{n+1}&=x_n+\frac{h}{2}(k_1+k_2).
+\end{aligned}\right.
+\]
+Es un Runge--Kutta de orden 2. Reduce sesgo respecto a Euler y permite comparar si la geometria observada depende demasiado del integrador.
+
+\subsection{Runge--Kutta 4}
+RK4 evalua cuatro pendientes:
+\[
+\left\{\begin{aligned}
+k_1&=f(x_n,t_n),\\
+k_2&=f(x_n+\tfrac{h}{2}k_1,t_n+\tfrac{h}{2}),\\
+k_3&=f(x_n+\tfrac{h}{2}k_2,t_n+\tfrac{h}{2}),\\
+k_4&=f(x_n+h k_3,t_n+h),\\
+x_{n+1}&=x_n+\frac{h}{6}(k_1+2k_2+2k_3+k_4).
+\end{aligned}\right.
+\]
+Es el metodo recomendado por defecto para la exploracion visual actual. No adapta el paso; si hay rigidez, transitorios rapidos o escalas multiples, debe reducirse \(h\) y contrastar con series temporales y diagnosticos.
+
+\section{Funciones y logica metodologica}
+
+\subsection{Simulacion y seleccion de trayectorias}
+Para flujos ODE 3D se integra desde \(x(0)=x_0\) hasta \(T\) con \(N=\lfloor T/h\rfloor+1\). La trayectoria numerica es
+\[
+\mathcal{O}_h(x_0)=\{x_0,x_1,\ldots,x_N\}.
+\]
+Para mapas se aplica directamente \(x_{n+1}=F(x_n)\). Para Mackey--Glass se guarda una historia constante y se aproxima el retardo por indices discretos. Para Lorenz--96 se integra todo el anillo, pero la UI solo expone tres variables.
+
+Indicaciones: usar primero \(T\) corto para descartar divergencias; despues aumentar \(T\) para ver regimen asintotico. Si se sospecha caos, comparar al menos dos pasos \(h\) y dos integradores.
+
+\examplefig{lorenz_attractor.png}{0.78}{Ejemplo original conservado: atractor de Lorenz con \(\sigma=10,\rho=28,\beta=8/3\). Esta grafica sirve como referencia visual de trayectoria acotada no periodica: la orbita no converge a un punto, sino que visita dos lobulos con alternancia irregular.}
+
+\subsection{Diagramas de bifurcacion}
+Un diagrama de bifurcacion muestra como cambia el comportamiento asintotico al variar un parametro \(\mu\). La herramienta barre una malla uniforme
+\[
+\mu_j=\mu_{\min}+j\frac{\mu_{\max}-\mu_{\min}}{N_\mu-1},\qquad j=0,\ldots,N_\mu-1.
+\]
+Para cada \(\mu_j\), integra, descarta un transitorio \(T_{\mathrm{trans}}\) y registra eventos durante \(T_{\mathrm{keep}}\).
+
+En Lorenz se usa una seccion de Poincare:
+\[
+\Sigma=\{(x,y,z):x=0\},\qquad x_{\mathrm{prev}}>0,\;x_{\mathrm{new}}\le 0.
+\]
+El cruce se interpola linealmente:
+\[
+\alpha=\frac{x_{\mathrm{prev}}}{x_{\mathrm{prev}}-x_{\mathrm{new}}},\qquad
+z_\Sigma=z_{\mathrm{prev}}+\alpha(z_{\mathrm{new}}-z_{\mathrm{prev}}).
+\]
+Interpretacion: un equilibrio estable no genera nubes de cruces; un ciclo limite produce uno o pocos puntos repetidos en la seccion; una orbita caotica produce una nube extendida. En flujos genericos se usan maximos locales de \(z\):
+\[
+z_{k-1}>z_{k-2},\qquad z_{k-1}\ge z_k.
+\]
+En mapas se grafican ultimos valores de \(x_n\).
+
+Una bifurcacion de Hopf ocurre cuando un par complejo conjugado de autovalores cruza el eje imaginario:
+\[
+\lambda_{1,2}(\mu)=\alpha(\mu)\pm i\omega(\mu),\qquad \alpha(\mu_*)=0,\quad \omega(\mu_*)\ne0.
+\]
+Alrededor de \(\mu_*\) puede nacer o desaparecer un ciclo limite. En un diagrama por Poincare, un ciclo limite aparece como una rama finita de puntos; duplicaciones de periodo aparecen como desdoblamientos sucesivos; una region caotica aparece como nube de muchos valores.
+
+Indicaciones: empezar con \(N_\mu\approx 200\), \(T_{\mathrm{trans}}\) largo y \(T_{\mathrm{keep}}\) moderado. Si hay saltos o ramas rotas, aumentar transitorio, disminuir \(h\) y probar con/sin continuacion.
+
+\examplefig{logistic_bifurcation.png}{0.84}{Ejemplo original conservado: diagrama de bifurcacion del mapa logistico. Para cada valor de \(r\) se descartan iteraciones transitorias y se grafican valores asintoticos de \(x_n\). Una sola rama indica punto fijo, dos ramas indican periodo 2, duplicaciones sucesivas indican cascada de periodo y las nubes densas corresponden a regimenes caoticos o ventanas periodicas inmersas.}
+
+\subsection{Cuencas y clasificacion de comportamiento}
+La cuenca se calcula en el plano
+\[
+(x(0),y(0),z(0))=(x_0,y_0,z_0^{\mathrm{fijo}}).
+\]
+Para cada punto se integra y se asigna una clase:
+\begin{itemize}
+  \item \textbf{Escape}: valores no finitos o radio de escape excedido.
+  \item \textbf{Converge a \(E_i\)}: el estado final queda dentro de un radio local del equilibrio \(E_i\).
+  \item \textbf{Periodico}: la cola tiene amplitud muy pequena o la seccion de Poincare repite uno o dos grupos estrechos.
+  \item \textbf{Caotico}: no escapa, no converge y no cumple el criterio periodico rapido.
+\end{itemize}
+La convergencia se decide con
+\[
+k^*=\arg\min_k \|x(T)-E_k\|^2,\qquad \|x(T)-E_{k^*}\|<r_{\mathrm{conv}}.
+\]
+La periodicidad rapida usa la cola \([T/2,T]\) y agrupa los valores de cruce \(z_\Sigma\). Si hay muchos grupos o gran dispersion, la trayectoria se etiqueta como caotica. Esta clasificacion es operacional y rapida; no sustituye un analisis riguroso con exponentes, secciones largas o pruebas de recurrencia.
+
+Indicaciones: comenzar con \(60\times60\), ajustar el plano \(z_0\), despues subir a \(200\times200\) o mas. Para fronteras finas, aumentar \(T_{\mathrm{total}}\) antes de concluir.
+
+\examplefig{lorenz_basin.png}{0.72}{Ejemplo original conservado: cuenca rapida de Lorenz en el plano \(z_0=1\), ventana lejana \([-60,60]\times[-60,60]\). La leyenda representa las clases operacionales disponibles para este caso: caotico, converge a \(E_+\) y converge a \(E_-\).}
+
+\examplefig{lorenz_basin_trajectories.png}{0.98}{Ejemplo original conservado: trayectorias iniciadas en regiones distintas de la cuenca de Lorenz. Las condiciones iniciales en zonas rojas y verdes se acercan a vecindades de equilibrios simetricos, mientras que la condicion en la zona azul permanece acotada con recorrido irregular y se clasifica como caotica por el clasificador rapido.}
+
+\subsection{Analisis espectral y FFT}
+La FFT normalizada se calcula sobre una serie temporal despues de retirar el transitorio. Si \(s_k=s(t_k)\), se centra la senal y se evalua
+\[
+\hat{s}_m=\sum_{k=0}^{N-1}(s_k-\bar{s})e^{-2\pi i mk/N},\qquad
+P_m=\frac{|\hat{s}_m|^2}{\max_j|\hat{s}_j|^2}.
+\]
+Un ciclo limite suele producir picos dominantes en frecuencias fundamentales y armonicos. Una trayectoria caotica puede mostrar banda ancha, aunque la interpretacion depende de \(T\), \(h\), ventana temporal y variable observada. En la herramienta, FFT es un diagnostico complementario: no clasifica por si sola.
+
+La visualizacion usa lineas verticales
+\[
+(f_m,0)\longrightarrow(f_m,P_m)
+\]
+para que cada frecuencia discreta quede separada como componente espectral. Si el usuario no fija limites manuales, el eje horizontal se recorta automaticamente alrededor del intervalo que acumula la mayor parte de la energia espectral:
+\[
+E_m=\max_{j\in\{x,y,z\}}P_{m,j}^{\,2},\qquad
+\sum_{f_m\in[f_-,f_+]}E_m\approx0.98\sum_m E_m.
+\]
+Si el intervalo contiene \(f=0\), se muestra simetrico para conservar la lectura de frecuencias negativas y positivas producidas por \(\mathrm{fftshift}\). En la UI los colores de las tres curvas espectrales siguen los colores configurados para \(x(t)\), \(y(t)\) y \(z(t)\).
+
+\examplefig{lorenz_fft.png}{0.78}{Ejemplo FFT para Lorenz con lineas verticales y eje \(x\) recortado alrededor de las frecuencias dominantes. La presencia de energia distribuida en varias frecuencias es consistente con dinamica irregular, pero debe contrastarse con secciones, cuencas y exponentes de Lyapunov.}
+
+\subsection{Exponentes de Lyapunov y metodo de Benettin}
+Los exponentes de Lyapunov miden tasas medias de expansion de perturbaciones:
+\[
+\lambda_i=\lim_{t\to\infty}\frac{1}{t}\log\frac{\|\delta_i(t)\|}{\|\delta_i(0)\|}.
+\]
+Un exponente maximo positivo indica sensibilidad exponencial promedio a condiciones iniciales. El algoritmo QR-Benettin integra el estado y una base tangente:
+\[
+\dot{x}=f(x),\qquad \dot{Y}=J(x)Y.
+\]
+En la implementacion actual:
+\[
+Y_{n+1}\approx Y_n+hJ(x_n)Y_n,
+\]
+donde \(J\) se aproxima por diferencias centradas. Cada cierto numero de pasos se aplica
+\[
+Y=QR,
+\]
+y se acumulan las diagonales:
+\[
+\lambda_i(t)\approx \frac{1}{t}\sum_m \log |R_{ii}^{(m)}|.
+\]
+La reortonormalizacion evita que todas las perturbaciones colapsen hacia la direccion mas expansiva. El resultado depende de \(h\), tiempo de quemado, tiempo final, tolerancia del Jacobiano y frecuencia QR.
+
+Indicaciones: usar \(t_{\mathrm{burn}}\) para retirar transitorios; aumentar \(t_{\mathrm{final}}\) hasta que las curvas \(\lambda_i(t)\) se estabilicen visualmente; repetir con otro \(h\).
+
+\examplefig{lorenz_lyapunov.png}{0.78}{Ejemplo original conservado: estimacion finita de exponentes de Lyapunov para Lorenz por QR-Benettin. La lectura esperada en el regimen clasico es una direccion expansiva, una casi neutra asociada al flujo y una contractiva; la convergencia debe evaluarse por estabilidad temporal, no por un unico valor instantaneo.}
+
+\subsection{Autovalores y clasificacion local}
+Para un equilibrio \(x^*\), la linealizacion es
+\[
+\dot{\xi}=J(x^*)\xi.
+\]
+Si \(\lambda_i\) son los autovalores:
+\[
+\left\{\begin{array}{ll}
+\Re(\lambda_i)<0\ \forall i & \text{estable localmente},\\
+\exists i:\Re(\lambda_i)>0 & \text{inestable},\\
+\text{signos mezclados} & \text{silla},\\
+\lambda=\alpha\pm i\omega & \text{foco/espiral si }\omega\ne0,\\
+\Re(\lambda)=0 & \text{caso no hiperbolico}.
+\end{array}\right.
+\]
+Cuando un par complejo cruza el eje imaginario puede aparecer una bifurcacion de Hopf. La grafica de autovalores no prueba comportamiento global: solo describe la dinamica infinitesimal cerca del equilibrio.
+
+\examplefig{lorenz_spectrum.png}{0.72}{Ejemplo original conservado: espectro de autovalores de los equilibrios de Lorenz. Los puntos a la derecha del eje imaginario indican direcciones locales inestables; pares complejos con parte real distinta de cero indican focos espirales estables o inestables segun el signo de la parte real.}
+
+\begin{thebibliography}{99}
+\bibitem{lorenz1963} E. N. Lorenz, ``Deterministic Nonperiodic Flow'', \emph{Journal of the Atmospheric Sciences}, 1963.
+\bibitem{rossler1976} O. E. Rossler, ``An equation for continuous chaos'', \emph{Physics Letters A}, 1976.
+\bibitem{chua1984} T. Matsumoto, ``A chaotic attractor from Chua's circuit'', \emph{IEEE Transactions on Circuits and Systems}, 1984.
+\bibitem{chua1986} L. O. Chua, M. Komuro and T. Matsumoto, ``The double scroll family'', \emph{IEEE Transactions on Circuits and Systems}, 1986.
+\bibitem{chen1999} G. Chen and T. Ueta, ``Yet another chaotic attractor'', \emph{International Journal of Bifurcation and Chaos}, 1999.
+\bibitem{lu2002} J. Lu and G. Chen, ``A new chaotic attractor coined'', \emph{International Journal of Bifurcation and Chaos}, 2002.
+\bibitem{henon1976} M. Henon, ``A two-dimensional mapping with a strange attractor'', \emph{Communications in Mathematical Physics}, 1976.
+\bibitem{may1976} R. M. May, ``Simple mathematical models with very complicated dynamics'', \emph{Nature}, 1976.
+\bibitem{ikeda1979} K. Ikeda, ``Multiple-valued stationary state and its instability of the transmitted light by a ring cavity system'', \emph{Optics Communications}, 1979.
+\bibitem{mackey1977} M. C. Mackey and L. Glass, ``Oscillation and chaos in physiological control systems'', \emph{Science}, 1977.
+\bibitem{ueda1979} Y. Ueda, work on randomly transitional phenomena in Duffing-type systems, 1979.
+\bibitem{holmes1979} P. Holmes, ``A nonlinear oscillator with a strange attractor'', \emph{Philosophical Transactions of the Royal Society A}, 1979.
+\bibitem{rabinovich1979} M. I. Rabinovich and A. L. Fabrikant, ``Stochastic self-modulation of waves in nonequilibrium media'', 1979.
+\bibitem{rikitake1958} T. Rikitake, ``Oscillations of a system of disk dynamos'', \emph{Proceedings of the Cambridge Philosophical Society}, 1958.
+\bibitem{sprott1994} J. C. Sprott, ``Some simple chaotic flows'', \emph{Physical Review E}, 1994.
+\bibitem{thomas1999} R. Thomas, work on deterministic chaos and feedback circuits, 1999.
+\bibitem{hindmarsh1984} J. L. Hindmarsh and R. M. Rose, ``A model of neuronal bursting using three coupled first order differential equations'', \emph{Proceedings of the Royal Society B}, 1984.
+\bibitem{lorenz1996} E. N. Lorenz, ``Predictability: a problem partly solved'', ECMWF Seminar, 1996.
+\bibitem{benettin1980} G. Benettin et al., ``Lyapunov characteristic exponents for smooth dynamical systems'', \emph{Meccanica}, 1980.
+\bibitem{guckenheimer1983} J. Guckenheimer and P. Holmes, \emph{Nonlinear Oscillations, Dynamical Systems, and Bifurcations of Vector Fields}, 1983.
+\bibitem{kuznetsov1998} Y. A. Kuznetsov, \emph{Elements of Applied Bifurcation Theory}, 1998.
+\end{thebibliography}
 
 \vfill
-{\small Este PDF se carga en la interfaz cuando QtPdf está disponible.}
+{\small Este PDF se carga en la interfaz cuando \code{QtPdf} esta disponible.}
 
 \end{document}

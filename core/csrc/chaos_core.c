@@ -65,6 +65,25 @@ static int state_invalid(double x, double y, double z, double esc_radius) {
     return 0;
 }
 
+static uint8_t classify_residual_dynamics(int crossing_count, int cluster_count,
+                                          double z_min, double z_max,
+                                          double x_tail_min, double x_tail_max,
+                                          double y_tail_min, double y_tail_max,
+                                          double z_tail_min, double z_tail_max,
+                                          uint8_t periodic_class) {
+    double x_span = x_tail_max - x_tail_min;
+    double y_span = y_tail_max - y_tail_min;
+    double z_span = z_tail_max - z_tail_min;
+    double tail_span = fmax(fmax(x_span, y_span), z_span);
+    if (isfinite(tail_span) && tail_span < 0.75) return periodic_class;
+    if (crossing_count < 3) return 1;
+    if (crossing_count >= 6 && cluster_count <= 2 &&
+        isfinite(z_min) && isfinite(z_max) && fabs(z_max - z_min) <= 0.75) {
+        return periodic_class;
+    }
+    return 1;
+}
+
 CHAOS_API int lorenz_simulate(
     double x0, double y0, double z0,
     double sigma, double rho, double beta,
@@ -216,6 +235,7 @@ CHAOS_API int lorenz_basin_plane(
     int denom_x = (nx == 1) ? 1 : (nx - 1);
     int denom_y = (ny == 1) ? 1 : (ny - 1);
     int has_pair = (rho > 1.0) ? 1 : 0;
+    int tail_start = steps_total / 2;
 
     double s = 0.0, z_eq = 0.0;
     if (has_pair) {
@@ -229,8 +249,17 @@ CHAOS_API int lorenz_basin_plane(
             double x0 = x_min + (x_max - x_min) * ((double)ix) / ((double)denom_x);
             double x = x0, y = y0, z = z0_fixed;
             uint8_t basin_class = 1;
+            int crossing_count = 0;
+            int cluster_count = 0;
+            double clusters[16];
+            double z_cross_min = HUGE_VAL;
+            double z_cross_max = -HUGE_VAL;
+            double x_tail_min = HUGE_VAL, y_tail_min = HUGE_VAL, z_tail_min = HUGE_VAL;
+            double x_tail_max = -HUGE_VAL, y_tail_max = -HUGE_VAL, z_tail_max = -HUGE_VAL;
 
             for (int k = 0; k < steps_total; ++k) {
+                double x_prev = x;
+                double z_prev = z;
                 step_lorenz(&x, &y, &z, sigma, rho, beta, dt, method);
 
                 if (state_invalid(x, y, z, esc_radius)) {
@@ -256,6 +285,52 @@ CHAOS_API int lorenz_basin_plane(
                         break;
                     }
                 }
+
+                if (k >= tail_start) {
+                    if (x < x_tail_min) x_tail_min = x;
+                    if (x > x_tail_max) x_tail_max = x;
+                    if (y < y_tail_min) y_tail_min = y;
+                    if (y > y_tail_max) y_tail_max = y;
+                    if (z < z_tail_min) z_tail_min = z;
+                    if (z > z_tail_max) z_tail_max = z;
+
+                    if (x_prev > 0.0 && x <= 0.0) {
+                        double denom_cross = x_prev - x;
+                        double alpha = 0.0;
+                        if (fabs(denom_cross) > 1e-15) alpha = x_prev / denom_cross;
+                        if (alpha < 0.0) alpha = 0.0;
+                        if (alpha > 1.0) alpha = 1.0;
+
+                        double z_cross = z_prev + alpha * (z - z_prev);
+                        double tol = 0.05 + 0.01 * fabs(z_cross);
+                        int matched = 0;
+                        if (z_cross < z_cross_min) z_cross_min = z_cross;
+                        if (z_cross > z_cross_max) z_cross_max = z_cross;
+                        crossing_count += 1;
+
+                        for (int c = 0; c < cluster_count && c < 16; ++c) {
+                            if (fabs(z_cross - clusters[c]) <= tol) {
+                                clusters[c] = 0.85 * clusters[c] + 0.15 * z_cross;
+                                matched = 1;
+                                break;
+                            }
+                        }
+                        if (!matched) {
+                            if (cluster_count < 16) {
+                                clusters[cluster_count] = z_cross;
+                            }
+                            cluster_count += 1;
+                        }
+                    }
+                }
+            }
+
+            if (basin_class == 1) {
+                basin_class = classify_residual_dynamics(
+                    crossing_count, cluster_count, z_cross_min, z_cross_max,
+                    x_tail_min, x_tail_max, y_tail_min, y_tail_max, z_tail_min, z_tail_max,
+                    5
+                );
             }
 
             basin_out[iy * nx + ix] = basin_class;
@@ -787,17 +862,76 @@ CHAOS_API int chaos_basin_plane_generic(
 
     int denom_x = nx - 1;
     int denom_y = ny - 1;
+    int steps_total = (int)(T_total / dt);
+    if (steps_total < 2) steps_total = 2;
+    int tail_start = steps_total / 2;
+    uint8_t periodic_class = (uint8_t)((n_eq >= 0 && n_eq < 240) ? (2 + n_eq) : 250);
+
     for (int local_y = 0; local_y < row_count; ++local_y) {
         int iy = row_start + local_y;
         double y0 = y_min + (y_max - y_min) * ((double)iy) / ((double)denom_y);
         for (int ix = 0; ix < nx; ++ix) {
             double x0 = x_min + (x_max - x_min) * ((double)ix) / ((double)denom_x);
-            double x, y, z;
+            double x = x0, y = y0, z = z0_fixed;
             uint8_t basin_class = 1;
-            if (simulate_final3(system_id, params, n_params, x0, y0, z0_fixed, dt, T_total, method, &x, &y, &z) != 0 ||
-                state_invalid(x, y, z, 1e4)) {
-                basin_class = 0;
-            } else if (n_eq > 0 && eq_points != NULL) {
+
+            int crossing_count = 0;
+            int cluster_count = 0;
+            double clusters[16];
+            double z_cross_min = HUGE_VAL;
+            double z_cross_max = -HUGE_VAL;
+            double x_tail_min = HUGE_VAL, y_tail_min = HUGE_VAL, z_tail_min = HUGE_VAL;
+            double x_tail_max = -HUGE_VAL, y_tail_max = -HUGE_VAL, z_tail_max = -HUGE_VAL;
+
+            for (int k = 0; k < steps_total; ++k) {
+                double x_prev = x;
+                double z_prev = z;
+                step3_generic(system_id, &x, &y, &z, params, n_params, dt, method);
+                if (state_invalid(x, y, z, 1e4)) {
+                    basin_class = 0;
+                    break;
+                }
+
+                if (k >= tail_start) {
+                    if (x < x_tail_min) x_tail_min = x;
+                    if (x > x_tail_max) x_tail_max = x;
+                    if (y < y_tail_min) y_tail_min = y;
+                    if (y > y_tail_max) y_tail_max = y;
+                    if (z < z_tail_min) z_tail_min = z;
+                    if (z > z_tail_max) z_tail_max = z;
+
+                    if (x_prev > 0.0 && x <= 0.0) {
+                        double denom_cross = x_prev - x;
+                        double alpha = 0.0;
+                        if (fabs(denom_cross) > 1e-15) alpha = x_prev / denom_cross;
+                        if (alpha < 0.0) alpha = 0.0;
+                        if (alpha > 1.0) alpha = 1.0;
+
+                        double z_cross = z_prev + alpha * (z - z_prev);
+                        double tol = 0.05 + 0.01 * fabs(z_cross);
+                        int matched = 0;
+                        if (z_cross < z_cross_min) z_cross_min = z_cross;
+                        if (z_cross > z_cross_max) z_cross_max = z_cross;
+                        crossing_count += 1;
+
+                        for (int c = 0; c < cluster_count && c < 16; ++c) {
+                            if (fabs(z_cross - clusters[c]) <= tol) {
+                                clusters[c] = 0.85 * clusters[c] + 0.15 * z_cross;
+                                matched = 1;
+                                break;
+                            }
+                        }
+                        if (!matched) {
+                            if (cluster_count < 16) {
+                                clusters[cluster_count] = z_cross;
+                            }
+                            cluster_count += 1;
+                        }
+                    }
+                }
+            }
+
+            if (basin_class == 1 && n_eq > 0 && eq_points != NULL) {
                 double best = HUGE_VAL;
                 int best_idx = 0;
                 for (int k = 0; k < n_eq; ++k) {
@@ -810,7 +944,22 @@ CHAOS_API int chaos_basin_plane_generic(
                         best_idx = k;
                     }
                 }
-                basin_class = (uint8_t)(2 + best_idx);
+                double ex = eq_points[3 * best_idx + 0];
+                double ey = eq_points[3 * best_idx + 1];
+                double ez = eq_points[3 * best_idx + 2];
+                double eq_norm = sqrt(ex * ex + ey * ey + ez * ez);
+                double conv_radius = fmax(0.75, 0.03 * fmax(1.0, eq_norm));
+                if (best <= conv_radius * conv_radius) {
+                    basin_class = (uint8_t)(2 + best_idx);
+                }
+            }
+
+            if (basin_class == 1) {
+                basin_class = classify_residual_dynamics(
+                    crossing_count, cluster_count, z_cross_min, z_cross_max,
+                    x_tail_min, x_tail_max, y_tail_min, y_tail_max, z_tail_min, z_tail_max,
+                    periodic_class
+                );
             }
             basin_out[local_y * nx + ix] = basin_class;
         }

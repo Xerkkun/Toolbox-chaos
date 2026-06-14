@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.colors import ListedColormap
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 from PyQt6.QtWidgets import QSizePolicy
 
 
@@ -164,17 +165,65 @@ class MplFFTCanvas(_BaseCanvas):
         for idx, ax in enumerate(self.axes):
             ax.clear()
             ax.set_facecolor('white')
-            ax.grid(alpha=0.22, linewidth=0.7)
-            ax.set_ylabel(f"|FFT {('x', 'y', 'z')[idx]}|")
-        self.axes[-1].set_xlabel('frecuencia')
+            ax.grid(False)
+            ax.set_ylabel(('x', 'y', 'z')[idx])
+        self.axes[-1].set_xlabel('Frequency (Hz)')
         self.fig.subplots_adjust(left=0.10, right=0.98, bottom=0.08, top=0.94, hspace=0.12)
         self.draw_idle()
 
-    def plot_fft(self, freqs, spectra, title):
+    @staticmethod
+    def _dominant_frequency_xlim(freqs, spectra):
+        freqs = np.asarray(freqs, dtype=float)
+        spectra = np.asarray(spectra, dtype=float)
+        if freqs.size < 3 or spectra.size == 0:
+            return None
+        finite = np.isfinite(freqs) & np.all(np.isfinite(spectra), axis=1)
+        freqs = freqs[finite]
+        spectra = spectra[finite]
+        if freqs.size < 3:
+            return None
+        energy = np.nanmax(np.abs(spectra), axis=1) ** 2
+        total = float(np.sum(energy))
+        if not np.isfinite(total) or total <= 1.0e-300:
+            return None
+        order = np.argsort(freqs)
+        f = freqs[order]
+        e = energy[order]
+        cumulative = np.cumsum(e) / total
+        lo_idx = int(np.searchsorted(cumulative, 0.01, side='left'))
+        hi_idx = int(np.searchsorted(cumulative, 0.99, side='left'))
+        lo = float(f[max(0, min(lo_idx, len(f) - 1))])
+        hi = float(f[max(0, min(hi_idx, len(f) - 1))])
+        if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
+            return None
+        pad = max(0.1 * (hi - lo), float(np.median(np.diff(f))) if len(f) > 1 else 0.0)
+        lo -= pad
+        hi += pad
+        if lo < 0.0 < hi:
+            span = max(abs(lo), abs(hi))
+            lo, hi = -span, span
+        full_lo = float(np.min(freqs))
+        full_hi = float(np.max(freqs))
+        return max(full_lo, lo), min(full_hi, hi)
+
+    def plot_fft(self, freqs, spectra, title, colors=None, auto_crop=True):
         self.reset_plot()
-        colors = ['#111827', '#2563eb', '#dc2626', '#16a34a', '#7c3aed', '#ea580c']
+        colors = list(colors or ['#2563eb', '#dc2626', '#16a34a'])
+        while len(colors) < len(self.axes):
+            colors.append('#111827')
+        freqs = np.asarray(freqs, dtype=float)
+        spectra = np.asarray(spectra, dtype=float)
+        xlim = self._dominant_frequency_xlim(freqs, spectra) if auto_crop else None
         for idx, ax in enumerate(self.axes):
-            ax.plot(freqs, spectra[:, idx], linewidth=0.9, color=colors[idx])
+            values = spectra[:, idx]
+            ax.vlines(freqs, 0.0, values, linewidth=0.75, color=colors[idx], alpha=0.95)
+            ax.axhline(0.0, color='0.25', linewidth=0.6)
+            finite_values = values[np.isfinite(values)]
+            if finite_values.size:
+                ymax = float(np.max(finite_values))
+                ax.set_ylim(0.0, max(1.05, ymax * 1.08))
+            if xlim is not None:
+                ax.set_xlim(*xlim)
         self.axes[0].set_title(title)
         self.draw_idle()
 
@@ -228,15 +277,21 @@ class MplBasinCanvas(_BaseCanvas):
         self.ax.set_aspect('auto')
         self.draw_idle()
 
-    def plot_basin(self, basin, extent, rho_value, z0_fixed, equilibrium_data=None, show_equilibria=False):
+    def plot_basin(self, basin, extent, rho_value, z0_fixed, equilibrium_data=None, show_equilibria=False, class_labels=None):
+        if self.cbar is not None:
+            self.cbar.remove()
+            self.cbar = None
         self.ax.clear()
         self.cax.clear()
-        self.cax.set_visible(True)
+        self.cax.set_visible(False)
 
         eq_names = [eq.get('name', f'E{idx + 1}') for idx, eq in enumerate(equilibrium_data or [])]
         colors = ['#000000', '#87ceeb', '#d62728', '#2ca02c', '#1f77b4', '#9467bd', '#ff7f0e', '#8c564b', '#e377c2']
         max_class = int(np.nanmax(basin)) if np.size(basin) else 1
-        needed = max(2 + len(eq_names), max_class + 1, 2)
+        label_map = class_labels or {0: 'Escape', 1: 'Caótico'}
+        if class_labels is None:
+            label_map.update({2 + idx: name for idx, name in enumerate(eq_names)})
+        needed = max(max(label_map.keys(), default=1) + 1, max_class + 1, 2)
         while len(colors) < needed:
             colors.append('#7f7f7f')
         cmap = ListedColormap(colors[:needed])
@@ -260,10 +315,14 @@ class MplBasinCanvas(_BaseCanvas):
         if show_equilibria and equilibrium_data:
             self._draw_equilibria_projection(equilibrium_data, extent)
 
-        labels = ['escape', 'acotada'] + eq_names
-        labels.extend([f'clase {idx}' for idx in range(len(labels), needed)])
-        self.cbar = self.fig.colorbar(im, cax=self.cax, ticks=np.arange(needed))
-        self.cbar.ax.set_yticklabels(labels[:needed])
+        present = sorted(int(value) for value in np.unique(basin[np.isfinite(basin)])) if np.size(basin) else []
+        handles = [
+            Patch(facecolor=colors[value], edgecolor='black', linewidth=0.4, label=label_map.get(value, f'clase {value}'))
+            for value in present
+            if 0 <= value < len(colors)
+        ]
+        if handles:
+            self.ax.legend(handles=handles, loc='upper right', fontsize=8, framealpha=0.88, title='Clasificacion')
         self.draw_idle()
 
 

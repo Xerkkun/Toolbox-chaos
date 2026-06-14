@@ -121,7 +121,7 @@ COLOR_OPTIONS = {
 
 
 BASIN_DEFAULTS = {
-    'lorenz': (-25.0, 25.0, -25.0, 25.0, 1.0, 0.02, 12.0),
+    'lorenz': (-60.0, 60.0, -60.0, 60.0, 1.0, 0.02, 18.0),
     'rossler': (-8.0, 8.0, -8.0, 8.0, 0.0, 0.02, 80.0),
     'chua': (-4.0, 4.0, -4.0, 4.0, 0.0, 0.01, 80.0),
     'chen': (-30.0, 30.0, -30.0, 30.0, 1.0, 0.01, 25.0),
@@ -668,7 +668,7 @@ class MainWindow(QMainWindow):
         top_row_layout.setContentsMargins(0, 0, 0, 0)
         top_row_layout.setSpacing(8)
         top_row_layout.addWidget(
-            self._make_note_strip('Plano z = z0 fijo. La superposición dibuja solo la proyección (x,y) de los equilibrios.'),
+            self._make_note_strip('Plano z = z0 fijo. La cuenca clasifica escape, convergencia a equilibrio, comportamiento periódico y comportamiento caótico con una heurística rápida de cola y sección de Poincaré.'),
             stretch=1,
         )
         self.chk_show_equilibria = QCheckBox('Superponer equilibrios')
@@ -1217,7 +1217,13 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, 'Error de FFT', str(exc))
             return
 
-        self.canvas_fft.plot_fft(freqs, spectra, f"FFT normalizada - {SYSTEM_REGISTRY[system_key]['label']}")
+        self.canvas_fft.plot_fft(
+            freqs,
+            spectra,
+            f"FFT normalizada - {SYSTEM_REGISTRY[system_key]['label']}",
+            colors=self.current_time_colors(),
+            auto_crop=not use_bounds,
+        )
         self.tabs.setCurrentWidget(self.tab_fft)
         self.info_label.setText(f'FFT normalizada calculada con {len(freqs)} frecuencias.')
 
@@ -1266,6 +1272,23 @@ class MainWindow(QMainWindow):
     def refresh_basin_canvas(self):
         if self.last_basin is None or self.last_basin_extent is None:
             return
+        if self.current_system_key() == 'lorenz':
+            class_labels = {
+                0: 'Escape',
+                1: 'Caótico',
+                2: 'Converge a E+',
+                3: 'Converge a E-',
+                4: 'Converge a O',
+                5: 'Periódico',
+            }
+        else:
+            class_labels = {
+                0: 'Escape',
+                1: 'Caótico',
+            }
+            for idx, eq in enumerate(self.last_equilibria):
+                class_labels[2 + idx] = f"Converge a {eq.get('name', f'E{idx + 1}')}"
+            class_labels[2 + len(self.last_equilibria)] = 'Periódico'
         self.canvas_basin.plot_basin(
             self.last_basin,
             self.last_basin_extent,
@@ -1273,6 +1296,7 @@ class MainWindow(QMainWindow):
             self.last_basin_z0,
             equilibrium_data=self.last_equilibria,
             show_equilibria=self.chk_show_equilibria.isChecked(),
+            class_labels=class_labels,
         )
     def _populate_spectrum_selector(self):
         self.spectrum_selector.blockSignals(True)
