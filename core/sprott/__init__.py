@@ -8,6 +8,7 @@ from .codes import (
     describe_family,
     encode_coefficients,
 )
+from .explain import explain_code_pipeline, format_explanation_markdown
 from .families import PolynomialFlowFamily, PolynomialMapFamily
 from .monomials import evaluate_monomials, monomial_label, multi_indices
 
@@ -21,6 +22,8 @@ __all__ = [
     'describe_family',
     'encode_coefficients',
     'evaluate_monomials',
+    'explain_code_pipeline',
+    'format_explanation_markdown',
     'monomial_label',
     'multi_indices',
 ]

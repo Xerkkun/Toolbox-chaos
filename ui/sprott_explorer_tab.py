@@ -10,8 +10,8 @@ from time import perf_counter
 
 import numpy as np
 
-from PyQt6.QtCore import QUrl
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QBrush, QColor, QDesktopServices
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -29,6 +29,8 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QSpinBox,
     QDoubleSpinBox,
+    QSplitter,
+    QStackedWidget,
     QTabWidget,
     QTableWidget,
     QTableWidgetItem,
@@ -55,8 +57,14 @@ except Exception:
     QT_PDF_AVAILABLE = False
 
 from core.sprott import decode_code, describe_family
+from core.sprott.explain import explain_code_pipeline, format_explanation_markdown
 from core.sprott.catalog import favorites_path, load_favorites, load_synthetic_examples, save_favorite
 from core.sprott.gallery import build_metadata, gallery_root, list_gallery_entries, save_gallery_entry
+from core.sprott.reading_log import (
+    MARK_LABELS, READING_MARKS,
+    dominant_color, entry_key, get_entry, load_reading_log,
+    marks_icons_text, save_reading_log, set_code, set_mark, set_note,
+)
 from core.sprott.references import index_local_reference_folder, read_dic_entries
 from core.sprott.search import classify_candidate, generate_random_code, quick_lyapunov_estimate, simulate_candidate
 from core.sprott.visual import (
@@ -128,6 +136,13 @@ class SprottExplorerTab(QWidget):
         self._build_tutorial_tab()
         self._build_gallery_tab()
         self._build_importer_tab()
+        self._build_backend_explained_tab()
+        self._last_explanation: dict | None = None
+        # Estado del modo lectura del libro
+        self._reading_log: dict = {}
+        self._reading_entries: list[dict] = []
+        self._reading_visible: list[dict] = []
+        self._mark_buttons: dict[str, QPushButton] = {}
 
     def _read_asset(self, name: str, fallback: str = '') -> str:
         path = self.assets_dir / name
@@ -481,17 +496,38 @@ class SprottExplorerTab(QWidget):
         path_layout.addWidget(browse_dic)
         path_layout.addWidget(load_dic)
         local_layout.addWidget(path_row)
+        # ── Toggle modo lectura ───────────────────────────────────────────
+        self.reading_mode_check = QCheckBox('☰ Modo lectura del libro')
+        self.reading_mode_check.setToolTip(
+            'Activa tabla enriquecida con marcas, notas y filtros por rango de lineas '
+            'para seguir el progreso capitulo a capitulo. Reutiliza los codigos ya cargados.'
+        )
+        self.reading_mode_check.setStyleSheet('font-weight: bold; padding: 3px 0;')
+        self.reading_mode_check.toggled.connect(self.toggle_reading_mode)
+        local_layout.addWidget(self.reading_mode_check)
+
+        # ── QStackedWidget: pagina 0 = vista basica, pagina 1 = lectura ──
+        self._local_dic_stack = QStackedWidget()
+
+        # -- Pagina 0: vista basica original --
+        _page0 = QWidget()
+        _p0_layout = QVBoxLayout(_page0)
+        _p0_layout.setContentsMargins(0, 0, 0, 0)
+        _p0_layout.setSpacing(3)
+
         self.local_dic_table = QTableWidget(0, 8)
         self.local_dic_table.setHorizontalHeaderLabels(['Linea', 'Codigo', 'Familia', 'Dim', 'Orden', 'F', 'L', 'Soporte'])
         self.local_dic_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.local_dic_table.setToolTip('Codigos leidos desde tu archivo .DIC local. No son assets publicos del repositorio.')
         self.local_dic_table.currentCellChanged.connect(lambda row, _col, _prev_row, _prev_col: self.show_selected_local_dic(row))
         self.local_dic_table.cellDoubleClicked.connect(lambda _row, _col: self.simulate_selected_local_dic())
-        local_layout.addWidget(self.local_dic_table, stretch=1)
+        _p0_layout.addWidget(self.local_dic_table, stretch=1)
+
         self.local_dic_detail = QTextEdit()
         self.local_dic_detail.setReadOnly(True)
         self.local_dic_detail.setStyleSheet("font-family: 'Consolas', 'Courier New', monospace;")
-        local_layout.addWidget(self.local_dic_detail, stretch=1)
+        _p0_layout.addWidget(self.local_dic_detail, stretch=1)
+
         self.local_dic_sim_button = QPushButton('Simular codigo local seleccionado')
         self.local_dic_sim_button.setToolTip('Carga el codigo local en Exploracion y lo simula con el backend C si la familia A-X esta soportada.')
         self.local_dic_sim_button.clicked.connect(self.simulate_selected_local_dic)
@@ -504,15 +540,22 @@ class SprottExplorerTab(QWidget):
         self.local_dic_gallery_button = QPushButton('Generar galeria local desde este .DIC')
         self.local_dic_gallery_button.setToolTip('Simula los primeros N codigos visibles y guarda imagenes propias en la galeria local del usuario.')
         self.local_dic_gallery_button.clicked.connect(self.generate_local_gallery_from_dic)
-        local_buttons = QWidget()
-        local_buttons_layout = QHBoxLayout(local_buttons)
-        local_buttons_layout.setContentsMargins(0, 0, 0, 0)
-        local_buttons_layout.addWidget(self.local_dic_sim_button)
-        local_buttons_layout.addWidget(self.local_dic_style_button)
-        local_buttons_layout.addWidget(QLabel('N'))
-        local_buttons_layout.addWidget(self.local_dic_gallery_limit_combo)
-        local_buttons_layout.addWidget(self.local_dic_gallery_button)
-        local_layout.addWidget(local_buttons)
+        _local_buttons = QWidget()
+        _lb_layout = QHBoxLayout(_local_buttons)
+        _lb_layout.setContentsMargins(0, 0, 0, 0)
+        _lb_layout.addWidget(self.local_dic_sim_button)
+        _lb_layout.addWidget(self.local_dic_style_button)
+        _lb_layout.addWidget(QLabel('N'))
+        _lb_layout.addWidget(self.local_dic_gallery_limit_combo)
+        _lb_layout.addWidget(self.local_dic_gallery_button)
+        _p0_layout.addWidget(_local_buttons)
+
+        self._local_dic_stack.addWidget(_page0)
+
+        # -- Pagina 1: panel de lectura del libro --
+        self._local_dic_stack.addWidget(self._build_reading_panel())
+
+        local_layout.addWidget(self._local_dic_stack, stretch=1)
         layout.addWidget(local_box, 1, 1)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
@@ -541,6 +584,18 @@ class SprottExplorerTab(QWidget):
             'en flujos o usa RK4. Si esta muy dispersa, baja tamano de punto y opacidad.\n\n'
             '## 5. Exportar y citar\n'
             'Exporta PNG/CSV/JSON o agrega la imagen a Galeria. Cita a Sprott y no redistribuyas archivos originales.\n\n'
+            '## Como leer el libro con la toolbox\n'
+            'Puedes usar el libro fisico de Sprott como guia de navegacion por los codigos del .DIC local:\n'
+            '- En **Ejemplos**, seccion libro, activa **Modo lectura del libro**.\n'
+            '- Carga `BOOKFIGS.DIC` con **Cargar codigos** (si ya estaba cargado, se reutiliza automaticamente).\n'
+            '- Usa **Capitulo (lineas)** para filtrar el rango de lineas del capitulo que estas leyendo.\n'
+            '  Ejemplo: si el capitulo 3 corresponde a las figuras de las lineas 50 a 120, pon desde=50 hasta=120.\n'
+            '- Selecciona un codigo y pulsa **Simular con estilo recomendado**.\n'
+            '- Si la figura coincide con el libro, marca **Visto**.\n'
+            '- Si no coincide todavia, marca **No coincide** y escribe una nota con el numero de pagina.\n'
+            '- Al terminar el capitulo, cambia el filtro a **solo pendientes** para ver que falta.\n'
+            '- Guarda con **Galeria**: el JSON incluye la linea del .DIC, las marcas y la cita a Sprott.\n'
+            '- Las marcas y notas se guardan en tu carpeta de usuario y persisten entre sesiones.\n\n'
             '## Receta: Quiero una imagen bonita rapido\n'
             'Abre Ejemplos, elige **Primera imagen bonita** y pulsa **Simular con estilo recomendado**. Exporta PNG.\n\n'
             '## Receta: Quiero algo parecido al espiritu visual del libro\n'
@@ -1734,6 +1789,765 @@ class SprottExplorerTab(QWidget):
                 if col == 1:
                     cell.setToolTip(value)
                 self.import_table.setItem(row, col, cell)
+
+
+    # -----------------------------------------------------------------------
+    # Modo lectura del libro — panel UI y métodos de acción
+    # -----------------------------------------------------------------------
+
+    def _build_reading_panel(self) -> QWidget:
+        """Construye la página 1 del QStackedWidget: modo lectura del libro."""
+        panel = QWidget()
+        layout = QVBoxLayout(panel)
+        layout.setContentsMargins(0, 2, 0, 0)
+        layout.setSpacing(4)
+
+        # ── Fila de filtros ────────────────────────────────────────────────
+        filter_row = QWidget()
+        fr_layout = QHBoxLayout(filter_row)
+        fr_layout.setContentsMargins(0, 0, 0, 0)
+        fr_layout.setSpacing(6)
+
+        self.reading_filter_combo = QComboBox()
+        self.reading_filter_combo.addItems([
+            'todos',
+            'solo simulables',
+            'solo no vistos',
+            'solo favoritos',
+            'solo pendientes',
+            'solo no coincide',
+            'solo req. especial',
+        ])
+        self.reading_filter_combo.setToolTip('Filtra la tabla de lectura por estado de progreso.')
+        self.reading_filter_combo.currentIndexChanged.connect(self.apply_reading_filter)
+
+        self.reading_line_from = QSpinBox()
+        self.reading_line_from.setRange(0, 999999)
+        self.reading_line_from.setValue(0)
+        self.reading_line_from.setToolTip('Línea inicial del capítulo actual (0 = sin límite inferior)')
+        self.reading_line_from.setFixedWidth(70)
+        self.reading_line_from.valueChanged.connect(self.apply_reading_filter)
+
+        self.reading_line_to = QSpinBox()
+        self.reading_line_to.setRange(0, 999999)
+        self.reading_line_to.setValue(0)
+        self.reading_line_to.setToolTip('Línea final del capítulo actual (0 = sin límite superior)')
+        self.reading_line_to.setFixedWidth(70)
+        self.reading_line_to.valueChanged.connect(self.apply_reading_filter)
+
+        fr_layout.addWidget(QLabel('Filtro:'))
+        fr_layout.addWidget(self.reading_filter_combo)
+        fr_layout.addWidget(QLabel('  Capítulo (líneas):'))
+        fr_layout.addWidget(self.reading_line_from)
+        fr_layout.addWidget(QLabel('–'))
+        fr_layout.addWidget(self.reading_line_to)
+        fr_layout.addStretch(1)
+        layout.addWidget(filter_row, stretch=0)
+
+        # ── Splitter horizontal: tabla | detalle ───────────────────────────
+        splitter = QSplitter()
+        splitter.setOrientation(Qt.Orientation.Horizontal)
+
+        # Tabla de 10 columnas
+        self.reading_table = QTableWidget(0, 10)
+        self.reading_table.setHorizontalHeaderLabels([
+            'Línea', 'Código', 'Familia', 'Dim', 'Orden', 'F', 'L', 'Soporte', 'Marcas', 'Nota',
+        ])
+        hdr = self.reading_table.horizontalHeader()
+        hdr.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        hdr.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        hdr.setSectionResizeMode(7, QHeaderView.ResizeMode.ResizeToContents)
+        hdr.setSectionResizeMode(8, QHeaderView.ResizeMode.ResizeToContents)
+        hdr.setSectionResizeMode(9, QHeaderView.ResizeMode.Stretch)
+        for col in (2, 3, 4, 5, 6):
+            hdr.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+        self.reading_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.reading_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.reading_table.setToolTip('Doble clic para simular el código seleccionado.')
+        self.reading_table.currentCellChanged.connect(
+            lambda row, _c, _pr, _pc: self.show_selected_reading_entry(row)
+        )
+        self.reading_table.cellDoubleClicked.connect(lambda _r, _c: self.simulate_reading_entry())
+        splitter.addWidget(self.reading_table)
+
+        # Panel de detalle (derecha)
+        detail_widget = QWidget()
+        dw_layout = QVBoxLayout(detail_widget)
+        dw_layout.setContentsMargins(4, 0, 0, 0)
+        dw_layout.setSpacing(4)
+
+        _dlabel = QLabel('<b>Detalle del código seleccionado</b>')
+        dw_layout.addWidget(_dlabel, stretch=0)
+
+        self.reading_detail = QTextEdit()
+        self.reading_detail.setReadOnly(True)
+        self.reading_detail.setStyleSheet(
+            "font-family: 'Consolas', 'Courier New', monospace; font-size: 12px;"
+        )
+        dw_layout.addWidget(self.reading_detail, stretch=1)
+
+        # Campo de nota con botón Guardar inline
+        _note_row = QWidget()
+        _nr_layout = QHBoxLayout(_note_row)
+        _nr_layout.setContentsMargins(0, 0, 0, 0)
+        _nr_layout.addWidget(QLabel('Nota:'))
+        self.reading_note_edit = QLineEdit()
+        self.reading_note_edit.setPlaceholderText('Página, observación, capítulo...')
+        self.reading_note_edit.returnPressed.connect(self.save_reading_note)
+        _nr_layout.addWidget(self.reading_note_edit, stretch=1)
+        _save_note_btn = QPushButton('Guardar')
+        _save_note_btn.setToolTip('Guarda la nota de lectura para este código (también con Enter).')
+        _save_note_btn.clicked.connect(self.save_reading_note)
+        _nr_layout.addWidget(_save_note_btn)
+        dw_layout.addWidget(_note_row, stretch=0)
+
+        splitter.addWidget(detail_widget)
+        splitter.setSizes([340, 300])
+        layout.addWidget(splitter, stretch=1)
+
+        # ── Botones fila 1: simulación ─────────────────────────────────────
+        _ar1 = QWidget()
+        _ar1_l = QHBoxLayout(_ar1)
+        _ar1_l.setContentsMargins(0, 0, 0, 0)
+        _ar1_l.setSpacing(6)
+
+        self.reading_sim_button = QPushButton('▶ Simular')
+        self.reading_sim_button.setToolTip('Simula el código seleccionado con los parámetros actuales.')
+        self.reading_sim_button.clicked.connect(self.simulate_reading_entry)
+
+        self.reading_sim_style_button = QPushButton('▶★ Simular con estilo rec.')
+        self.reading_sim_style_button.setToolTip('Simula aplicando la configuración visual recomendada para la familia.')
+        self.reading_sim_style_button.clicked.connect(self.simulate_reading_entry_recommended)
+
+        self.reading_decode_button = QPushButton('Decodificar')
+        self.reading_decode_button.setToolTip('Lleva el código a la pestaña Códigos para ver decodificación detallada.')
+        self.reading_decode_button.clicked.connect(self.decode_reading_entry)
+
+        _ar1_l.addWidget(self.reading_sim_button)
+        _ar1_l.addWidget(self.reading_sim_style_button)
+        _ar1_l.addWidget(self.reading_decode_button)
+        _ar1_l.addStretch(1)
+        layout.addWidget(_ar1, stretch=0)
+
+        # ── Botones fila 2: galería, cita y marcas ─────────────────────────
+        _ar2 = QWidget()
+        _ar2_l = QHBoxLayout(_ar2)
+        _ar2_l.setContentsMargins(0, 0, 0, 0)
+        _ar2_l.setSpacing(4)
+
+        self.reading_gallery_button = QPushButton('📷 Galería')
+        self.reading_gallery_button.setToolTip(
+            'Simula el código con estilo recomendado y guarda la imagen en la galería local '
+            'con metadata enriquecida (línea del .DIC, marcas, nota, cita a Sprott).'
+        )
+        self.reading_gallery_button.clicked.connect(self.save_reading_to_gallery)
+
+        self.reading_citation_button = QPushButton('📋 Copiar cita')
+        self.reading_citation_button.setToolTip('Copia al portapapeles una cita académica apropiada para este código.')
+        self.reading_citation_button.clicked.connect(self.copy_reading_citation)
+
+        _ar2_l.addWidget(self.reading_gallery_button)
+        _ar2_l.addWidget(self.reading_citation_button)
+
+        _sep = QLabel('  |')
+        _sep.setStyleSheet('color: #aaa;')
+        _ar2_l.addWidget(_sep)
+
+        # Botones de marca (checkables)
+        _marks_config = [
+            ('visto',             '✓ Visto',          '#2e7d32', '#e8f5e9'),
+            ('favorito',          '★ Favorito',        '#e65100', '#fffde7'),
+            ('pendiente',         '⏳ Pendiente',      '#bf360c', '#fff3e0'),
+            ('no_coincide',       '✗ No coincide',     '#880e4f', '#fce4ec'),
+            ('requiere_especial', '🔧 Req. especial',  '#4a148c', '#f3e5f5'),
+        ]
+        for mark_key, label, active_fg, active_bg in _marks_config:
+            btn = QPushButton(label)
+            btn.setCheckable(True)
+            btn.setToolTip(f'Marcar / desmarcar "{mark_key}" para el código seleccionado.')
+            btn.setStyleSheet(
+                f'QPushButton:checked {{ background: {active_bg}; color: {active_fg}; '
+                f'font-weight: bold; border: 1px solid {active_fg}; }}'
+            )
+            btn.toggled.connect(lambda checked, m=mark_key: self.toggle_reading_mark(m, checked))
+            self._mark_buttons[mark_key] = btn
+            _ar2_l.addWidget(btn)
+
+        layout.addWidget(_ar2, stretch=0)
+        return panel
+
+    # ── Estado y persistencia ───────────────────────────────────────────────
+
+    def _reload_reading_log(self):
+        """Carga el log de marcas desde el JSON de usuario."""
+        try:
+            self._reading_log = load_reading_log()
+        except Exception:
+            self._reading_log = {}
+
+    def _persist_reading_log(self):
+        """Guarda el log de marcas al JSON de usuario."""
+        try:
+            save_reading_log(self._reading_log)
+        except Exception:
+            pass
+
+    def _current_reading_entry(self) -> dict | None:
+        """Entry actualmente seleccionado en la tabla de lectura, o None."""
+        if not hasattr(self, 'reading_table'):
+            return None
+        row = self.reading_table.currentRow()
+        if row < 0 or row >= len(self._reading_visible):
+            return None
+        return self._reading_visible[row]
+
+    def _current_reading_key(self) -> str:
+        """Clave del entry actualmente seleccionado, o ''."""
+        entry = self._current_reading_entry()
+        if not entry:
+            return ''
+        return entry_key(entry.get('source_name', ''), entry.get('line', 0))
+
+    # ── Toggle del modo lectura ─────────────────────────────────────────────
+
+    def toggle_reading_mode(self, checked: bool):
+        """Alterna entre vista básica (página 0) y modo lectura (página 1)."""
+        self._local_dic_stack.setCurrentIndex(1 if checked else 0)
+        if checked:
+            # Reutilizar entradas ya cargadas si están disponibles
+            if hasattr(self, 'local_dic_entries') and self.local_dic_entries:
+                self._reading_entries = list(self.local_dic_entries)
+            else:
+                self._reading_entries = []
+            self._reload_reading_log()
+            self.apply_reading_filter()
+
+    # ── Filtrado y refresco de tabla ───────────────────────────────────────
+
+    def apply_reading_filter(self, *_args):
+        """Filtra _reading_entries → _reading_visible y actualiza la tabla."""
+        if not hasattr(self, 'reading_filter_combo'):
+            return
+        current_filter = self.reading_filter_combo.currentText()
+        line_from = self.reading_line_from.value()
+        line_to = self.reading_line_to.value()
+
+        visible = []
+        for entry in self._reading_entries:
+            line = entry.get('line', 0)
+            # Filtro por rango de líneas (capítulo)
+            if line_from > 0 and line < line_from:
+                continue
+            if line_to > 0 and line > line_to:
+                continue
+            # Filtro por marca/estado
+            key = entry_key(entry.get('source_name', ''), line)
+            log_entry = self._reading_log.get(key, {})
+            marks = log_entry.get('marks', [])
+            if current_filter == 'solo simulables' and entry.get('support') != 'simulable':
+                continue
+            if current_filter == 'solo no vistos' and 'visto' in marks:
+                continue
+            if current_filter == 'solo favoritos' and 'favorito' not in marks:
+                continue
+            if current_filter == 'solo pendientes' and 'pendiente' not in marks:
+                continue
+            if current_filter == 'solo no coincide' and 'no_coincide' not in marks:
+                continue
+            if current_filter == 'solo req. especial' and 'requiere_especial' not in marks:
+                continue
+            visible.append(entry)
+
+        self._reading_visible = visible
+        self._refresh_reading_table()
+
+    def _refresh_reading_table(self):
+        """Redibuja reading_table desde _reading_visible."""
+        if not hasattr(self, 'reading_table'):
+            return
+        self.reading_table.setRowCount(0)
+        for entry in self._reading_visible:
+            line = entry.get('line', 0)
+            key = entry_key(entry.get('source_name', ''), line)
+            log_entry = self._reading_log.get(key, {})
+            marks = log_entry.get('marks', [])
+            note = log_entry.get('note', '')
+
+            row = self.reading_table.rowCount()
+            self.reading_table.insertRow(row)
+
+            cols = [
+                str(line),
+                entry.get('code', ''),
+                entry.get('family', ''),
+                str(entry.get('dimension', '')),
+                str(entry.get('order', '')),
+                _metric_text(entry.get('f_metric')),
+                _metric_text(entry.get('l_metric')),
+                entry.get('support', ''),
+                marks_icons_text(marks),
+                (note[:40] + '…') if len(note) > 40 else note,
+            ]
+            for col, val in enumerate(cols):
+                item = QTableWidgetItem(str(val))
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                if col in {1, 9}:
+                    item.setToolTip(str(val))
+                self.reading_table.setItem(row, col, item)
+
+            # Color de fondo según marca dominante
+            color_hex = dominant_color(marks)
+            if color_hex:
+                brush = QBrush(QColor(color_hex))
+                for col in range(10):
+                    it = self.reading_table.item(row, col)
+                    if it:
+                        it.setBackground(brush)
+
+    def _refresh_reading_row_marks(self, row: int, marks: list[str]):
+        """Actualiza color e icono de marcas en una fila ya pintada."""
+        if row < 0 or row >= self.reading_table.rowCount():
+            return
+        # Icono de marcas
+        icons_item = self.reading_table.item(row, 8)
+        if icons_item:
+            icons_item.setText(marks_icons_text(marks))
+        # Color de fondo
+        color_hex = dominant_color(marks)
+        for col in range(10):
+            it = self.reading_table.item(row, col)
+            if it:
+                if color_hex:
+                    it.setBackground(QBrush(QColor(color_hex)))
+                else:
+                    it.setBackground(QBrush())
+
+    # ── Panel de detalle ───────────────────────────────────────────────────
+
+    def show_selected_reading_entry(self, row: int):
+        """Rellena el panel de detalle con el código seleccionado en modo lectura."""
+        if not hasattr(self, 'reading_detail'):
+            return
+        if row < 0 or row >= len(self._reading_visible):
+            return
+        entry = self._reading_visible[row]
+        code_text = entry.get('code', '')
+        key = entry_key(entry.get('source_name', ''), entry.get('line', 0))
+        log_entry = self._reading_log.get(key, {})
+        marks = log_entry.get('marks', [])
+        note = log_entry.get('note', '')
+
+        try:
+            code = decode_code(code_text)
+        except Exception:
+            self.reading_detail.setPlainText(f'No se pudo decodificar: {code_text}')
+            return
+
+        # Ecuaciones reconstruidas (sin simulación)
+        eq_text = '(no disponible para esta familia)'
+        try:
+            if code.kind == 'map':
+                from core.sprott.families import PolynomialMapFamily
+                fam = PolynomialMapFamily(code.dimension, code.order, code.coefficients)
+                eq_text = fam.equations_text()
+            elif code.kind == 'flow':
+                from core.sprott.families import PolynomialFlowFamily
+                fam = PolynomialFlowFamily(code.dimension, code.order, code.coefficients)
+                eq_text = fam.equations_text()
+        except Exception:
+            pass
+
+        # Parámetros recomendados
+        if code.kind == 'map':
+            rec_params = 'iter: 12 000 | transient: 2 000 | h: N/A'
+        elif code.kind == 'flow':
+            rec_params = 'iter: 6 000 | transient: 800 | h: 0.01 | método: RK4'
+        else:
+            rec_params = 'familia especial — no simulable todavía'
+
+        # Visual recomendado (reutiliza lógica existente si está disponible)
+        try:
+            vis_cfg = self._recommended_visual_for_entry(entry)
+            vis_desc = f'proyección {vis_cfg.projection} | color {vis_cfg.color_by} | paleta {vis_cfg.palette}'
+        except Exception:
+            vis_desc = '(no disponible)'
+
+        # Advertencia de soporte
+        support = entry.get('support', '')
+        warning_lines = []
+        if support != 'simulable':
+            warning_lines.append(f'⚠ No simulable todavía: {support}')
+        if code.warnings:
+            warning_lines.extend(f'  · {w}' for w in code.warnings)
+
+        lines = [
+            f'Código:      {code_text}',
+            f'Fuente:      {entry.get("source_name", "")}  línea {entry.get("line", "")}',
+            f'Familia:     {code.family_letter} → {code.family_name}',
+            f'Tipo:        {code.kind} | Dim: {code.dimension} | Orden: {code.order}',
+            f'Coeficientes: {len(code.coefficients)} recibidos',
+            '',
+            'Ecuaciones:',
+            eq_text,
+            '',
+            f'Params rec.: {rec_params}',
+            f'Visual rec.: {vis_desc}',
+        ]
+        if warning_lines:
+            lines += [''] + warning_lines
+
+        self.reading_detail.setPlainText('\n'.join(lines))
+
+        # Nota actual
+        self.reading_note_edit.setText(note)
+
+        # Estado de botones de marca
+        for mark_key, btn in self._mark_buttons.items():
+            btn.blockSignals(True)
+            btn.setChecked(mark_key in marks)
+            btn.blockSignals(False)
+
+    # ── Acciones ───────────────────────────────────────────────────────────
+
+    def simulate_reading_entry(self):
+        """Simula el código seleccionado en modo lectura (sin cambiar visual)."""
+        entry = self._current_reading_entry()
+        if not entry:
+            return
+        code_text = entry.get('code', '')
+        try:
+            code = decode_code(code_text)
+        except Exception as exc:
+            QMessageBox.warning(self, 'Error de decodificación', str(exc))
+            return
+        if code.kind not in {'map', 'flow'}:
+            QMessageBox.information(
+                self, 'Familia no soportada',
+                f'La familia «{code.family_name}» no es simulable todavía en esta versión.'
+            )
+            return
+        # Cargar en la pestaña de exploración y simular
+        self.explore_code_edit.setText(code_text)
+        self.code_edit.setText(code_text)
+        if hasattr(self, '_set_combo_data'):
+            self._set_combo_data(self.dimension_combo, code.dimension)
+            self._set_combo_data(self.order_combo, code.order)
+        if code.kind == 'map':
+            self.kind_combo.setCurrentText('map')
+            self.iter_spin.setValue(max(self.iter_spin.value(), 12000))
+            self.transient_spin.setValue(max(self.transient_spin.value(), 2000))
+        else:
+            self.kind_combo.setCurrentText('flow')
+            self.iter_spin.setValue(max(self.iter_spin.value(), 5000))
+            self.transient_spin.setValue(max(self.transient_spin.value(), 800))
+            self.h_spin.setValue(min(self.h_spin.value(), 0.01))
+        self.simulate_exploration_code()
+        # Navegar a Exploración
+        for idx in range(self.sections.count()):
+            if self.sections.tabText(idx) in ('Exploración', 'Exploracion', 'Exploration'):
+                self.sections.setCurrentIndex(idx)
+                break
+
+    def simulate_reading_entry_recommended(self):
+        """Simula el código seleccionado aplicando el visual recomendado."""
+        entry = self._current_reading_entry()
+        if not entry:
+            return
+        try:
+            cfg = self._recommended_visual_for_entry(entry)
+            self.apply_visual_config_to_widgets(cfg)
+        except Exception:
+            pass
+        self.simulate_reading_entry()
+
+    def decode_reading_entry(self):
+        """Envía el código a la pestaña Códigos y lo decodifica."""
+        entry = self._current_reading_entry()
+        if not entry:
+            return
+        self.code_edit.setText(entry.get('code', ''))
+        self.decode_current_code()
+        for idx in range(self.sections.count()):
+            if self.sections.tabText(idx) in ('Códigos', 'Codigos', 'Codes'):
+                self.sections.setCurrentIndex(idx)
+                break
+
+    def save_reading_note(self):
+        """Persiste la nota del campo de texto en el log de usuario."""
+        key = self._current_reading_key()
+        if not key:
+            return
+        entry = self._current_reading_entry()
+        if entry:
+            self._reading_log = set_code(
+                self._reading_log, key,
+                entry.get('code', ''), entry.get('source_name', ''), entry.get('line', 0)
+            )
+        self._reading_log = set_note(self._reading_log, key, self.reading_note_edit.text())
+        self._persist_reading_log()
+        # Refrescar celda de nota en la fila actual
+        row = self.reading_table.currentRow()
+        if 0 <= row < self.reading_table.rowCount():
+            note = self.reading_note_edit.text()
+            item = self.reading_table.item(row, 9)
+            if item:
+                item.setText((note[:40] + '…') if len(note) > 40 else note)
+                item.setToolTip(note)
+
+    def save_reading_to_gallery(self):
+        """Simula el código seleccionado y guarda la imagen en la galería con metadata enriquecida."""
+        entry = self._current_reading_entry()
+        if not entry:
+            QMessageBox.information(self, 'Sin selección', 'Selecciona un código en la tabla primero.')
+            return
+        code_text = entry.get('code', '')
+        try:
+            code = decode_code(code_text)
+        except Exception as exc:
+            QMessageBox.warning(self, 'Error', str(exc))
+            return
+        if code.kind not in {'map', 'flow'}:
+            QMessageBox.information(
+                self, 'Familia no soportada',
+                'Solo se pueden guardar en galería familias A-X simulables.'
+            )
+            return
+
+        key = self._current_reading_key()
+        log_entry = self._reading_log.get(key, {})
+        try:
+            cfg = self._recommended_visual_for_entry(entry)
+        except Exception:
+            cfg = self.current_visual_config()
+
+        n_iter = 12000 if code.kind == 'map' else 6000
+        transient = 2000 if code.kind == 'map' else 800
+
+        try:
+            result = simulate_candidate(
+                code_text, n_iter=n_iter, transient=transient,
+                h=0.01, method='rk4', divergence_threshold=1e9, backend='c',
+            )
+            classification = classify_candidate(result['post_transient'], divergence_threshold=1e9)
+            self.sprott_canvas.plot_trajectory(
+                result['post_transient'], cfg,
+                title=f"Lectura: {entry.get('source_name', '')}:{entry.get('line', '')}",
+            )
+            with tempfile.TemporaryDirectory() as tmp:
+                tmpdir = Path(tmp)
+                render = self.sprott_canvas.export_image(tmpdir / 'render.png', dpi=cfg.export_dpi)
+                thumb = self.sprott_canvas.export_thumbnail(tmpdir / 'thumbnail.png')
+                metadata = build_metadata(
+                    code=code_text,
+                    source='local_dic',
+                    source_file=entry.get('source_file', ''),
+                    source_line=entry.get('line'),
+                    simulation={
+                        'iterations': n_iter, 'transient': transient,
+                        'h': 0.01, 'method': 'rk4', 'divergence_threshold': 1e9,
+                    },
+                    style=cfg.to_dict(),
+                    classification=classification,
+                    notes=log_entry.get('note', ''),
+                )
+                metadata['dic_source_file'] = entry.get('source_file', '')
+                metadata['dic_source_name'] = entry.get('source_name', '')
+                metadata['dic_source_line'] = entry.get('line')
+                metadata['reading_marks'] = log_entry.get('marks', [])
+                metadata['reading_note'] = log_entry.get('note', '')
+                metadata['sprott_citation'] = (
+                    'Julien C. Sprott, Strange Attractors: Creating Patterns in Chaos, '
+                    'M&T Books, 1993. Imagen generada por Chaos Toolbox como reimplementacion '
+                    'educativa propia. No redistribuye archivos originales del libro.'
+                )
+                save_gallery_entry(render_path=render, thumbnail_path=thumb, metadata=metadata)
+            self.refresh_gallery()
+            QMessageBox.information(
+                self, 'Galería',
+                f'Imagen guardada en la galería local.\nCódigo: {code_text}',
+            )
+        except Exception as exc:
+            QMessageBox.critical(self, 'Error al guardar en galería', str(exc))
+
+    def copy_reading_citation(self):
+        """Copia una cita académica apropiada al portapapeles."""
+        entry = self._current_reading_entry()
+        code_text = entry.get('code', '') if entry else ''
+        citation = (
+            'Imagen generada por Chaos Toolbox como reimplementacion educativa inspirada en '
+            'Julien C. Sprott, Strange Attractors: Creating Patterns in Chaos, M&T Books, 1993.'
+            + (f' Codigo: {code_text}.' if code_text else '')
+            + ' No redistribuye archivos ni texto originales del libro.'
+        )
+        QApplication.clipboard().setText(citation)
+
+    def toggle_reading_mark(self, mark: str, checked: bool):
+        """Activa o desactiva una marca para la entrada seleccionada y persiste."""
+        key = self._current_reading_key()
+        if not key:
+            # No hay selección — revertir visualmente el botón
+            btn = self._mark_buttons.get(mark)
+            if btn:
+                btn.blockSignals(True)
+                btn.setChecked(not checked)
+                btn.blockSignals(False)
+            return
+        # Asegurarse de que los metadatos del código están en el log
+        entry = self._current_reading_entry()
+        if entry:
+            self._reading_log = set_code(
+                self._reading_log, key,
+                entry.get('code', ''), entry.get('source_name', ''), entry.get('line', 0)
+            )
+        self._reading_log = set_mark(self._reading_log, key, mark, checked)
+        self._persist_reading_log()
+        # Actualizar color e iconos de la fila actual
+        row = self.reading_table.currentRow()
+        marks = self._reading_log.get(key, {}).get('marks', [])
+        self._refresh_reading_row_marks(row, marks)
+
+
+    # -----------------------------------------------------------------------
+    # Backend explicado — constructor de subpestaña y acciones
+    # -----------------------------------------------------------------------
+
+    def _build_backend_explained_tab(self):
+        """Construye la subpestaña 'Backend explicado' con flujo paso a paso."""
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(6)
+
+        # ── Encabezado informativo ──────────────────────────────────────────
+        intro = QLabel(
+            '<b>Backend explicado</b> — muestra el pipeline completo que la toolbox '
+            'aplica al código seleccionado: limpieza, decodificación de familia, '
+            'conteo de monomios, matriz de coeficientes, ecuaciones, condición inicial, '
+            'método de simulación, criterios de clasificación y configuración visual.'
+        )
+        intro.setWordWrap(True)
+        intro.setStyleSheet('padding: 6px; background: #f0f4ff; border-radius: 4px;')
+        layout.addWidget(intro, stretch=0)
+
+        # ── Fila de botones ─────────────────────────────────────────────────
+        btn_row = QWidget()
+        btn_layout = QHBoxLayout(btn_row)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(8)
+
+        self.explain_button = QPushButton('▶  Explicar código actual')
+        self.explain_button.setToolTip(
+            'Toma el código del campo Exploración y genera una explicación '
+            'textual didáctica de todo el pipeline interno.'
+        )
+        self.explain_button.setStyleSheet(
+            'QPushButton { font-weight: bold; padding: 5px 12px; '
+            'background: #2563eb; color: white; border-radius: 4px; }'
+            'QPushButton:hover { background: #1d4ed8; }'
+        )
+        self.explain_button.clicked.connect(self.explain_current_code)
+
+        self.export_explain_button = QPushButton('⬇  Exportar explicación Markdown')
+        self.export_explain_button.setToolTip(
+            'Guarda la explicación generada como archivo .md legible con cualquier editor.'
+        )
+        self.export_explain_button.setEnabled(False)
+        self.export_explain_button.clicked.connect(self.export_explanation_markdown)
+
+        btn_layout.addWidget(self.explain_button)
+        btn_layout.addWidget(self.export_explain_button)
+        btn_layout.addStretch(1)
+        layout.addWidget(btn_row, stretch=0)
+
+        # ── Área de texto con la explicación ────────────────────────────────
+        self.explain_output = QTextEdit()
+        self.explain_output.setReadOnly(True)
+        self.explain_output.setStyleSheet(
+            "font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; "
+            "background: #ffffff;"
+        )
+        self.explain_output.setPlainText(
+            'Pulsa ▶ Explicar código actual para ver el pipeline completo.\n\n'
+            'Se usará el código que aparece en el campo Código de la pestaña Exploración. '
+            'Si aún no has simulado nada, el análisis se hace solo con el texto del campo; '
+            'si ya simulaste, la configuración visual actual también se incluye.'
+        )
+        layout.addWidget(self.explain_output, stretch=1)
+
+        self.sections.addTab(widget, 'Backend explicado')
+
+    def explain_current_code(self):
+        """Genera y muestra la explicación didáctica del pipeline para el código actual."""
+        code = self.explore_code_edit.text().strip()
+        if not code:
+            code = self.code_edit.text().strip()
+        if not code:
+            self.explain_output.setPlainText('No hay código para explicar. Escribe o genera uno primero.')
+            return
+
+        n_iter = self.iter_spin.value()
+        transient = self.transient_spin.value()
+        h = self.h_spin.value()
+        method = self.method_combo.currentText()
+        visual_cfg = self.current_visual_config() if hasattr(self, 'projection_combo') else None
+
+        try:
+            self._last_explanation = explain_code_pipeline(
+                code=code,
+                n_iter=n_iter,
+                transient=transient,
+                h=h,
+                method=method,
+                visual_config=visual_cfg,
+            )
+        except Exception as exc:
+            self.explain_output.setPlainText(f'Error al generar la explicación:\n{exc}')
+            return
+
+        md_text = format_explanation_markdown(self._last_explanation)
+
+        # Renderizar como HTML enriquecido usando el conversor interno de la pestaña
+        try:
+            html_doc = _markdown_to_clean_html(md_text, webengine=False, asset_root=self.assets_dir)
+            self.explain_output.setHtml(html_doc)
+        except Exception:
+            self.explain_output.setPlainText(md_text)
+
+        self.export_explain_button.setEnabled(True)
+
+        # Navegar a la subpestaña Backend explicado
+        for idx in range(self.sections.count()):
+            if self.sections.tabText(idx) == 'Backend explicado':
+                self.sections.setCurrentIndex(idx)
+                break
+
+    def export_explanation_markdown(self):
+        """Exporta la explicación actualmente mostrada como archivo .md."""
+        if not self._last_explanation:
+            QMessageBox.information(
+                self,
+                'Sin explicación',
+                'Genera primero una explicación pulsando ▶ Explicar código actual.',
+            )
+            return
+        code_raw = self._last_explanation.get('raw_code', 'sprott')
+        default_name = f'explicacion_{code_raw[:16].replace(" ", "_")}.md'
+        path, _filter = QFileDialog.getSaveFileName(
+            self,
+            'Exportar explicación Markdown',
+            str(Path.home() / default_name),
+            'Markdown (*.md);;Texto plano (*.txt)',
+        )
+        if not path:
+            return
+        md_text = format_explanation_markdown(self._last_explanation)
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(md_text, encoding='utf-8')
+        QMessageBox.information(
+            self,
+            'Exportación completada',
+            f'Explicación guardada en:\n{path}',
+        )
 
 
 def _range_text(ranges: list, index: int) -> str:
