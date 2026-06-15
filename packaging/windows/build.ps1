@@ -108,16 +108,23 @@ function Invoke-Checked {
 
 $venvDir = Join-Path $repoRoot ".venv"
 $venvPython = Join-Path $venvDir "Scripts\python.exe"
+if (-not (Test-Path -LiteralPath $venvPython)) {
+    $venvPython = Join-Path $venvDir "bin\python.exe"
+}
+
 if ((Test-Path -LiteralPath $venvDir) -and -not (Test-VenvPip -PythonPath $venvPython)) {
     Write-Host ".venv exists but pip is unavailable; using .venv-build for packaging."
     $venvDir = Join-Path $repoRoot ".venv-build"
     $venvPython = Join-Path $venvDir "Scripts\python.exe"
+    if (-not (Test-Path -LiteralPath $venvPython)) {
+        $venvPython = Join-Path $venvDir "bin\python.exe"
+    }
 }
 
 if (-not (Test-VenvPip -PythonPath $venvPython)) {
     $bootstrapPython = Find-Python
     try {
-        Invoke-Checked -FilePath $bootstrapPython -Arguments @("-m", "venv", $venvDir)
+        Invoke-Checked -FilePath $bootstrapPython -Arguments @("-m", "venv", "--system-site-packages", $venvDir)
     } catch {
         Write-Warning "Could not create $venvDir. Falling back to the available Python interpreter for this build."
         $venvDir = $null
@@ -127,6 +134,9 @@ if (-not (Test-VenvPip -PythonPath $venvPython)) {
 
 if ($venvDir) {
     $activate = Join-Path $venvDir "Scripts\Activate.ps1"
+    if (-not (Test-Path -LiteralPath $activate)) {
+        $activate = Join-Path $venvDir "bin\Activate.ps1"
+    }
     . $activate
 }
 

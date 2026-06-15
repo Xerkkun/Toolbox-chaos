@@ -40,13 +40,30 @@ FORBIDDEN_SUFFIXES = {
 }
 
 
+def _remove_readonly(func, path, _excinfo):
+    import os
+    import stat
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception:
+        pass
+
 def _safe_clear(path: Path) -> None:
+    import time
     full = path.resolve()
     root = ROOT.resolve()
     if root not in full.parents and full != root:
         raise RuntimeError(f'Refusing to clear path outside repository: {full}')
     if path.exists():
-        shutil.rmtree(path)
+        for i in range(5):
+            try:
+                shutil.rmtree(path, onexc=_remove_readonly)
+                return
+            except PermissionError:
+                time.sleep(0.2)
+        # Final attempt
+        shutil.rmtree(path, onexc=_remove_readonly)
 
 
 def _copy_file(src: Path, dst: Path) -> None:

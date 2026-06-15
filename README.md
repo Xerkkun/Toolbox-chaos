@@ -50,10 +50,17 @@ python scripts\verify_packaging.py
 python scripts\bundle_size_report.py
 ```
 
-Build Windows executable and installer inputs:
+Build Windows executable and installer:
 
 ```powershell
+# Build both executable and installer (default)
 .\scripts\build_windows.ps1
+
+# Build executable only (PyInstaller)
+.\scripts\build_windows.ps1 -AppOnly
+
+# Build installer only (Inno Setup from existing dist/)
+.\scripts\build_windows.ps1 -InstallerOnly
 ```
 
 Build on macOS or Linux from those systems:
@@ -63,13 +70,15 @@ Build on macOS or Linux from those systems:
 ./scripts/build_linux.sh
 ```
 
-Expected artifact names:
+Expected artifact names and directories:
 
-- `chaos-toolbox-v0.1.0-windows-x64-setup.exe`
+- Executable folder: `dist/Chaos Toolbox/Chaos Toolbox.exe`
+- Installer file: `installer/chaos-toolbox-v0.1.0-windows-x64-setup.exe`
+- Old installers are archived to `installer/archive/` during building.
 - `chaos-toolbox-v0.1.0-macos-arm64.dmg`
 - `chaos-toolbox-v0.1.0-linux-x64.AppImage`
 
-Windows packaging uses PyInstaller plus Inno Setup. macOS and Linux PyInstaller builds are prepared, while `.dmg`, AppImage, `.deb`, and `.rpm` publication require platform tools documented in `docs/packaging.md`.
+Windows packaging uses PyInstaller plus Inno Setup. Previous or stale installers with older names (like `ChaosToolboxSetup-0.1.0.exe`) are obsolete unless their modification date proves otherwise. macOS and Linux PyInstaller builds are prepared, while `.dmg`, AppImage, `.deb`, and `.rpm` publication require platform tools documented in `docs/packaging.md`.
 
 ## Updates
 

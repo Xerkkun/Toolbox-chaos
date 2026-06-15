@@ -45,11 +45,39 @@ python scripts\verify_packaging.py
 
 Windows:
 
+Build both the executable and the installer:
+
 ```powershell
 .\scripts\build_windows.ps1
 ```
 
-Expected installer: `chaos-toolbox-v0.1.0-windows-x64-setup.exe`.
+Build the PyInstaller executable bundle only:
+
+```powershell
+.\scripts\build_windows.ps1 -AppOnly
+```
+
+Build the Inno Setup installer installer only (requires an existing `dist/Chaos Toolbox/` build):
+
+```powershell
+.\scripts\build_windows.ps1 -InstallerOnly
+```
+
+### Inno Setup Compiler Detection
+The installer build process requires Inno Setup 6 (`ISCC.exe`). It is automatically detected in:
+1. The path specified by the `$env:INNO_SETUP_ISCC` environment variable.
+2. The system `PATH`.
+3. User AppData location `%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe`.
+4. Standard location `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`.
+5. Standard location `C:\Program Files\Inno Setup 6\ISCC.exe`.
+
+If not found, a detailed message is displayed, the PyInstaller executable remains intact, and the script exits with an error code.
+
+### Installer Archiving & Artifacts
+- Main Executable: [Chaos Toolbox.exe](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/dist/Chaos%20Toolbox/Chaos%20Toolbox.exe)
+- Main Installer: [chaos-toolbox-v0.1.0-windows-x64-setup.exe](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/installer/chaos-toolbox-v0.1.0-windows-x64-setup.exe)
+- Prior to compiling a new installer, all existing `*.exe` files in the `installer/` directory are moved to the `installer/archive/` folder.
+- Stale installers with the old name format (e.g., `ChaosToolboxSetup-0.1.0.exe`) are considered obsolete and are automatically archived to prevent user confusion.
 
 macOS:
 

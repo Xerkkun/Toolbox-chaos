@@ -17,7 +17,9 @@ pytest-cache-files-*/
 
 build/
 dist/
-installer/
+installer/*.exe
+installer/archive/
+!installer/.gitkeep
 release/
 *.egg-info/
 resources/user/*

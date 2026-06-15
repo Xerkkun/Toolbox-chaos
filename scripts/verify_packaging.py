@@ -69,6 +69,7 @@ def verify() -> None:
     scripts = [
         ROOT / 'packaging' / 'windows' / 'build.ps1',
         ROOT / 'scripts' / 'build_windows.ps1',
+        ROOT / 'scripts' / 'build_windows_installer.ps1',
         ROOT / 'scripts' / 'build_macos.sh',
         ROOT / 'scripts' / 'build_linux.sh',
         ROOT / 'scripts' / 'package_all.ps1',

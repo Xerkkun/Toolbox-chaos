@@ -34,14 +34,21 @@ jobs:
       - name: Run package metadata tests
         run: python -m pytest tests/test_packaging_metadata.py -q
 
-      - name: Build with PyInstaller
+      - name: Build with PyInstaller (macOS/Linux)
+        if: matrix.os != 'windows-latest'
         run: python -m PyInstaller --noconfirm packaging/pyinstaller/chaos_toolbox.spec
+
+      - name: Build Windows Executable & Installer
+        if: matrix.os == 'windows-latest'
+        run: .\scripts\build_windows.ps1
 
       - name: Upload build output
         uses: actions/upload-artifact@v4
         with:
           name: chaos-toolbox-${{ matrix.os }}
-          path: dist/
+          path: |
+            dist/
+            installer/*.exe
 
   notes:
     name: Signing and publishing notes

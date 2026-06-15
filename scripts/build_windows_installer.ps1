@@ -1,0 +1,126 @@
+$ErrorActionPreference = "Stop"
+$repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+Set-Location -LiteralPath $repoRoot
+
+$venvDir = Join-Path $repoRoot ".venv"
+$venvPython = Join-Path $venvDir "Scripts\python.exe"
+if (-not (Test-Path -LiteralPath $venvPython)) {
+    $venvPython = Join-Path $venvDir "bin\python.exe"
+}
+if (-not (Test-Path -LiteralPath $venvPython)) {
+    $venvDir = Join-Path $repoRoot ".venv-build"
+    $venvPython = Join-Path $venvDir "Scripts\python.exe"
+    if (-not (Test-Path -LiteralPath $venvPython)) {
+        $venvPython = Join-Path $venvDir "bin\python.exe"
+    }
+}
+if (-not (Test-Path -LiteralPath $venvPython)) {
+    $venvPython = "python"
+}
+
+Write-Host "Reading version from core/app_metadata.py..."
+$appVersion = (& $venvPython -c "from core.app_metadata import APP_VERSION; print(APP_VERSION)").Trim()
+Write-Host "Project Version: $appVersion"
+
+# 1. Update/Write generated_version.iss
+$versionInclude = Join-Path $repoRoot "packaging\windows\generated_version.iss"
+Set-Content -LiteralPath $versionInclude -Encoding ASCII -Value "#define MyAppVersion `"$appVersion`""
+Write-Host "Updated version in $versionInclude"
+
+# 2. Robust Inno Setup detection
+$isccPath = $null
+if ($env:INNO_SETUP_ISCC) {
+    if (Test-Path -LiteralPath $env:INNO_SETUP_ISCC) {
+        $isccPath = $env:INNO_SETUP_ISCC
+    } else {
+        Write-Warning "INNO_SETUP_ISCC env variable is defined but path does not exist: $env:INNO_SETUP_ISCC"
+    }
+}
+
+if (-not $isccPath) {
+    $cmd = Get-Command "ISCC.exe" -ErrorAction SilentlyContinue
+    if ($cmd) {
+        $isccPath = $cmd.Source
+    }
+}
+
+if (-not $isccPath) {
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+        "C:\Program Files\Inno Setup 6\ISCC.exe"
+    )
+    foreach ($cand in $candidates) {
+        if (Test-Path -LiteralPath $cand) {
+            $isccPath = $cand
+            break
+        }
+    }
+}
+
+if (-not $isccPath) {
+    Write-Error "Inno Setup compiler (ISCC.exe) was not found on the system."
+    Write-Host "Please install Inno Setup 6 or set the INNO_SETUP_ISCC environment variable:" -ForegroundColor Yellow
+    Write-Host '  $env:INNO_SETUP_ISCC = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"' -ForegroundColor Yellow
+    Write-Host "The PyInstaller executable in 'dist/' remains built, but the installer setup could not be created." -ForegroundColor Yellow
+    exit 1
+}
+
+# 3. Archive previous installers
+$installerDir = Join-Path $repoRoot "installer"
+$archiveDir = Join-Path $installerDir "archive"
+if (-not (Test-Path -LiteralPath $archiveDir)) {
+    Write-Host "Creating archive directory: $archiveDir"
+    New-Item -ItemType Directory -Force -Path $archiveDir | Out-Null
+}
+
+$oldInstallers = Get-ChildItem -Path $installerDir -Filter "*.exe" -File
+if ($oldInstallers) {
+    Write-Host "Archiving existing installers to $archiveDir..."
+    foreach ($oldInst in $oldInstallers) {
+        $dest = Join-Path $archiveDir $oldInst.Name
+        Move-Item -LiteralPath $oldInst.FullName -Destination $dest -Force
+    }
+}
+
+# 4. Compile Installer
+Write-Host "Compiling Windows installer..."
+$issScript = Join-Path $repoRoot "packaging\windows\ChaosToolbox.iss"
+$buildStartTime = [DateTime]::Now
+
+& $isccPath $issScript
+if ($LASTEXITCODE -ne 0) {
+    throw "Inno Setup compiler failed with exit code $LASTEXITCODE"
+}
+
+# 5. Verify Installer
+$expectedInstallerName = "chaos-toolbox-v$appVersion-windows-x64-setup.exe"
+$expectedInstallerPath = Join-Path $installerDir $expectedInstallerName
+
+if (-not (Test-Path -LiteralPath $expectedInstallerPath)) {
+    throw "Verification failed: Expected installer file was not found at $expectedInstallerPath"
+}
+
+$fileInfo = Get-Item -LiteralPath $expectedInstallerPath
+if ($fileInfo.LastWriteTime -lt $buildStartTime.AddSeconds(-5)) {
+    throw "Verification failed: Installer file at $expectedInstallerPath was not modified in the current build execution."
+}
+
+# Double check that we don't have the old installer output name by mistake
+$oldNamePath = Join-Path $installerDir "ChaosToolboxSetup-0.1.0.exe"
+if (Test-Path -LiteralPath $oldNamePath) {
+    Write-Warning "Stale installer with old name found. Archiving it."
+    Move-Item -LiteralPath $oldNamePath -Destination (Join-Path $archiveDir "ChaosToolboxSetup-0.1.0.exe") -Force
+}
+
+# Display results
+Write-Host "`nInstaller successfully compiled and verified!" -ForegroundColor Green
+Write-Host "Absolute Path: $($fileInfo.FullName)"
+Write-Host "Size: $([Math]::Round($fileInfo.Length / 1MB, 2)) MB ($($fileInfo.Length) bytes)"
+Write-Host "Modified: $($fileInfo.LastWriteTime)`n"
+
+Write-Host "Available installers in installer/ directory:"
+Get-ChildItem -Path $installerDir -Filter "*.exe" -File |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object Name, LastWriteTime, Length |
+    Format-Table -AutoSize
