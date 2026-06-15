@@ -46,15 +46,42 @@ def main() -> int:
     _check(np.all(np.isfinite(states)),
            'Lorenz smoke simulation returned non-finite values.')
 
-    # ── 3. Required assets ────────────────────────────────────────────────────
+    # ── 3. Required assets & PDF Content Verification ────────────────────────
+    import pypdf
+    
     dictionary = REPO_ROOT / 'assets' / 'chaos_dictionary.pdf'
     _check(dictionary.exists(), f'Required educational asset is missing: {dictionary}')
+    
+    # Verify chaos_dictionary.pdf content
+    dict_reader = pypdf.PdfReader(dictionary)
+    dict_text = "".join(page.extract_text() or "" for page in dict_reader.pages)
+    _check("Diccionario, manual y referencia tecnica" in dict_text, 
+           "chaos_dictionary.pdf is missing dictionary title.")
+    _check("Lorenz" in dict_text, 
+           "chaos_dictionary.pdf is missing system content.")
+    print("chaos_dictionary.pdf content OK")
 
     theory_pdf = REPO_ROOT / 'assets' / 'sprott' / 'sprott_theory.pdf'
-    if not theory_pdf.exists():
-        print(f'WARNING: sprott_theory.pdf not found at {theory_pdf} — PDF viewer will fall back to HTML')
-    else:
-        print(f'sprott_theory.pdf OK: {theory_pdf}')
+    _check(theory_pdf.exists(), f'Required educational asset is missing: {theory_pdf}')
+    
+    # Verify sprott_theory.pdf content
+    theory_reader = pypdf.PdfReader(theory_pdf)
+    theory_text = "".join(page.extract_text() or "" for page in theory_reader.pages)
+    _check("del Explorador Sprott" in theory_text, 
+           "sprott_theory.pdf is missing Sprott theory title.")
+    _check("Catálogo de sistemas del libro de Wang" not in theory_text, 
+           "sprott_theory.pdf erroneously contains Wang catalog content.")
+    _check("Wang, Kuznetsov y Chen" not in theory_text, 
+           "sprott_theory.pdf erroneously contains Wang catalog authors.")
+    print("sprott_theory.pdf content OK")
+    
+    # Verify sprott_theory.tex source file does not contain wang_systems
+    theory_tex_path = REPO_ROOT / 'assets' / 'sprott' / 'sprott_theory.tex'
+    _check(theory_tex_path.exists(), f"Source file missing: {theory_tex_path}")
+    theory_tex = theory_tex_path.read_text(encoding='utf-8')
+    _check("wang_systems" not in theory_tex, 
+           "sprott_theory.tex still contains input or reference to wang_systems.")
+    print("sprott_theory.tex source file content OK")
 
     # ── 4. QtPdf availability ─────────────────────────────────────────────────
     try:

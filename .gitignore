@@ -46,5 +46,14 @@ assets/sprott/*.fdb_latexmk
 assets/sprott/*.log
 assets/sprott/*.out
 assets/sprott/*.toc
+assets/sprott/*.synctex.gz
+assets/*.aux
+assets/*.fls
+assets/*.fdb_latexmk
+assets/*.log
+assets/*.out
+assets/*.toc
+assets/*.synctex.gz
+reports/rendered_pages/
 Thumbs.db
 Desktop.ini

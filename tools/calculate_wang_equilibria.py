@@ -672,7 +672,7 @@ Cap. & Tema principal & Detectados & Integrados & Equilibrios & Cuencas/Bif. & E
 \end{center}
 """
 
-with open('assets/sprott/wang_systems.tex', 'w', encoding='utf-8') as handle:
+with open('docs/generated/wang_systems.tex', 'w', encoding='utf-8') as handle:
     handle.write(latex_content)
 
 print("Generated LaTeX input file.")
