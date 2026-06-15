@@ -78,6 +78,17 @@ def _coefficient_matrix_as_list(code: SprottCode) -> list[list[float]]:
 
 def _equations_text(code: SprottCode) -> str:
     """Reconstruye las ecuaciones a partir del código; no requiere simulación."""
+    if code.kind == 'special':
+        from core.sprott.special_families import SPECIAL_FAMILY_REGISTRY
+        family_entry = SPECIAL_FAMILY_REGISTRY.get(code.family_letter)
+        if family_entry is not None and not isinstance(family_entry, dict):
+            try:
+                family = family_entry(code.coefficients)
+                return family.equations_text()
+            except Exception as exc:
+                return f'(no se pudieron reconstruir las ecuaciones especiales: {exc})'
+        else:
+            return '(ecuaciones no disponibles: familia especial no implementada o pendiente de validación)'
     if code.kind not in {'map', 'flow'} or code.dimension < 1:
         return '(ecuaciones no disponibles para esta familia)'
     try:
@@ -334,6 +345,7 @@ def format_explanation_markdown(explanation: dict) -> str:
     ]
 
     # --- Paso 4: tipo ---
+    # --- Paso 4: tipo ---
     if kind == 'map':
         tipo_desc = (
             'Un **mapa** es una regla de recurrencia discreta: dado el estado actual, '
@@ -345,6 +357,12 @@ def format_explanation_markdown(explanation: dict) -> str:
             'Un **flujo** es un sistema de ecuaciones diferenciales ordinarias (EDO).  '
             'La evolución continua en el tiempo se aproxima discretamente mediante un '
             'integrador numérico (Euler o RK4).'
+        )
+    elif kind == 'special':
+        tipo_desc = (
+            'Una **familia especial** utiliza funciones no polinomiales (valores absolutos, senos, rotaciones, etc.). '
+            'La Chaos Toolbox implementa soporte y simulación nativa en Python/NumPy para las familias '
+            'Y (Valores absolutos), `[` (Potencias de valores absolutos), `\\` (Senos), `]` (Rotaciones) y `^` (Oscilador forzado).'
         )
     else:
         tipo_desc = 'Familia especial o desconocida; no implementada en este ciclo.'
@@ -374,16 +392,27 @@ def format_explanation_markdown(explanation: dict) -> str:
     coeff_exp = e.get('coefficient_count_expected', 0)
     coeff_rec = e.get('coefficient_count_received', 0)
 
-    lines += [
-        '## 5 · Conteo de monomios y coeficientes',
-        '',
-        f'**Número de monomios por ecuación:** C(D+O, O) = C({dim}+{order}, {order}) = **{mono}**',
-        '',
-        f'**Coeficientes esperados:** D × C(D+O, O) = {dim} × {mono} = **{coeff_exp}**',
-        '',
-        f'**Coeficientes recibidos en el código:** **{coeff_rec}**',
-        '',
-    ]
+    if kind == 'special':
+        lines += [
+            '## 5 · Conteo de coeficientes especiales',
+            '',
+            f'**Coeficientes esperados para esta familia especial:** **{coeff_exp}**',
+            '',
+            f'**Coeficientes recibidos en el código:** **{coeff_rec}**',
+            '',
+        ]
+    else:
+        lines += [
+            '## 5 · Conteo de monomios y coeficientes',
+            '',
+            f'**Número de monomios por ecuación:** C(D+O, O) = C({dim}+{order}, {order}) = **{mono}**',
+            '',
+            f'**Coeficientes esperados:** D × C(D+O, O) = {dim} × {mono} = **{coeff_exp}**',
+            '',
+            f'**Coeficientes recibidos en el código:** **{coeff_rec}**',
+            '',
+        ]
+        
     if coeff_rec < coeff_exp:
         lines.append(
             f'> ⚠️ Faltan {coeff_exp - coeff_rec} coeficiente(s); se tratan como cero.'
@@ -412,51 +441,85 @@ def format_explanation_markdown(explanation: dict) -> str:
     lines.append('')
 
     # --- Paso 10: base de monomios ---
-    basis = e.get('monomial_basis', [])
-    lines += [
-        '## 7 · Base de monomios generada',
-        '',
-        f'Con D={dim} y O={order} se obtienen **{mono}** monomios en orden canónico:',
-        '',
-        ', '.join(f'`{m}`' for m in basis) if basis else '*(sin monomios)*',
-        '',
-        'El orden sigue el patrón de grado creciente: primero el término constante (1),',
-        'luego los lineales, cuadráticos, etc., con las variables en orden lexicográfico inverso.',
-        '',
-    ]
+    if kind == 'special':
+        lines += [
+            '## 7 · Estructura matemática especial',
+            '',
+            'Esta familia no es polinomial y, por lo tanto, no genera una base de monomios standard. '
+            'En su lugar, las variables del estado actual `(X, Y)` se mapean directamente utilizando '
+            'funciones no lineales, y se acompañan de variables auxiliares `Z` y `W`.',
+            '',
+        ]
+    else:
+        basis = e.get('monomial_basis', [])
+        lines += [
+            '## 7 · Base de monomios generada',
+            '',
+            f'Con D={dim} y O={order} se obtienen **{mono}** monomios en orden canónico:',
+            '',
+            ', '.join(f'`{m}`' for m in basis) if basis else '*(sin monomios)*',
+            '',
+            'El orden sigue el patrón de grado creciente: primero el término constante (1),',
+            'luego los lineales, cuadráticos, etc., con las variables en orden lexicográfico inverso.',
+            '',
+        ]
 
     # --- Paso 11: matriz de coeficientes ---
-    matrix = e.get('coefficient_matrix', [])
-    lines += [
-        '## 8 · Matriz de coeficientes',
-        '',
-        f'La matriz tiene forma **{dim} × {mono}** (una fila por variable de salida, una columna por monomio):',
-        '',
-    ]
-    if matrix and basis:
-        # Encabezado de tabla
-        header = '| Var | ' + ' | '.join(f'`{m}`' for m in basis) + ' |'
-        sep = '|-----|' + '|'.join(['------'] * len(basis)) + '|'
-        lines += [header, sep]
-        for row_idx, row in enumerate(matrix):
-            var = var_names[row_idx] if row_idx < len(var_names) else f'x{row_idx}'
-            cells = ' | '.join(f'{v:+.4f}' for v in row)
-            lines.append(f'| **{var}** | {cells} |')
+    if kind == 'special':
+        lines += [
+            '## 8 · Vector de coeficientes especiales',
+            '',
+            'Los coeficientes recibidos se aplican secuencialmente como parámetros '
+            'específicos de las ecuaciones no lineales de la familia.',
+            '',
+        ]
     else:
-        lines.append('*(matriz no disponible para esta familia)*')
-    lines.append('')
+        matrix = e.get('coefficient_matrix', [])
+        lines += [
+            '## 8 · Matriz de coeficientes',
+            '',
+            f'La matriz tiene forma **{dim} × {mono}** (una fila por variable de salida, una columna por monomio):',
+            '',
+        ]
+        if matrix and basis:
+            header = '| Var | ' + ' | '.join(f'`{m}`' for m in basis) + ' |'
+            sep = '|-----|' + '|'.join(['------'] * len(basis)) + '|'
+            lines += [header, sep]
+            for row_idx, row in enumerate(matrix):
+                var = var_names[row_idx] if row_idx < len(var_names) else f'x{row_idx}'
+                cells = ' | '.join(f'{v:+.4f}' for v in row)
+                lines.append(f'| **{var}** | {cells} |')
+        else:
+            lines.append('*(matriz no disponible para esta familia)*')
+        lines.append('')
 
     # --- Paso 12: ecuaciones ---
-    lines += [
-        '## 9 · Ecuaciones reconstruidas',
-        '',
-        'Las ecuaciones se forman multiplicando cada fila de la matriz por el vector de monomios:',
-        '',
-        '```',
-        e.get('equations_text', '(no disponible)'),
-        '```',
-        '',
-    ]
+    if kind == 'special':
+        lines += [
+            '## 9 · Ecuaciones y variables auxiliares',
+            '',
+            'Las ecuaciones no lineales del sistema definen la evolución de las variables de estado.',
+            'Adicionalmente, se calculan dos variables auxiliares para la visualización en 3D o 4D:',
+            '- **Z**: Representa la distancia radial cuadrática (`X^2 + Y^2`) o una fase angular modulo `2*pi`.',
+            '- **W**: Indica el progreso relativo de la iteración (`(N - 1000) / (NMAX - 1000)`), '
+            'el cual es útil para aplicar paletas de color dependientes del tiempo o el progreso de simulación.',
+            '',
+            '```',
+            e.get('equations_text', '(no disponible)'),
+            '```',
+            '',
+        ]
+    else:
+        lines += [
+            '## 9 · Ecuaciones reconstruidas',
+            '',
+            'Las ecuaciones se forman multiplicando cada fila de la matriz por el vector de monomios:',
+            '',
+            '```',
+            e.get('equations_text', '(no disponible)'),
+            '```',
+            '',
+        ]
 
     # --- Paso 13: condición inicial ---
     ic = e.get('initial_condition', [])

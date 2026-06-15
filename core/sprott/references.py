@@ -65,24 +65,91 @@ def read_dic_codes(path: str | Path) -> list[str]:
 
 
 def read_dic_entries(path: str | Path, *, limit: int | None = None) -> list[dict]:
+    from core.sprott.dic_parser import select_best_code_candidate, extract_code_candidates
+    from core.sprott.codes import explain_support_status
+    
     source = Path(path)
     if source.suffix.lower() != '.dic':
         raise ValueError('only .DIC files are supported by this light importer')
     entries = []
     with source.open('r', encoding='latin-1', errors='ignore') as handle:
         for line_no, line in enumerate(handle, start=1):
-            parts = line.strip().split()
-            if not parts:
+            stripped = line.strip()
+            if not stripped:
                 continue
+                
+            parts = stripped.split()
+            first_token = parts[0] if parts else ""
+            metrics_tokens = parts[1:] if parts else []
+            
+            best_candidate = select_best_code_candidate(line)
+            all_cands = extract_code_candidates(line)
+            
+            all_candidates_list = []
+            for c in all_cands:
+                all_candidates_list.append({
+                    'normalized_code': c.normalized_code,
+                    'raw_token': c.raw_token,
+                    'strategy': c.strategy,
+                    'prefix_removed': c.prefix_removed,
+                    'suffix_removed': c.suffix_removed,
+                    'confidence': c.confidence,
+                    'reason': c.reason
+                })
+                
+            if best_candidate:
+                code_to_use = best_candidate.normalized_code
+                strategy = best_candidate.strategy
+                prefix_removed = best_candidate.prefix_removed
+                confidence = best_candidate.confidence
+                raw_token = best_candidate.raw_token
+            else:
+                code_to_use = first_token
+                strategy = "failed"
+                prefix_removed = ""
+                confidence = "none"
+                raw_token = first_token
+                
             entry = {
-                'code': parts[0],
-                'metrics': parts[1:],
+                'raw_line': line.rstrip('\r\n'),
+                'raw_token': raw_token,
+                'code': code_to_use,
+                'parse_strategy': strategy,
+                'prefix_removed': prefix_removed,
+                'candidate_confidence': confidence,
+                'all_candidates': all_candidates_list,
+                'metrics': metrics_tokens,
                 'line': line_no,
                 'source_file': str(source),
                 'source_name': source.name,
                 'source': 'local external reference',
             }
-            entry.update(classify_dic_entry(entry['code'], parts[1:]))
+            
+            entry.update(classify_dic_entry(code_to_use, metrics_tokens))
+            
+            # Use diagnostic support helper
+            diag = explain_support_status(line)
+            diag_support = diag['support']
+            if diag_support == 'parse_error':
+                support_val = 'error de parsing (corregible)'
+            elif diag_support == 'special_pending':
+                if diag.get('family') == 'Z':
+                    support_val = 'especial pendiente: validar AND/OR'
+                else:
+                    support_val = 'familia especial pendiente'
+            elif diag_support == 'simulable':
+                support_val = 'simulable'
+            elif diag_support == 'simulable_special':
+                support_val = 'simulable especial'
+            elif diag_support == 'unknown':
+                support_val = 'familia desconocida'
+            else:
+                support_val = 'error'
+                
+            entry['support'] = support_val
+            entry['support_reason'] = diag['reason']
+            entry['recommended_action'] = diag['recommended_action']
+            
             entries.append(entry)
             if limit is not None and len(entries) >= int(limit):
                 break
@@ -95,9 +162,16 @@ def classify_dic_entry(code_text: str, metric_tokens: list[str] | None = None) -
     if code.kind in {'map', 'flow'}:
         support = 'simulable'
     elif code.kind == 'special':
-        support = 'familia especial pendiente'
+        from core.sprott.codes import describe_family
+        meta = describe_family(code.family_letter)
+        if meta.get('status') == 'implemented':
+            support = 'simulable especial'
+        elif code.family_letter == 'Z':
+            support = 'especial pendiente: validar AND/OR'
+        else:
+            support = 'familia especial pendiente'
     else:
-        support = 'error'
+        support = 'familia desconocida'
     return {
         'family': code.family_letter,
         'kind': code.kind,

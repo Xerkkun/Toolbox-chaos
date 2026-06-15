@@ -51,6 +51,12 @@ def family_from_code(code: SprottCode):
         return PolynomialMapFamily(code.dimension, code.order, code.coefficients)
     if code.kind == 'flow':
         return PolynomialFlowFamily(code.dimension, code.order, code.coefficients)
+    if code.kind == 'special':
+        from core.sprott.special_families import SPECIAL_FAMILY_REGISTRY
+        family_entry = SPECIAL_FAMILY_REGISTRY.get(code.family_letter)
+        if family_entry is None or isinstance(family_entry, dict):
+            raise ValueError("Familia especial reconocida pero aún no implementada.")
+        return family_entry(code.coefficients)
     raise ValueError(f'code family is not simulable: {code.kind}')
 
 
@@ -60,7 +66,11 @@ def simulate_candidate(code, n_iter=2000, transient=200, h=0.01, method='rk4', d
     initial = np.full(code_obj.dimension, 0.1, dtype=float)
     backend_used = 'python'
     native_status = 0
-    if backend == 'c':
+    
+    trajectory = None
+    times = None
+    
+    if backend == 'c' and code_obj.kind in ('map', 'flow'):
         try:
             step_h = 1.0 if code_obj.kind == 'map' else float(h)
             times, trajectory, native_status = sprott_simulate_polynomial_native(
@@ -78,12 +88,9 @@ def simulate_candidate(code, n_iter=2000, transient=200, h=0.01, method='rk4', d
         except NativeChaosError:
             times = None
             trajectory = None
-    else:
-        times = None
-        trajectory = None
 
     if trajectory is None:
-        if code_obj.kind == 'map':
+        if code_obj.kind in ('map', 'special'):
             trajectory = family.simulate(initial=initial, n_iter=int(n_iter), divergence_threshold=divergence_threshold)
             times = np.arange(len(trajectory), dtype=float)
         else:

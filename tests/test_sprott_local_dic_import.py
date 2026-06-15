@@ -19,14 +19,15 @@ def test_read_dic_entries_enriches_support_and_metrics():
     base.mkdir(parents=True)
     try:
         dic = base / 'SAMPLE.DIC'
-        dic.write_text('EWMWAMMMPMMMM F=2.4 L=0.1\nYABC F=1.2 L=-0.1\n', encoding='latin-1')
+        dic.write_text('EWMWAMMMPMMMM F=2.4 L=0.1\nYABC F=1.2 L=-0.1\nZXYZ F=1.0 L=0.0\n', encoding='latin-1')
         entries = read_dic_entries(dic)
         assert entries[0]['support'] == 'simulable'
         assert entries[0]['kind'] == 'map'
         assert entries[0]['dimension'] == 2
         assert entries[0]['f_metric'] == 2.4
         assert entries[0]['l_metric'] == 0.1
-        assert entries[1]['support'] == 'familia especial pendiente'
+        assert entries[1]['support'] == 'simulable especial'
+        assert entries[2]['support'] == 'especial pendiente: validar AND/OR'
     finally:
         if base.exists():
             shutil.rmtree(base)

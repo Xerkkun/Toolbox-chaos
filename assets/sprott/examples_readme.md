@@ -57,3 +57,15 @@ External `.DIC` codes loaded by the user should be treated as local external
 references. Images generated from user-local `.DIC` codes should be saved in
 the local Sprott gallery under the user's application-data folder, not in this
 public `assets/` tree.
+
+## Special Families Implemented
+
+This project implements the following special-function families:
+- **Y**: Absolute value maps ($D=4, M=10$).
+- **`[`**: Power of absolute value maps ($D=4, M=14$).
+- **`\`**: Sine maps ($D=4, M=18$).
+- **`]`**: Rotational sine maps ($D=4, M=6$).
+- **`^`**: Forced oscillator maps ($D=4, M=9$).
+- **Z**: AND/OR special family ($D=4, M=10$) is recognized but remains pending semantics validation.
+
+All implemented special families are simulated using a robust Python/NumPy backend and can be fully analyzed, visualized, and filtered.

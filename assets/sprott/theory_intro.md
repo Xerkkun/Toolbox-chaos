@@ -85,7 +85,8 @@ En esta reimplementacion:
 - letras antes de `M` dan coeficientes negativos;
 - letras despues de `M` dan coeficientes positivos;
 - las familias `A-X` cubren mapas y flujos polinomiales;
-- las familias especiales quedan documentadas como trabajo pendiente.
+- las familias especiales `Y`, `[`, `\\`, `]`, `^` implementan funciones no polinomiales (valores absolutos, potencias de valores absolutos, senos, rotación, oscilador forzado);
+- la familia especial `Z` (lógica AND/OR) permanece documentada pero pendiente de validar su semántica exacta.
 
 ## Busqueda automatica
 

@@ -170,6 +170,21 @@ def main() -> int:
     else:
         print(f'WARNING: spec file not found at {spec_path}')
 
+    # ── 8b. Verify special families simulation and Z status in search.py ─────
+    from core.sprott.search import simulate_candidate
+    from core.sprott.codes import explain_support_status
+    
+    # 1. Simulate family Y (implemented)
+    res_special = simulate_candidate("YMMMMMMMMMM", n_iter=100, transient=0)
+    _check(res_special["trajectory"].shape == (100, 4), "Special family Y simulation shape mismatch")
+    _check("equations" in res_special and "X'" in res_special["equations"], "Special family equations missing or incorrect")
+    
+    # 2. Check Z is recognized but pending AND/OR validation, and not an error
+    status_z = explain_support_status("ZMMMMMMMMMM")
+    _check(status_z["support"] == "special_pending", "Z family support status mismatch")
+    _check("AND/OR" in status_z["reason"], "Z family pending reason missing AND/OR notice")
+    print("Special families simulation & Z status checks: OK")
+
     # ── 9. Verify no Sprott original files in release paths ──────────────────
     from tools.check_no_sprott_originals_in_release import check_release_cleanliness
     banned_found = check_release_cleanliness()

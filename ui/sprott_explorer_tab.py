@@ -635,6 +635,19 @@ class SprottExplorerTab(QWidget):
         self.local_dic_filter_combo.addItems([
             'todos',
             'solo simulables',
+            'simulables A-X',
+            'especiales implementadas',
+            'especiales pendientes',
+            'Y valores absolutos',
+            '[ potencias',
+            '\\ senos',
+            '] rotación',
+            '^ oscilador',
+            'pendientes especiales',
+            'errores de parsing',
+            'candidatos corregibles',
+            'familias Y-Z',
+            'familias desconocidas',
             'mapas 2D',
             'mapas 3D',
             'mapas 4D',
@@ -704,6 +717,12 @@ class SprottExplorerTab(QWidget):
         self.instrucciones_btn.setStyleSheet("font-weight: bold; color: #0066cc;")
         self.instrucciones_btn.setVisible(not has_bookfigs)
         local_layout.addWidget(self.instrucciones_btn)
+
+        # Button: Probar limpieza de códigos no reconocidos
+        self.test_cleaning_btn = QPushButton('Probar limpieza de códigos no reconocidos')
+        self.test_cleaning_btn.setToolTip('Revisa códigos con errores o desconocidos e intenta sugerir candidatos correctos.')
+        self.test_cleaning_btn.clicked.connect(self.show_cleaning_test_dialog)
+        local_layout.addWidget(self.test_cleaning_btn)
 
         # ── Toggle modo lectura ────────────────────────────────────────────
         self.reading_mode_check = QCheckBox('☰ Modo lectura del libro')
@@ -1930,7 +1949,33 @@ class SprottExplorerTab(QWidget):
         dim = entry.get('dimension')
         support = entry.get('support')
         if current_filter == 'solo simulables':
+            return support in ('simulable', 'simulable especial')
+        if current_filter == 'simulables A-X':
             return support == 'simulable'
+        if current_filter == 'especiales implementadas':
+            return support == 'simulable especial'
+        if current_filter == 'especiales pendientes':
+            return support in ('familia especial pendiente', 'especial pendiente: validar AND/OR')
+        if current_filter == 'Y valores absolutos':
+            return entry.get('family') == 'Y'
+        if current_filter == '[ potencias':
+            return entry.get('family') == '['
+        if current_filter == '\\ senos':
+            return entry.get('family') == '\\'
+        if current_filter == '] rotación':
+            return entry.get('family') == ']'
+        if current_filter == '^ oscilador':
+            return entry.get('family') == '^'
+        if current_filter == 'pendientes especiales':
+            return support in ('familia especial pendiente', 'especial pendiente: validar AND/OR')
+        if current_filter == 'errores de parsing':
+            return support == 'error de parsing (corregible)' or entry.get('parse_strategy') == 'failed'
+        if current_filter == 'candidatos corregibles':
+            return support == 'error de parsing (corregible)' or entry.get('parse_strategy') == 'soft_cleaning'
+        if current_filter == 'familias Y-Z':
+            return entry.get('family') in ('Y', 'Z')
+        if current_filter == 'familias desconocidas':
+            return support == 'familia desconocida'
         if current_filter == 'mapas 2D':
             return kind == 'map' and dim == 2
         if current_filter == 'mapas 3D':
@@ -1969,7 +2014,12 @@ class SprottExplorerTab(QWidget):
             'REFERENCIA LOCAL DEL LIBRO',
             f"archivo: {entry['source_name']}",
             f"linea: {entry['line']}",
-            f"codigo: {entry['code']}",
+            f"linea original completa: {entry.get('raw_line', entry['code'])}",
+            f"token original leido: {entry.get('raw_token', entry['code'])}",
+            f"codigo normalizado: {entry['code']}",
+            f"estrategia del parser: {entry.get('parse_strategy', 'directa')}",
+            f"prefijo removido: {entry.get('prefix_removed', '') or '(ninguno)'}",
+            f"confianza del candidato: {entry.get('candidate_confidence', 'alta')}",
             f"metricas originales en linea: {' '.join(entry.get('metrics', []))}",
             '',
             'Lectura por la reimplementacion actual:',
@@ -1981,6 +2031,8 @@ class SprottExplorerTab(QWidget):
             f"F: {_metric_text(entry.get('f_metric'))}",
             f"L: {_metric_text(entry.get('l_metric'))}",
             f"soporte: {entry.get('support', '')}",
+            f"motivo: {entry.get('support_reason', 'Familia A-X implementada.')}",
+            f"accion recomendada: {entry.get('recommended_action', 'Puedes simular este código.')}",
             '',
             'Nota: este codigo se lee desde tu archivo local. No se agrega a assets ni al repositorio.',
         ]
@@ -1989,14 +2041,177 @@ class SprottExplorerTab(QWidget):
             lines.extend(f'  - {warning}' for warning in code.warnings)
         self.local_dic_detail.setPlainText('\n'.join(lines))
 
+    def show_cleaning_test_dialog(self):
+        from PyQt6.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QLabel, QHeaderView
+        
+        erroneous_entries = []
+        for entry in self.local_dic_entries:
+            support = entry.get('support')
+            if support in ('familia desconocida', 'error de parsing (corregible)', 'error'):
+                erroneous_entries.append(entry)
+                
+        if not erroneous_entries:
+            QMessageBox.information(
+                self, 'Prueba de Limpieza',
+                'No se encontraron códigos no reconocidos o con errores en el archivo .DIC actualmente cargado.'
+            )
+            return
+            
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Prueba de limpieza de códigos no reconocidos')
+        dialog.resize(900, 450)
+        
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(
+            'Códigos que no se pudieron simular directamente pero para los cuales el parser '
+            'encontró candidatos alternativos normalizados:'
+        ))
+        
+        table = QTableWidget(len(erroneous_entries), 6, dialog)
+        table.setHorizontalHeaderLabels([
+            'Línea', 'Token original', 'Candidato propuesto', 'Estrategia', 'Soporte candidato', 'Acción'
+        ])
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        
+        for idx, entry in enumerate(erroneous_entries):
+            table.setItem(idx, 0, QTableWidgetItem(str(entry.get('line', ''))))
+            table.setItem(idx, 1, QTableWidgetItem(str(entry.get('raw_token', ''))))
+            table.setItem(idx, 2, QTableWidgetItem(str(entry.get('code', ''))))
+            table.setItem(idx, 3, QTableWidgetItem(str(entry.get('parse_strategy', ''))))
+            table.setItem(idx, 4, QTableWidgetItem(str(entry.get('support', ''))))
+            
+            btn = QPushButton('Usar candidato')
+            btn.clicked.connect(lambda _, e=entry, d=dialog: self.use_cleaned_candidate(e, d))
+            table.setCellWidget(idx, 5, btn)
+            
+        layout.addWidget(table)
+        
+        close_btn = QPushButton('Cerrar', dialog)
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn, stretch=0, alignment=Qt.AlignmentFlag.AlignRight)
+        
+        dialog.exec()
+        
+    def use_cleaned_candidate(self, entry: dict, dialog: QDialog):
+        dialog.accept()
+        code_text = entry.get('code', '')
+        
+        self.explore_code_edit.setText(code_text)
+        self.code_edit.setText(code_text)
+        self.last_source = 'local_dic'
+        self.last_local_entry = entry
+        
+        self._go_to_tab('Exploracion')
+        self.quick_simulate()
+    def show_special_family_dialog(self, entry: dict, code):
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Familia especial de Sprott detectada')
+        dialog.resize(550, 220)
+        
+        layout = QVBoxLayout(dialog)
+        
+        text = (
+            "<b>Este código no falló por limpieza.</b><br/><br/>"
+            f"La familia <b>{code.family_letter}</b> ({code.family_name}) pertenece a una "
+            "familia especial de Sprott que todavía no está implementada en esta reimplementación.<br/>"
+            "Puedes marcarla como pendiente de familia especial o revisar la referencia local."
+        )
+        lbl = QLabel(text, dialog)
+        lbl.setWordWrap(True)
+        layout.addWidget(lbl)
+        
+        btn_layout = QHBoxLayout()
+        
+        btn_pending = QPushButton('Marcar como pendiente', dialog)
+        btn_pending.clicked.connect(lambda: self.mark_special_as_pending(entry, dialog))
+        
+        btn_backend = QPushButton('Abrir Backend explicado', dialog)
+        btn_backend.clicked.connect(lambda: self.open_backend_explained_tab(dialog))
+        
+        btn_copy = QPushButton('Copiar código', dialog)
+        btn_copy.clicked.connect(lambda: self.copy_code_to_clipboard(entry['code'], dialog))
+        
+        btn_issue = QPushButton('Crear issue/prompt', dialog)
+        btn_issue.clicked.connect(lambda: self.create_special_family_issue_prompt(code, dialog))
+        
+        btn_layout.addWidget(btn_pending)
+        btn_layout.addWidget(btn_backend)
+        btn_layout.addWidget(btn_copy)
+        btn_layout.addWidget(btn_issue)
+        
+        layout.addLayout(btn_layout)
+        
+        close_btn = QPushButton('Cerrar', dialog)
+        close_btn.clicked.connect(dialog.accept)
+        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        
+        dialog.exec()
+        
+    def mark_special_as_pending(self, entry: dict, dialog: QDialog):
+        dialog.accept()
+        if hasattr(self, 'dic_status_label'):
+            self.dic_status_label.setText(f"Código {entry['code']} marcado como pendiente de familia especial.")
+        QMessageBox.information(self, 'Familia especial', f"Código {entry['code']} registrado en el historial como pendiente.")
+        
+    def open_backend_explained_tab(self, dialog: QDialog):
+        dialog.accept()
+        self._go_to_tab('Backend explicado')
+        
+    def copy_code_to_clipboard(self, code_text: str, dialog: QDialog):
+        dialog.accept()
+        QApplication.clipboard().setText(code_text)
+        QMessageBox.information(self, 'Copiado', f"Código {code_text} copiado al portapapeles.")
+        
+    def create_special_family_issue_prompt(self, code, dialog: QDialog):
+        dialog.accept()
+        prompt_text = (
+            f"Por favor, implementa la familia especial '{code.family_letter}' ({code.family_name}) "
+            f"en Chaos Toolbox. Código de prueba: {code.raw}"
+        )
+        QApplication.clipboard().setText(prompt_text)
+        QMessageBox.information(
+            self, 'Prompt Creado',
+            "Se ha copiado al portapapeles un prompt estructurado para crear la issue/solicitar la implementación."
+        )
+
+
+
     def simulate_selected_local_dic(self):
         entry = self._current_local_dic_entry()
         if not entry:
             QMessageBox.information(self, 'Sin codigo local', 'Selecciona un codigo del .DIC local primero.')
             return
         code = decode_code(entry['code'])
-        if code.kind not in {'map', 'flow'}:
-            QMessageBox.information(self, 'Familia no soportada', 'Esta fase simula familias polinomiales A-X. Las especiales quedan pendientes.')
+        if code.kind == 'special':
+            from core.sprott.special_families import SPECIAL_FAMILY_REGISTRY
+            family_entry = SPECIAL_FAMILY_REGISTRY.get(code.family_letter)
+            if family_entry is None or isinstance(family_entry, dict):
+                self.show_special_family_dialog(entry, code)
+                return
+            
+            self.explore_code_edit.setText(entry['code'])
+            self.code_edit.setText(entry['code'])
+            self.last_source = 'local_dic'
+            self.last_local_entry = entry
+            
+            # Map parameters for special family
+            self.kind_combo.setCurrentText('map')
+            self.iter_spin.setValue(max(self.iter_spin.value(), 32000))
+            self.transient_spin.setValue(max(self.transient_spin.value(), 2000))
+            self.divergence_spin.setValue(max(self.divergence_spin.value(), 1e9))
+            
+            self._set_combo_data(self.dimension_combo, code.dimension)
+            self._set_combo_data(self.order_combo, code.order)
+            self.simulate_exploration_code()
+            self._go_to_tab('Explorac')
+            return
+            
+        elif code.kind not in {'map', 'flow'}:
+            QMessageBox.information(self, 'Familia no soportada', 'Esta familia de ecuaciones es desconocida y no se puede simular.')
             return
         self.explore_code_edit.setText(entry['code'])
         self.code_edit.setText(entry['code'])
@@ -2027,6 +2242,15 @@ class SprottExplorerTab(QWidget):
         self.simulate_selected_local_dic()
 
     def _recommended_visual_for_entry(self, entry: dict) -> SprottVisualConfig:
+        if entry.get('kind') == 'special':
+            config = visual_preset('Alta densidad')
+            config.projection = 'x-y'
+            config.color_by = 'w'
+            config.background = 'negro'
+            config.point_size = 1.0
+            config.alpha = 0.3
+            config.max_points = 32000
+            return config
         if entry.get('kind') == 'flow':
             config = visual_preset('Color por profundidad')
             config.projection = '3D x-y-z' if entry.get('dimension', 0) >= 3 else 'x-y'
@@ -3011,7 +3235,17 @@ class SprottExplorerTab(QWidget):
             'Pulsa ▶ Explicar código actual para ver el pipeline completo.\n\n'
             'Se usará el código que aparece en el campo Código de la pestaña Exploración. '
             'Si aún no has simulado nada, el análisis se hace solo con el texto del campo; '
-            'si ya simulaste, la configuración visual actual también se incluye.'
+            'si ya simulaste, la configuración visual actual también se incluye.\n\n'
+            '=============================================================\n'
+            'Familias soportadas por la Chaos Toolbox:\n\n'
+            'Soportadas actualmente:\n'
+            'A-P: mapas polinomiales 1D-4D, orden 2-5\n'
+            'Q-X: flujos polinomiales 3D-4D, orden 2-5\n\n'
+            'Reconocidas pero pendientes:\n'
+            'Y/Z y familias especiales adicionales\n\n'
+            'No reconocidas:\n'
+            'caracteres/familias sin entrada en SPECIAL_FAMILIES\n'
+            '============================================================='
         )
         layout.addWidget(self.explain_output, stretch=1)
 
