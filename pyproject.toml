@@ -23,8 +23,8 @@ build = [
 ]
 
 [project.urls]
-Homepage = "https://example.invalid/chaos-toolbox"
-Repository = "https://example.invalid/chaos-toolbox"
+Homepage = "https://github.com/Xerkkun/toolbox-chaos"
+Repository = "https://github.com/Xerkkun/toolbox-chaos"
 
 [tool.chaos_toolbox]
 developer = "Fer Moreno"

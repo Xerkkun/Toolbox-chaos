@@ -83,6 +83,10 @@ $env:CHAOS_TOOLBOX_RELEASES_API_URL="https://api.github.com/repos/OWNER/REPO/rel
 
 The app never installs updates silently. It shows installed version, available version, publication date, release summary, release notes, and a download action when a platform artifact is available.
 
+## Citation And JOSS Preparation
+
+Citation metadata is available in `CITATION.cff`. A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. No DOI has been assigned to the software archive yet. GitHub is the active repository for review, issues, source code, tests, and development; OSF is planned as the persistent archive for the frozen release snapshot and DOI.
+
 ## Documentation
 
 - `docs/installation.md`

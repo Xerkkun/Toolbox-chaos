@@ -29,7 +29,7 @@ If there is no internet, the app continues normally.
 Configure a controlled latest-release endpoint:
 
 ```powershell
-$env:CHAOS_TOOLBOX_RELEASES_API_URL="https://api.github.com/repos/OWNER/REPO/releases/latest"
+$env:CHAOS_TOOLBOX_RELEASES_API_URL="https://api.github.com/repos/Xerkkun/toolbox-chaos/releases/latest"
 ```
 
 Artifacts should follow:
