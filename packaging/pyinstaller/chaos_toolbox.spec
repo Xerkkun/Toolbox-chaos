@@ -52,6 +52,7 @@ if windows_dll.exists():
 
 datas = [
     (str(runtime_resources), 'resources/bundled'),
+    (str(ROOT / 'pyproject.toml'), '.'),
     (str(ROOT / 'LICENSE'), '.'),
     (str(ROOT / 'NOTICE.md'), '.'),
     (str(ROOT / 'AUTHORS.md'), '.'),

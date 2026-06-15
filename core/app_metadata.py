@@ -35,7 +35,10 @@ def _project_metadata() -> dict:
 
 
 def project_version() -> str:
-    return str(_project_metadata()['project']['version'])
+    try:
+        return str(_project_metadata()['project']['version'])
+    except Exception:
+        return "0.1.0"
 
 
 APP_VERSION = project_version()
