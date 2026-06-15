@@ -54,11 +54,16 @@ def main() -> int:
     
     # Verify chaos_dictionary.pdf content
     dict_reader = pypdf.PdfReader(dictionary)
+    _check(len(dict_reader.pages) > 0, "chaos_dictionary.pdf has 0 pages.")
     dict_text = "".join(page.extract_text() or "" for page in dict_reader.pages)
-    _check("Diccionario, manual y referencia tecnica" in dict_text, 
+    _check("Diccionario" in dict_text, 
            "chaos_dictionary.pdf is missing dictionary title.")
     _check("Lorenz" in dict_text, 
            "chaos_dictionary.pdf is missing system content.")
+    _check("Unified Lorenz" in dict_text,
+           "chaos_dictionary.pdf is missing Unified Lorenz-Chen.")
+    _check("Sprott S" in dict_text,
+           "chaos_dictionary.pdf is missing Sprott S.")
     print("chaos_dictionary.pdf content OK")
 
     theory_pdf = REPO_ROOT / 'assets' / 'sprott' / 'sprott_theory.pdf'

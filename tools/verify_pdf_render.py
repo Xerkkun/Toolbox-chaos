@@ -57,7 +57,9 @@ def analyze_pdf(pdf_path, profile):
             "Lorenz",
             "Rossler",
             "FFT",
-            "Lyapunov"
+            "Lyapunov",
+            "Unified Lorenz",
+            "Sprott S"
         ]
         forbidden_keywords = [
             "del libro de Wang"

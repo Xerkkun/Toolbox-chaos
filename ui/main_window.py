@@ -760,60 +760,17 @@ class MainWindow(QMainWindow):
         layout.setSpacing(4)
         layout.addWidget(self._make_tab_toolbar('Diccionario de conceptos', None), stretch=0)
 
-        assets_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets')
-        self.dictionary_pdf_path = os.path.join(assets_dir, 'chaos_dictionary.pdf')
+        assets_dir = Path(__file__).resolve().parent.parent / 'assets'
+        self.dictionary_pdf_path = str(assets_dir / 'chaos_dictionary.pdf')
 
-        self.dict_open_pdf_btn = QPushButton('Abrir PDF externo')
-        self.dict_open_pdf_btn.clicked.connect(self.open_dictionary_pdf)
-        if not os.path.exists(self.dictionary_pdf_path):
-            self.dict_open_pdf_btn.setEnabled(False)
-        layout.addWidget(self.dict_open_pdf_btn, stretch=0)
-
-        # Diagnostic status label — always visible so failures are never silent
-        status_parts = []
-        pdf_exists = os.path.exists(self.dictionary_pdf_path)
-        status_parts.append(f'Archivo: {"encontrado" if pdf_exists else "NO ENCONTRADO — " + self.dictionary_pdf_path}')
-        status_parts.append(f'QtPdf: {"disponible" if QT_PDF_AVAILABLE else "NO disponible (instala PyQt6-Qt6 o PyQt6-QtPdf)"}')
-        self._dict_status_label = QLabel('  |  '.join(status_parts))
-        self._dict_status_label.setWordWrap(True)
-        self._dict_status_label.setStyleSheet('font-size: 10px; color: #555; padding: 2px 4px; background: #f9f9f9; border-radius: 3px;')
-        layout.addWidget(self._dict_status_label, stretch=0)
-
-        viewer_added = False
-        if QT_PDF_AVAILABLE and pdf_exists:
-            try:
-                self.dict_pdf_document = QPdfDocument(self)
-                load_err = self.dict_pdf_document.load(self.dictionary_pdf_path)
-                # QPdfDocument.Error is an enum; NoError == 0
-                err_val = int(load_err) if hasattr(load_err, '__int__') else load_err
-                page_count = self.dict_pdf_document.pageCount()
-                load_ok = (err_val == 0) and (page_count > 0)
-                status_extra = f'load()={err_val}, páginas={page_count}'
-                self._dict_status_label.setText(
-                    self._dict_status_label.text() + f'  |  {status_extra}'
-                    + ('' if load_ok else '  ⚠ El PDF no cargó correctamente.')
-                )
-                if load_ok:
-                    self.dict_pdf_view = QPdfView(self.tab_dict)
-                    self.dict_pdf_view.setDocument(self.dict_pdf_document)
-                    if hasattr(self.dict_pdf_view, 'setZoomMode'):
-                        self.dict_pdf_view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
-                    if hasattr(self.dict_pdf_view, 'setPageMode'):
-                        self.dict_pdf_view.setPageMode(QPdfView.PageMode.MultiPage)
-                    # Keep references alive
-                    self.dict_pdf_view._pdf_document = self.dict_pdf_document
-                    layout.addWidget(self.dict_pdf_view, stretch=1)
-                    viewer_added = True
-            except Exception as exc:
-                self._dict_status_label.setText(
-                    self._dict_status_label.text() + f'  |  Error: {exc}'
-                )
-
-        if not viewer_added:
-            self.dict_browser = QTextBrowser()
-            self.dict_browser.setOpenExternalLinks(True)
-            self.dict_browser.setHtml(self._dictionary_html())
-            layout.addWidget(self.dict_browser, stretch=1)
+        from ui.pdf_viewer import PdfViewerWidget
+        self.pdf_viewer = PdfViewerWidget(
+            pdf_path=self.dictionary_pdf_path,
+            title='Diccionario de conceptos',
+            fallback_html=self._dictionary_html(),
+            parent=self.tab_dict,
+        )
+        layout.addWidget(self.pdf_viewer, stretch=1)
 
         self.tabs.addTab(self.tab_dict, 'Diccionario')
 

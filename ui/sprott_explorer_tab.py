@@ -1000,90 +1000,9 @@ class SprottExplorerTab(QWidget):
         self.sections.addTab(widget, 'Inventario local')
 
     def _make_pdf_viewer(self, pdf_path: Path, title: str, fallback_html: str = '') -> QWidget:
-        """Reusable validated PDF viewer with explicit diagnostics.
-
-        Returns a QWidget that either shows the embedded PDF viewer or a clear
-        fallback message explaining *why* it failed (file missing, QtPdf
-        unavailable, load error, zero pages).
-        """
-        container = QWidget()
-        layout = QVBoxLayout(container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(3)
-
-        status_parts: list[str] = []
-        file_ok = pdf_path.exists()
-        status_parts.append(f'Archivo: {"OK " + pdf_path.name if file_ok else "NO ENCONTRADO — " + str(pdf_path)}')
-        status_parts.append(f'QtPdf: {"disponible" if QT_PDF_AVAILABLE else "NO disponible"}')
-
-        open_btn = QPushButton(f'Abrir {pdf_path.name} externamente')
-        open_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(pdf_path))))
-        open_btn.setEnabled(file_ok)
-        layout.addWidget(open_btn, stretch=0)
-
-        status_label = QLabel()
-        status_label.setWordWrap(True)
-        status_label.setStyleSheet(
-            'font-size: 10px; color: #444; padding: 3px 6px; '
-            'background: #f5f5f5; border-radius: 3px; border: 1px solid #ddd;'
-        )
-        layout.addWidget(status_label, stretch=0)
-
-        viewer_ok = False
-        if QT_PDF_AVAILABLE and file_ok:
-            try:
-                document = QPdfDocument(container)
-                load_err = document.load(str(pdf_path))
-                is_no_error = False
-                if hasattr(QPdfDocument, 'Error') and hasattr(QPdfDocument.Error, 'None_'):
-                    is_no_error = (load_err == QPdfDocument.Error.None_)
-                else:
-                    try:
-                        is_no_error = (int(load_err) == 0)
-                    except (ValueError, TypeError):
-                        is_no_error = (str(load_err) in ('0', 'Error.None_', 'None_') or 'None' in str(load_err))
-
-                page_count = document.pageCount()
-                load_ok = is_no_error and (page_count > 0)
-                status_parts.append(f'load()={repr(load_err)}, páginas={page_count}')
-                if not load_ok:
-                    status_parts.append('⚠ El PDF no cargó correctamente')
-                else:
-                    view = QPdfView(container)
-                    view.setDocument(document)
-                    if hasattr(view, 'setZoomMode'):
-                        view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
-                    if hasattr(view, 'setPageMode'):
-                        view.setPageMode(QPdfView.PageMode.MultiPage)
-                    # Keep references alive on the container
-                    container._pdf_document = document
-                    container._pdf_view = view
-                    layout.addWidget(view, stretch=1)
-                    viewer_ok = True
-            except Exception as exc:
-                status_parts.append(f'Error: {exc}')
-        elif not QT_PDF_AVAILABLE:
-            status_parts.append('Instala PyQt6-Qt6 \u2265 6.4 o PyQt6-QtPdf para el visor embebido')
-
-        status_label.setText('  \u2502  '.join(status_parts))
-
-        if not viewer_ok:
-            fallback = QTextBrowser()
-            fallback.setOpenExternalLinks(True)
-            if fallback_html:
-                fallback.setHtml(fallback_html)
-            else:
-                pdf_uri = QUrl.fromLocalFile(str(pdf_path)).toString()
-                fallback.setHtml(
-                    '<html><body style="font-family: Segoe UI, Arial, sans-serif; margin: 14px;">'
-                    f'<h2>{html.escape(title)}</h2>'
-                    '<p>El visor embebido no est\u00e1 disponible (ver estado arriba).</p>'
-                    f'<p><a href="{html.escape(pdf_uri)}">Abrir PDF externamente</a></p>'
-                    '</body></html>'
-                )
-            layout.addWidget(fallback, stretch=1)
-
-        return container
+        """Reusable validated PDF viewer using the shared widget implementation."""
+        from ui.pdf_viewer import make_pdf_viewer
+        return make_pdf_viewer(pdf_path, title, fallback_html)
 
     def _theory_page_browser(self):
         pdf_path = self.assets_dir / 'sprott_theory.pdf'
