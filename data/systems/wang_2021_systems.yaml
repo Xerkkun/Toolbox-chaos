@@ -1,0 +1,1869 @@
+- system_id: lorenz
+  name: Lorenz system
+  chapter: 1
+  type: clásico
+  pages:
+  - 3
+  ref: Lorenz, E. N. (1963). Deterministic nonperiodic flow. Journal of the Atmospheric
+    Sciences.
+  equations_latex: \dot{x}=\sigma(y-x), \; \dot{y}=\rho x-y-xz, \; \dot{z}=xy-\beta
+    z
+  params:
+    sigma: 10.0
+    rho: 28.0
+    beta: 2.6666666666666665
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.9056, 0.0, -14.5723]
+
+    kaplan_yorke_dimension: 2.06'
+  reported_equilibria: O(0,0,0) (saddle), $E_+(6\sqrt{2}, 6\sqrt{2}, 27)$, $E_-(-6\sqrt{2},
+    -6\sqrt{2}, 27)$
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - -10.0
+      - 10.0
+      - 0.0
+    - - 28.0
+      - -1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - -2.6666666666666665
+    eigvals:
+    - - 11.827723451163456
+      - 0.0
+    - - -2.6666666666666665
+      - 0.0
+    - - -22.827723451163457
+      - 0.0
+    local_type: saddle
+  - name: E2
+    point:
+    - 8.48528137423857
+    - 8.48528137423857
+    - 27.0
+    jacobian:
+    - - -9.999999992515995
+      - 9.999999992515995
+      - 0.0
+    - - 0.9999999974752427
+      - -0.9999999974752427
+      - -8.485281384196242
+    - - 8.485281369985387
+      - 8.485281369985387
+      - -2.666666667039408
+    eigvals:
+    - - 0.09395562490167941
+      - 10.19450522338716
+    - - 0.09395562490167941
+      - -10.19450522338716
+    - - -13.854577906833995
+      - 0.0
+    local_type: saddle_focus
+  - name: E3
+    point:
+    - -8.48528137423857
+    - -8.48528137423857
+    - 27.0
+    jacobian:
+    - - -9.999999992515995
+      - 9.999999992515995
+      - 0.0
+    - - 0.9999999974752427
+      - -0.9999999974752427
+      - 8.485281384196242
+    - - -8.485281369985387
+      - -8.485281369985387
+      - -2.666666667039408
+    eigvals:
+    - - 0.09395562490167941
+      - 10.19450522338716
+    - - 0.09395562490167941
+      - -10.19450522338716
+    - - -13.854577906833995
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: rossler
+  name: Rössler system
+  chapter: 1
+  type: clásico
+  pages:
+  - 4
+  ref: Rössler, O. E. (1976). An Equation for Continuous Chaos. Physics Letters A.
+  equations_latex: \dot{x}=-y-z, \; \dot{y}=x+ay, \; \dot{z}=b+z(x-c)
+  params:
+    a: 0.2
+    b: 0.2
+    c: 5.7
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.0714, 0.0, -5.3943]
+
+    kaplan_yorke_dimension: 2.013'
+  reported_equilibria: E1(0.007, -0.035, 0.035), E2(5.693, -28.465, 28.465)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0070262048341001165
+    - -0.03513102417050058
+    - 0.03513102417050058
+    jacobian:
+    - - 0.0
+      - -1.000000000001
+      - -1.000000000001
+    - - 1.0000000000001328
+      - 0.20000000000011328
+      - 0.0
+    - - 0.03513102415919622
+      - 0.0
+      - -5.692973795171086
+    eigvals:
+    - - 0.0970008560895034
+      - 0.995193491030452
+    - - 0.0970008560895034
+      - -0.995193491030452
+    - - -5.686975507349979
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - 5.692973795172719
+    - -28.464868975863606
+    - 28.464868975863606
+    jacobian:
+    - - 0.0
+      - -1.0000000010279564
+      - -1.0000000010279564
+    - - 1.000000000139778
+      - 0.20000000011677344
+      - 0.0
+    - - 28.464868979838354
+      - 0.0
+      - -0.007026204840165917
+    eigvals:
+    - - 0.1929829874205947
+      - 0.0
+    - - -4.596071993601125e-06
+      - 5.428025934278885
+    - - -4.596071993601125e-06
+      - -5.428025934278885
+    local_type: saddle_focus
+  status: completo
+- system_id: chua
+  name: Chua circuit, piecewise-linear form
+  chapter: 1
+  type: clásico
+  pages:
+  - 4
+  - 5
+  ref: Chua, L. O. (1984). A Chaotic Attractor from Chua's Circuit. IEEE Transactions
+    on Circuits and Systems.
+  equations_latex: \dot{x}=\alpha(y-x-h(x)), \; \dot{y}=x-y+z, \; \dot{z}=-\beta y
+  params:
+    alpha: 15.6
+    beta: 28.0
+    m0: -1.143
+    m1: -0.714
+  reported_dynamics: 'attractor_type: self_excited'
+  reported_equilibria: O(0,0,0) (saddle-focus), P+(1.5, 0, -1.5), P-(-1.5, 0, 1.5)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 2.2307999998209436
+      - 15.6
+      - 0.0
+    - - 1.0
+      - -1.0
+      - 1.0
+    - - 0.0
+      - -28.0
+      - 0.0
+    eigvals:
+    - - 3.4756423699438086
+      - 0.0
+    - - -1.1224211850614316
+      - 4.087987272356464
+    - - -1.1224211850614316
+      - -4.087987272356464
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - 1.5
+    - 0.0
+    - -1.5
+    jacobian:
+    - - -4.461599998517585
+      - 15.59999999871664
+      - 0.0
+    - - 0.9999999999177334
+      - -0.9999999999177334
+      - 0.9999999999177334
+    - - 0.0
+      - -28.0
+      - 0.0
+    eigvals:
+    - - 0.3054961101314583
+      - 4.52532636696649
+    - - 0.3054961101314583
+      - -4.52532636696649
+    - - -6.072592218698242
+      - 0.0
+    local_type: saddle_focus
+  - name: E3
+    point:
+    - -1.5
+    - 0.0
+    - 1.5
+    jacobian:
+    - - -4.461599998517585
+      - 15.59999999871664
+      - 0.0
+    - - 0.9999999999177334
+      - -0.9999999999177334
+      - 0.9999999999177334
+    - - 0.0
+      - -28.0
+      - 0.0
+    eigvals:
+    - - 0.3054961101314583
+      - 4.52532636696649
+    - - 0.3054961101314583
+      - -4.52532636696649
+    - - -6.072592218698242
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: chen
+  name: Chen system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Chen, G., Ueta, T. (1999). Yet another chaotic attractor. International Journal
+    of Bifurcation and Chaos.
+  equations_latex: \dot{x}=a(y-x), \; \dot{y}=(c-a)x-xz+cy, \; \dot{z}=xy-bz
+  params:
+    a: 35.0
+    b: 3.0
+    c: 28.0
+  reported_dynamics: 'attractor_type: self_excited'
+  reported_equilibria: O(0,0,0), E1(7.937, 7.937, 21), E2(-7.937, -7.937, 21)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - -35.0
+      - 35.0
+      - 0.0
+    - - -7.0
+      - 28.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - -3.0
+    eigvals:
+    - - 23.835873865673292
+      - 0.0
+    - - -3.0
+      - 0.0
+    - - -30.835873865673292
+      - 0.0
+    local_type: saddle
+  - name: E2
+    point:
+    - 7.937253933193772
+    - 7.937253933193772
+    - 21.0
+    jacobian:
+    - - -35.00000000489223
+      - 35.00000000489223
+      - 0.0
+    - - -28.000000014571924
+      - 28.000000014571924
+      - -7.937253940326627
+    - - 7.9372539332212
+      - 7.9372539332212
+      - -3.000000006636583
+    eigvals:
+    - - 4.213981957304141
+      - 14.884642118779333
+    - - 4.213981957304141
+      - -14.884642118779333
+    - - -18.427963911565122
+      - 0.0
+    local_type: saddle_focus
+  - name: E3
+    point:
+    - -7.937253933193772
+    - -7.937253933193772
+    - 21.0
+    jacobian:
+    - - -35.00000000489223
+      - 35.00000000489223
+      - 0.0
+    - - -28.000000014571924
+      - 28.000000014571924
+      - 7.937253940326627
+    - - -7.9372539332212
+      - -7.9372539332212
+      - -3.000000006636583
+    eigvals:
+    - - 4.213981957304141
+      - 14.884642118779333
+    - - 4.213981957304141
+      - -14.884642118779333
+    - - -18.427963911565122
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: unified_lorenz_chen
+  name: Unified Lorenz-Chen system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Lü, J., Chen, G., Zhang, S. (2002). The compound structure of a new chaotic
+    attractor. Chaos, Solitons & Fractals.
+  equations_latex: \dot{x}=(25\alpha+10)(y-x), \; \dot{y}=(28-35\alpha)x+(29\alpha-1)y-xz,
+    \; \dot{z}=-\frac{\alpha+8}{3}z+xy
+  params:
+    alpha: 0.0
+  reported_dynamics: 'attractor_type: self_excited (alpha=0: Lorenz, alpha=1: Chen)'
+  reported_equilibria: O(0,0,0), E1, E2 dependent on alpha
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - -10.0
+      - 10.0
+      - 0.0
+    - - 28.0
+      - -1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - -2.6666666666666665
+    eigvals:
+    - - 11.827723451163456
+      - 0.0
+    - - -2.6666666666666665
+      - 0.0
+    - - -22.827723451163457
+      - 0.0
+    local_type: saddle
+  - name: E2
+    point:
+    - 8.485281374248125
+    - 8.485281374248125
+    - 26.99999999999998
+    jacobian:
+    - - -9.999999992515995
+      - 9.999999992515995
+      - 0.0
+    - - 0.9999999974752427
+      - -0.9999999974752427
+      - -8.485281384196242
+    - - 8.485281369985387
+      - 8.485281369985387
+      - -2.666666667039408
+    eigvals:
+    - - 0.09395562490167941
+      - 10.19450522338716
+    - - 0.09395562490167941
+      - -10.19450522338716
+    - - -13.854577906833995
+      - 0.0
+    local_type: saddle_focus
+  - name: E3
+    point:
+    - -8.485281374248125
+    - -8.485281374248125
+    - 26.99999999999998
+    jacobian:
+    - - -9.999999992515995
+      - 9.999999992515995
+      - 0.0
+    - - 0.9999999974752427
+      - -0.9999999974752427
+      - 8.485281384196242
+    - - -8.485281369985387
+      - -8.485281369985387
+      - -2.666666667039408
+    eigvals:
+    - - 0.09395562490167941
+      - 10.19450522338716
+    - - 0.09395562490167941
+      - -10.19450522338716
+    - - -13.854577906833995
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_a
+  name: Sprott A system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x+yz, \; \dot{z}=1.0-y2
+  params: {}
+  reported_dynamics: 'attractor_type: conservative_chaotic_sea
+
+    lyapunov_exponents: [0.014, 0.0, -0.014]
+
+    kaplan_yorke_dimension: 3.000'
+  reported_equilibria: Ninguno
+  computed_equilibria: []
+  status: pendiente
+- system_id: sprott_b
+  name: Sprott B system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=yz, \; \dot{y}=x-y, \; \dot{z}=1.0-xy
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.21, 0.0, -1.21]
+
+    kaplan_yorke_dimension: 2.174'
+  reported_equilibria: (1,1,0), (-1,-1,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 1.0
+    - 1.0
+    - -2.6755486715046572e-11
+    jacobian:
+    - - 0.0
+      - -2.675548671413843e-11
+      - 1.0
+    - - 0.9999999999732445
+      - -0.9999999999732445
+      - 0.0
+    - - -0.9999999999732445
+      - -0.9999999999732445
+      - 0.0
+    eigvals:
+    - - 0.17660498209244158
+      - 1.2028208192723673
+    - - 0.17660498209244158
+      - -1.2028208192723673
+    - - -1.353209964158128
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - -1.0
+    - -1.0
+    - 2.6755486715046572e-11
+    jacobian:
+    - - 0.0
+      - 2.675548671413843e-11
+      - -1.0
+    - - 0.9999999999732445
+      - -0.9999999999732445
+      - 0.0
+    - - 0.9999999999732445
+      - 0.9999999999732445
+      - 0.0
+    eigvals:
+    - - 0.17660498210200198
+      - 1.2028208192622818
+    - - 0.17660498210200198
+      - -1.2028208192622818
+    - - -1.353209964177248
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_c
+  name: Sprott C system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=yz, \; \dot{y}=x-y, \; \dot{z}=1.0-x2
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.163, 0.0, -0.163]
+
+    kaplan_yorke_dimension: 2.140'
+  reported_equilibria: (1,1,0), (-1,-1,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 1.0
+    - 1.0
+    - -2.6755486715046572e-11
+    jacobian:
+    - - 0.0
+      - -2.675548671413843e-11
+      - 1.0
+    - - 0.9999999999732445
+      - -0.9999999999732445
+      - 0.0
+    - - -2.000000000002
+      - 0.0
+      - 0.0
+    eigvals:
+    - - -4.45915526725571e-12
+      - 1.414213562380109
+    - - -4.45915526725571e-12
+      - -1.414213562380109
+    - - -0.9999999999643258
+      - 0.0
+    local_type: nonhyperbolic
+  - name: E2
+    point:
+    - -1.0
+    - -1.0
+    - 2.6755486715046572e-11
+    jacobian:
+    - - 0.0
+      - 2.675548671413843e-11
+      - -1.0
+    - - 0.9999999999732445
+      - -0.9999999999732445
+      - 0.0
+    - - 2.000000000002
+      - 0.0
+      - 0.0
+    eigvals:
+    - - 4.459127511680094e-12
+      - 1.4142135623674956
+    - - 4.459127511680094e-12
+      - -1.4142135623674956
+    - - -0.9999999999821627
+      - 0.0
+    local_type: nonhyperbolic
+  status: completo
+- system_id: sprott_d
+  name: Sprott D system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=-y, \; \dot{y}=x+z, \; \dot{z}=xz+3.0y2
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.103, 0.0, -1.32]
+
+    kaplan_yorke_dimension: 2.078'
+  reported_equilibria: (0,0,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - -1.0
+      - 0.0
+    - - 1.0
+      - 0.0
+      - 1.0
+    - - 0.0
+      - 0.0
+      - 0.0
+    eigvals:
+    - - 0.0
+      - 1.0
+    - - 0.0
+      - -1.0
+    - - 0.0
+      - 0.0
+    local_type: nonhyperbolic
+  status: completo
+- system_id: sprott_e
+  name: Sprott E system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=yz, \; \dot{y}=x2-y, \; \dot{z}=1.0-4.0x
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.078, 0.0, -1.078]
+
+    kaplan_yorke_dimension: 2.072'
+  reported_equilibria: (0.25, 0.063, 0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.25
+    - 0.06250000000000001
+    - 4.23225010592887e-10
+    jacobian:
+    - - 0.0
+      - 4.2322501059295646e-10
+      - 0.06250000000000001
+    - - 0.4999999999970306
+      - -1.000000000001
+      - 0.0
+    - - -3.999999999948489
+      - 0.0
+      - 0.0
+    eigvals:
+    - - 8.46449299540808e-11
+      - 0.4999999999544581
+    - - 8.46449299540808e-11
+      - -0.4999999999544581
+    - - -1.0000000001702898
+      - 0.0
+    local_type: nonhyperbolic
+  status: completo
+- system_id: sprott_f
+  name: Sprott F system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=y+z, \; \dot{y}=-x+0.5y, \; \dot{z}=x2-z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.117, 0.0, -0.617]
+
+    kaplan_yorke_dimension: 2.190'
+  reported_equilibria: (0,0,0), (-2,-4,4)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 1.0
+      - 1.0
+    - - -1.0
+      - 0.5
+      - 0.0
+    - - 0.0
+      - 0.0
+      - -1.0
+    eigvals:
+    - - 0.24999999999999997
+      - 0.9682458365518543
+    - - 0.24999999999999997
+      - -0.9682458365518543
+    - - -1.0
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_g
+  name: Sprott G system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=0.4x+z, \; \dot{y}=xz-y, \; \dot{z}=-x+y
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.034, 0.0, -0.634]
+
+    kaplan_yorke_dimension: 2.054'
+  reported_equilibria: (0,0,0), (-2.5,-2.5,1)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.4
+      - 0.0
+      - 1.0
+    - - 0.0
+      - -1.0
+      - 0.0
+    - - -1.0
+      - 1.0
+      - 0.0
+    eigvals:
+    - - 0.2
+      - 0.9797958971132712
+    - - 0.2
+      - -0.9797958971132712
+    - - -1.0
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - -2.5000000001650333
+    - -2.5000000001650333
+    - 1.0
+    jacobian:
+    - - 0.4000000000670134
+      - 0.0
+      - 0.9999999999732445
+    - - 1.000000000139778
+      - -1.000000000139778
+      - -2.5000000001274003
+    - - -1.000000000139778
+      - 1.000000000139778
+      - 0.0
+    eigvals:
+    - - 0.2970474395529858
+      - 0.0
+    - - -0.4485237198128751
+      - 1.7791267853445842
+    - - -0.4485237198128751
+      - -1.7791267853445842
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_h
+  name: Sprott H system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=-y+z2, \; \dot{y}=x+0.5y, \; \dot{z}=x-z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.117, 0.0, -0.617]
+
+    kaplan_yorke_dimension: 2.190'
+  reported_equilibria: (0,0,0), (-2,4,-2)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - -1.0
+      - 0.0
+    - - 1.0
+      - 0.5
+      - 0.0
+    - - 1.0
+      - 0.0
+      - -1.0
+    eigvals:
+    - - 0.25
+      - 0.9682458365518543
+    - - 0.25
+      - -0.9682458365518543
+    - - -1.0
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_i
+  name: Sprott I system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=0.2y, \; \dot{y}=x+z, \; \dot{z}=x+y2-z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.012, 0.0, -1.012]
+
+    kaplan_yorke_dimension: 2.012'
+  reported_equilibria: (0,0,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.2
+      - 0.0
+    - - 1.0
+      - 0.0
+      - 1.0
+    - - 1.0
+      - 0.0
+      - -1.0
+    eigvals:
+    - - 0.572034664727982
+      - 0.0
+    - - -0.786017332363991
+      - 0.28536831569365245
+    - - -0.786017332363991
+      - -0.28536831569365245
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_j
+  name: Sprott J system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=2.0z, \; \dot{y}=-2.0y+z, \; \dot{z}=-x+y+y2
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.076, 0.0, -2.076]
+
+    kaplan_yorke_dimension: 2.037'
+  reported_equilibria: (0,0,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - 2.0
+    - - 0.0
+      - -2.0
+      - 1.0
+    - - -1.0
+      - 1.0
+      - 0.0
+    eigvals:
+    - - 0.1572981061383757
+      - 1.3051515265047438
+    - - 0.1572981061383757
+      - -1.3051515265047438
+    - - -2.3145962122767516
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_k
+  name: Sprott K system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=xy-z, \; \dot{y}=x-y, \; \dot{z}=x+0.3z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.038, 0.0, -0.89]
+
+    kaplan_yorke_dimension: 2.042'
+  reported_equilibria: (0,0,0), (-3.333,-3.333,11.111)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - -1.0
+    - - 1.0
+      - -1.0
+      - 0.0
+    - - 1.0
+      - 0.0
+      - 0.3
+    eigvals:
+    - - 0.14999999999999997
+      - 0.9886859966642595
+    - - 0.14999999999999997
+      - -0.9886859966642595
+    - - -1.0
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_l
+  name: Sprott L system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=y+3.9z, \; \dot{y}=0.9x2-y, \; \dot{z}=1.0-x
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.061, 0.0, -1.061]
+
+    kaplan_yorke_dimension: 2.057'
+  reported_equilibria: (1, 1.111, -0.231)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.9999999999999999
+    - 0.8999999999741198
+    - -0.23076923076259484
+    jacobian:
+    - - 0.0
+      - 1.0000000000287557
+      - 3.900000000001125
+    - - 1.8000000001072713
+      - -1.0000000000287557
+      - 0.0
+    - - -1.0000000000287557
+      - 0.0
+      - 0.0
+    eigvals:
+    - - 0.2166426456647437
+      - 1.6352637093319358
+    - - 0.2166426456647437
+      - -1.6352637093319358
+    - - -1.4332852913582421
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_m
+  name: Sprott M system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=-z, \; \dot{y}=-x2-y, \; \dot{z}=1.7+1.7x+y
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.044, 0.0, -1.044]
+
+    kaplan_yorke_dimension: 2.042'
+  reported_equilibria: (2.406,-5.791,0), (-0.706,-0.499,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - -0.706438241627338
+    - -0.4990549892335252
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - -1.0
+    - - 1.4128764833087892
+      - -0.9999999999732445
+      - 0.0
+    - - 1.6999999999933735
+      - 0.9999999999732445
+      - 0.0
+    eigvals:
+    - - 0.19461363684859714
+      - 1.4842003492192237
+    - - 0.19461363684859714
+      - -1.4842003492192237
+    - - -1.389227273670438
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - 2.406438241627921
+    - -5.790945010767465
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - -1.0
+    - - -4.812876484017181
+      - -1.000000000139778
+      - 0.0
+    - - 1.7000000003264404
+      - 1.000000000139778
+      - 0.0
+    eigvals:
+    - - 0.9073651561124686
+      - 0.0
+    - - -0.9536825781261227
+      - 1.587818069953688
+    - - -0.9536825781261227
+      - -1.587818069953688
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_n
+  name: Sprott N system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=-2.0y, \; \dot{y}=x+z2, \; \dot{z}=1.0+y-2.0z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.076, 0.0, -2.076]
+
+    kaplan_yorke_dimension: 2.037'
+  reported_equilibria: (-0.25,0,0.5)
+  computed_equilibria:
+  - name: E1
+    point:
+    - -0.2500000000032194
+    - 0.0
+    - 0.5
+    jacobian:
+    - - 0.0
+      - -2.0
+      - 0.0
+    - - 0.9999999999871223
+      - 0.0
+      - 0.9999999999871223
+    - - 0.0
+      - 0.9999999999732445
+      - -2.000000000002
+    eigvals:
+    - - 0.15729810613296633
+      - 1.3051515265000562
+    - - 0.15729810613296633
+      - -1.3051515265000562
+    - - -2.3145962122679324
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_o
+  name: Sprott O system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=y, \; \dot{y}=x-z, \; \dot{z}=x+xz+2.7y
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.049, 0.0, -0.319]
+
+    kaplan_yorke_dimension: 2.154'
+  reported_equilibria: (0,0,0), (-1,0,-1)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 1.0
+      - 0.0
+    - - 1.0
+      - 0.0
+      - -1.0
+    - - 1.0
+      - 2.7
+      - 0.0
+    eigvals:
+    - - 0.2550703482865099
+      - 1.3766563288362863
+    - - 0.2550703482865099
+      - -1.3766563288362863
+    - - -0.51014069657302
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - -1.0000000001276756
+    - 2.6755486715046572e-11
+    - -1.0000000001276756
+    jacobian:
+    - - 0.0
+      - 1.0
+      - 0.0
+    - - 0.9999999999732445
+      - 0.0
+      - -0.9999999999732445
+    - - -1.6653345369377348e-10
+      - 2.7000000000000006
+      - -1.000000000139778
+    eigvals:
+    - - 0.4314730241226573
+      - 0.0
+    - - -0.7157365121312177
+      - 1.3436380613414
+    - - -0.7157365121312177
+      - -1.3436380613414
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_p
+  name: Sprott P system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=2.7y+z, \; \dot{y}=-x+y2, \; \dot{z}=x+y
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.087, 0.0, -0.481]
+
+    kaplan_yorke_dimension: 2.181'
+  reported_equilibria: (0,0,0), (1,-1,2.7)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 2.7
+      - 1.0
+    - - -1.0
+      - 0.0
+      - 0.0
+    - - 1.0
+      - 1.0
+      - 0.0
+    eigvals:
+    - - 0.25507034828651043
+      - 1.3766563288362872
+    - - 0.25507034828651043
+      - -1.3766563288362872
+    - - -0.51014069657302
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - 0.9999999999999999
+    - -1.0
+    - 2.6999999999511153
+    jacobian:
+    - - 0.0
+      - 2.6999999998000845
+      - 1.000000000139778
+    - - -1.0000000000287557
+      - -2.000000000002
+      - 0.0
+    - - 1.0000000000287557
+      - 0.9999999999732445
+      - 0.0
+    eigvals:
+    - - 0.38282026787364615
+      - 0.0
+    - - -1.1914101339378236
+      - 1.0921235212659597
+    - - -1.1914101339378236
+      - -1.0921235212659597
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_q
+  name: Sprott Q system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=-z, \; \dot{y}=x-y, \; \dot{z}=3.1x+y2+0.5z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.109, 0.0, -0.609]
+
+    kaplan_yorke_dimension: 2.179'
+  reported_equilibria: (0,0,0), (-3.1,-3.1,0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - -1.0
+    - - 1.0
+      - -1.0
+      - 0.0
+    - - 3.1
+      - 0.0
+      - 0.5
+    eigvals:
+    - - 0.24999999999999997
+      - 1.7428425057933377
+    - - 0.24999999999999997
+      - -1.7428425057933377
+    - - -1.0
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_r
+  name: Sprott R system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=0.9-y, \; \dot{y}=0.4+z, \; \dot{z}=xy-z
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.062, 0.0, -1.062]
+
+    kaplan_yorke_dimension: 2.058'
+  reported_equilibria: (-0.444, 1.111, -0.4)
+  computed_equilibria:
+  - name: E1
+    point:
+    - -0.4444444444447454
+    - 0.9
+    - -0.4
+    jacobian:
+    - - 0.0
+      - -1.0000000000287557
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 0.9999999999732445
+    - - 0.899999999970369
+      - -0.44444444446956055
+      - -0.9999999999732445
+    eigvals:
+    - - 0.11606101942973418
+      - 0.8467449226326269
+    - - 0.11606101942973418
+      - -0.8467449226326269
+    - - -1.2321220388327125
+      - 0.0
+    local_type: saddle_focus
+  status: completo
+- system_id: sprott_s
+  name: Sprott S system
+  chapter: 1
+  type: clásico
+  pages:
+  - 5
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=x-4.0y, \; \dot{y}=x+z2, \; \dot{z}=1.0+x
+  params: {}
+  reported_dynamics: 'attractor_type: self_excited
+
+    lyapunov_exponents: [0.188, 0.0, -1.188]
+
+    kaplan_yorke_dimension: 2.151'
+  reported_equilibria: (-1, 0.25, 1), (-1, 0.25,-1)
+  computed_equilibria:
+  - name: E1
+    point:
+    - -0.9999999997204441
+    - -0.25000000003344436
+    - 1.0
+    jacobian:
+    - - 0.9999999999732445
+      - -3.999999999948489
+      - 0.0
+    - - 0.9999999999732445
+      - 0.0
+      - 2.000000000002
+    - - 0.9999999999732445
+      - 0.0
+      - 0.0
+    eigvals:
+    - - 1.1014906291413875
+      - 2.3317082921919075
+    - - 1.1014906291413875
+      - -2.3317082921919075
+    - - -1.2029812583095278
+      - 0.0
+    local_type: saddle_focus
+  - name: E2
+    point:
+    - -1.0
+    - -0.24999999997993338
+    - -1.0
+    jacobian:
+    - - 0.9999999999732445
+      - -3.999999999948489
+      - 0.0
+    - - 0.9999999999732445
+      - 0.0
+      - -2.000000000002
+    - - 0.9999999999732445
+      - 0.0
+      - 0.0
+    eigvals:
+    - - 1.6075217667233725
+      - 0.0
+    - - -0.30376088337506346
+      - 2.2100528928923246
+    - - -0.30376088337506346
+      - -2.2100528928923246
+    local_type: saddle_focus
+  status: completo
+- system_id: wang_chen_stable_equilibrium
+  name: Wang-Chen system with one stable equilibrium
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 30
+  - 31
+  ref: Wang, X., Chen, G. (2012). A chaotic system with only one stable equilibrium.
+    Communications in Nonlinear Science and Numerical Simulation.
+  equations_latex: \dot{x}=yz+a, \; \dot{y}=x^2-y, \; \dot{z}=1-4x
+  params:
+    a: 0.006
+  reported_dynamics: 'attractor_type: hidden_candidate
+
+    lyapunov_exponents: [0.0489, 0.0, -1.0485]'
+  reported_equilibria: E(0.25, 0.0625, -16a) = (0.25, 0.0625, -0.096)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.25
+    - 0.0625
+    - -0.096
+    jacobian:
+    - - 0.0
+      - -0.09599999999977682
+      - 0.0625000000000625
+    - - 0.4999999999970306
+      - -1.000000000001
+      - 0.0
+    - - -3.999999999948489
+      - 0.0
+      - 0.0
+    eigvals:
+    - - -0.019657369241419184
+      - 0.5097494463069445
+    - - -0.019657369241419184
+      - -0.5097494463069445
+    - - -0.9606852615181612
+      - 0.0
+    local_type: stable_focus
+  status: completo
+- system_id: wei_extended_sprott_e
+  name: Wei extended Sprott E system
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 34
+  - 35
+  ref: Wei, Z. (2013). Chaotic behavior of a simple system with one stable equilibrium.
+    Kybernetika.
+  equations_latex: \dot{x}=yz+ex^2+fx+g, \; \dot{y}=x^2-y, \; \dot{z}=1-4x
+  params:
+    e: 0.0
+    f: -0.1
+    g: 0.02
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: E(0.25, 0.0625, -e-4f-16g) = (0.25, 0.0625, 0.08)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.25
+    - 0.0625
+    - 0.07999999999984002
+    jacobian:
+    - - -0.0999999999976714
+      - 0.0799999999995249
+      - 0.0625000000000625
+    - - 0.4999999999970306
+      - -1.000000000001
+      - 0.0
+    - - -3.999999999948489
+      - 0.0
+      - 0.0
+    eigvals:
+    - - -0.032990224566356585
+      - 0.4905981764134439
+    - - -0.032990224566356585
+      - -0.4905981764134439
+    - - -1.0340195508659582
+      - 0.0
+    local_type: stable_focus
+  status: completo
+- system_id: lao
+  name: Lao system
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 36
+  - 37
+  ref: Lao, S.-K., Shekofteh, Y., Jafari, S., Sprott, J. C. (2014). GMM parameter
+    estimation of a chaotic circuit. International Journal of Bifurcation and Chaos.
+  equations_latex: \dot{x}=-z, \; \dot{y}=-x-z, \; \dot{z}=2x-1.3y-2z+x^2+z^2-xz
+  params: {}
+  reported_dynamics: 'attractor_type: hidden_candidate
+
+    lyapunov_exponents: [0.018, 0.0, -2.018]'
+  reported_equilibria: E(0, 0, 0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - -1.0
+    - - -1.0
+      - 0.0
+      - -1.0
+    - - 2.0
+      - -1.3
+      - -2.0
+    eigvals:
+    - - -0.010837117874621618
+      - 0.810557744934313
+    - - -0.010837117874621618
+      - -0.810557744934313
+    - - -1.978325764250757
+      - 0.0
+    local_type: stable_focus
+  status: completo
+- system_id: kingni
+  name: Kingni system
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 37
+  - 38
+  ref: Kingni, S., Jafari, S., Simo, H., Woafo, P. (2014). Three-dimensional chaotic
+    autonomous system with only one stable equilibrium. European Physical Journal
+    Plus.
+  equations_latex: \dot{x}=-z, \; \dot{y}=-x-z, \; \dot{z}=3x-ay+x^2-z^2-yz+b
+  params:
+    a: 1.3
+    b: 1.01
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: E(0, b/a, 0) = (0, 0.7769, 0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.7769230769230769
+    - 0.0
+    jacobian:
+    - - 0.0
+      - 0.0
+      - -1.0
+    - - -1.0
+      - 0.0
+      - -1.0
+    - - 2.9999999999752447
+      - -1.3000000000928935
+      - -0.7769230769838487
+    eigvals:
+    - - -0.00453556547675793
+      - 1.3011587693178728
+    - - -0.00453556547675793
+      - -1.3011587693178728
+    - - -0.7678519460303331
+      - 0.0
+    local_type: stable_focus
+  status: completo
+- system_id: line_equilibrium_to_one_stable
+  name: Controlled LE1 system
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 38
+  - 39
+  ref: Pham, V.-T., et al. (2013). Line equilibrium system controlled to one stable
+    equilibrium.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x+yz+c, \; \dot{z}=-x-axy-bxz
+  params:
+    a: 15.0
+    b: 1.0
+    c: 0.001
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: E(c, 0, -1/b) = (0.001, 0, -1.0)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.001
+    - 0.0
+    - -1.0
+    jacobian:
+    - - 0.0
+      - 1.0
+      - 0.0
+    - - -0.999999999999916
+      - -0.999999999999916
+      - 0.0
+    - - 0.0
+      - -0.014999999999910918
+      - -0.0010000000000157452
+    eigvals:
+    - - -0.0010000000000157452
+      - 0.0
+    - - -0.49999999999995803
+      - 0.8660254037844143
+    - - -0.49999999999995803
+      - -0.8660254037844143
+    local_type: stable_focus
+  status: completo
+- system_id: yang_chen
+  name: Yang-Chen system
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 43
+  - 47
+  ref: Yang, Q., Chen, G. (2008). A chaotic system with one saddle and two stable
+    node-foci. International Journal of Bifurcation and Chaos.
+  equations_latex: \dot{x}=a(y-x), \; \dot{y}=cx-xz, \; \dot{z}=-bz+xy
+  params:
+    a: 35.0
+    b: 3.0
+    c: 35.0
+  reported_dynamics: 'attractor_type: self_excited'
+  reported_equilibria: O(0,0,0), E+(sqrt(105), sqrt(105), 35), E-( -sqrt(105), -sqrt(105),
+    35)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 0.0
+    - 0.0
+    - 0.0
+    jacobian:
+    - - -35.0
+      - 35.0
+      - 0.0
+    - - 35.0
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - -3.0
+    eigvals:
+    - - 21.631189606246323
+      - 0.0
+    - - -3.0
+      - 0.0
+    - - -56.631189606246316
+      - 0.0
+    local_type: saddle
+  - name: E2
+    point:
+    - 10.246950765959598
+    - 10.246950765959598
+    - 35.0
+    jacobian:
+    - - -34.999999973805984
+      - 34.999999973805984
+      - 0.0
+    - - 0.0
+      - 0.0
+      - -10.246950751024997
+    - - 10.246950758130424
+      - 10.246950758130424
+      - -2.999999992425728
+    eigvals:
+    - - -0.19388433886497536
+      - 13.977752433527579
+    - - -0.19388433886497536
+      - -13.977752433527579
+    - - -37.61223128850172
+      - 0.0
+    local_type: stable_focus
+  - name: E3
+    point:
+    - -10.246950765959598
+    - -10.246950765959598
+    - 35.0
+    jacobian:
+    - - -34.999999973805984
+      - 34.999999973805984
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 10.246950751024997
+    - - -10.246950758130424
+      - -10.246950758130424
+      - -2.999999992425728
+    eigvals:
+    - - -0.19388433886497536
+      - 13.977752433527579
+    - - -0.19388433886497536
+      - -13.977752433527579
+    - - -37.61223128850172
+      - 0.0
+    local_type: stable_focus
+  status: completo
+- system_id: yang_wei
+  name: Yang-Wei system
+  chapter: 3
+  type: con equilibrio estable
+  pages:
+  - 48
+  - 49
+  ref: Yang, Q., Wei, Z., Chen, G. (2010). An unusual 3D autonomous quadratic chaotic
+    system with two stable node-foci. International Journal of Bifurcation and Chaos.
+  equations_latex: \dot{x}=a(y-x), \; \dot{y}=-cy-xz, \; \dot{z}=-b+xy
+  params:
+    a: 10.0
+    b: 100.0
+    c: 11.2
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: E1(10, 10, -11.2), E2(-10, -10, -11.2)
+  computed_equilibria:
+  - name: E1
+    point:
+    - 10.0
+    - 10.0
+    - -11.2
+    jacobian:
+    - - -9.999999992515995
+      - 9.999999992515995
+      - 0.0
+    - - 11.199999995881171
+      - -11.199999995881171
+      - -9.99999999606871
+    - - 9.999999988963282
+      - 9.999999988963282
+      - 0.0
+    eigvals:
+    - - -0.11109705138439663
+      - 9.76352971720158
+    - - -0.11109705138439663
+      - -9.76352971720158
+    - - -20.97780588562837
+      - 0.0
+    local_type: stable_focus
+  - name: E2
+    point:
+    - -10.0
+    - -10.0
+    - -11.2
+    jacobian:
+    - - -9.999999992515995
+      - 9.999999992515995
+      - 0.0
+    - - 11.199999995881171
+      - -11.199999995881171
+      - 9.99999999606871
+    - - -9.999999988963282
+      - -9.999999988963282
+      - 0.0
+    eigvals:
+    - - -0.11109705138439663
+      - 9.76352971720158
+    - - -0.11109705138439663
+      - -9.76352971720158
+    - - -20.97780588562837
+      - 0.0
+    local_type: stable_focus
+  status: completo
+- system_id: sprott_a_no_equilibrium
+  name: Sprott A no-equilibrium system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 56
+  - 57
+  ref: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x+yz, \; \dot{z}=1-y^2
+  params: {}
+  reported_dynamics: 'attractor_type: conservative_chaotic_sea
+
+    lyapunov_exponents: [0.0139, 0.0, -0.0139]
+
+    kaplan_yorke_dimension: 3.0'
+  reported_equilibria: Ninguno
+  computed_equilibria: []
+  status: completo
+- system_id: wei_no_equilibrium
+  name: Wei no-equilibrium system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 57
+  - 58
+  ref: Wei, Z. (2011). Dynamical behaviors of a chaotic system with no equilibria.
+    Physics Letters A.
+  equations_latex: \dot{x}=-y, \; \dot{y}=cx+z, \; \dot{z}=ay^2+xz-d
+  params:
+    a: 2.0
+    b: 1.0
+    c: 0.35
+  reported_dynamics: 'attractor_type: hidden_candidate
+
+    lyapunov_exponents: [0.0793, 0.0, -1.5034]
+
+    kaplan_yorke_dimension: 2.0528'
+  reported_equilibria: Ninguno para d > 0
+  computed_equilibria: []
+  status: completo
+- system_id: wang_chen_no_equilibrium
+  name: Wang-Chen no-equilibrium system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 58
+  - 59
+  ref: Wang, X., Chen, G. (2013). Constructing a chaotic system with any number of
+    equilibria. Nonlinear Dynamics.
+  equations_latex: \dot{x}=y, \; \dot{y}=z, \; \dot{z}=-y+3y^2-x^2-xz+a
+  params:
+    a: -0.05
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Ninguno para a < 0
+  computed_equilibria: []
+  status: completo
+- system_id: maaita
+  name: Maaita cubic no-equilibrium system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 59
+  - 60
+  ref: Maaita, J., Volos, C. K., Kyprianidis, I., Stouboulos, I. (2015). The dynamics
+    of a cubic nonlinear system with no equilibrium point. Nonlinear Dynamics.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x^3-zy, \; \dot{z}=y^2-a
+  params:
+    a: 5.16
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Ninguno para a > 0
+  computed_equilibria: []
+  status: completo
+- system_id: akgul
+  name: Akgul no-equilibrium system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 60
+  - 61
+  ref: Akgul, A., et al. (2016). Chaos-based engineering applications with a 3D chaotic
+    system without equilibrium points. Nonlinear Dynamics.
+  equations_latex: \dot{x}=ay-x+zy, \; \dot{y}=-bxz-cx+zy+d, \; \dot{z}=e-fxy-x^2
+  params:
+    a: 2.8
+    b: 0.2
+    c: 1.4
+    d: 1.0
+    e: 10.0
+    f: 2.0
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Complejos solamente
+  computed_equilibria: []
+  status: completo
+- system_id: pham_modified_le5
+  name: Pham modified Jafari LE5 system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 62
+  - 63
+  ref: Pham, V.-T., Volos, C., Kapitaniak, T. (2017). Systems with stable equilibria.
+    Springer.
+  equations_latex: \dot{x}=y, \; \dot{y}=-1.5x+zy, \; \dot{z}=-x^2+y^2-5xy+a
+  params:
+    a: 0.001
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Ninguno para a != 0
+  computed_equilibria: []
+  status: completo
+- system_id: pham_modified_le6
+  name: Pham modified Jafari LE6 system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 62
+  - 63
+  ref: Pham, V.-T., Volos, C., Kapitaniak, T. (2017). Systems with stable equilibria.
+    Springer.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x+zy, \; \dot{z}=0.04y^2-xy-0.1xz+a
+  params:
+    a: 0.001
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Ninguno para a != 0
+  computed_equilibria: []
+  status: completo
+- system_id: pham_special_hidden
+  name: Pham special hidden-attractor system
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 63
+  - 64
+  ref: Pham, V.-T., et al. (2017). A novel hidden chaotic system.
+  equations_latex: \dot{x}=y, \; \dot{y}=0.4xz-a, \; \dot{z}=0.3y-0.1z-1.4y^2-bxy-c
+  params:
+    a: 0.005
+    b: 0.2
+    c: 0.0
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Ninguno para a != 0 y c = 0
+  computed_equilibria: []
+  status: completo
+- system_id: pham_akgul_boostable
+  name: Pham-Akgul no-equilibrium system with boostable variable
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 64
+  - 65
+  ref: Pham, V.-T., Akgul, A., Volos, C., Jafari, S., Kapitaniak, T. (2017). Dynamics
+    and circuit realization of a no-equilibrium chaotic system. AEU.
+  equations_latex: \dot{x}=y+a, \; \dot{y}=-x+z, \; \dot{z}=-bx^2+z^2+c
+  params:
+    a: 1.0
+    b: 0.8
+    c: 2.0
+  reported_dynamics: 'attractor_type: hidden_candidate
+
+    lyapunov_exponents: [0.026, 0.0, -6.8624]
+
+    kaplan_yorke_dimension: 2.0038'
+  reported_equilibria: Ninguno real para b < 1
+  computed_equilibria: []
+  status: completo
+- system_id: jafari_multiscroll_no_equilibrium
+  name: Jafari multiscroll chaotic sea without equilibrium
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 70
+  - 72
+  ref: Jafari, S., Pham, V.-T., Kapitaniak, T. (2016). Multiscroll chaotic sea obtained
+    from a simple 3D system. IJBC.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x+ayz+by\sin(z), \; \dot{z}=1-y^2
+  params:
+    a: 0.1
+    b: 2.9
+  reported_dynamics: 'attractor_type: conservative_chaotic_sea'
+  reported_equilibria: Ninguno
+  computed_equilibria: []
+  status: completo
+- system_id: hu_multiscroll_i
+  name: Hu System I, sine improved Sprott A
+  chapter: 4
+  type: sin equilibrio
+  pages:
+  - 71
+  - 73
+  ref: Hu, X., Liu, C., Liu, L., Ni, J., Li, S. (2016). Multi-scroll hidden attractors
+    in improved Sprott A system. Nonlinear Dynamics.
+  equations_latex: \dot{x}=y, \; \dot{y}=-x+yz-a\sin(2\pi bx), \; \dot{z}=1-y^2
+  params:
+    a: 25.0
+    b: 1.0
+  reported_dynamics: 'attractor_type: hidden_candidate'
+  reported_equilibria: Ninguno
+  computed_equilibria: []
+  status: completo
