@@ -1,0 +1,46 @@
+- system_key: "chua"
+  system_name: "Chua / doble scroll"
+  reference:
+    authors: "Chua, L. O., Komuro, M., & Matsumoto, T."
+    year: 1986
+    title: "The double scroll"
+    venue: "IEEE Transactions on Circuits and Systems"
+    doi: "10.1109/TCS.1986.1085869"
+  parameter_set:
+    alpha: 15.6
+    beta: 28.0
+    m0: -1.143
+    m1: -0.714
+  attractors:
+    - label: "scroll positivo"
+      initial_condition: [1.5, 0.0, -1.5]
+      reported_type: "coexisting scroll / basin-dependent attractor"
+      status: "reproduced"
+    - label: "scroll negativo"
+      initial_condition: [-1.5, 0.0, 1.5]
+      reported_type: "coexisting scroll / basin-dependent attractor"
+      status: "reproduced"
+  notes: "Caso clásico de doble scroll en el oscilador de Chua con dos atractores caóticos dependientes de la condición inicial."
+
+- system_key: "lorenz"
+  system_name: "Lorenz"
+  reference:
+    authors: "Guan, K., & Xiong, X."
+    year: 2008
+    title: "Coexistence of attractors in Lorenz system"
+    venue: "Nonlinear Dynamics"
+    doi: "10.1007/s11071-007-9269-x"
+  parameter_set:
+    sigma: 10.0
+    rho: 24.4
+    beta: 2.666667
+  attractors:
+    - label: "punto fijo estable +"
+      initial_condition: [5.0, 5.0, 20.0]
+      reported_type: "fixed point"
+      status: "reproduced"
+    - label: "punto fijo estable -"
+      initial_condition: [-5.0, -5.0, 20.0]
+      reported_type: "fixed point"
+      status: "reproduced"
+  notes: "En rho = 24.4, coexisten dos puntos fijos estables con un conjunto límite caótico transitorio o un atractor caótico débilmente estable."

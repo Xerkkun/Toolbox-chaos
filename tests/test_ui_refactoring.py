@@ -1,0 +1,159 @@
+from __future__ import annotations
+
+import os
+import pytest
+from PyQt6.QtWidgets import QApplication, QPushButton
+
+# Setup QApplication offscreen for testing
+os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+_app = QApplication.instance() or QApplication([])
+
+from ui.main_window import MainWindow
+from ui.tab_controls import (
+    Tab3DWidget,
+    Tab2DWidget,
+    TabTimeSeriesWidget,
+    TabFFTWidget,
+    TabBifurcationWidget,
+    TabBasinWidget,
+    TabLyapunovWidget,
+    TabSpectrumWidget,
+    TabComparisonWidget,
+    TabCoexistenceWidget,
+)
+from core.lorenz import SYSTEM_REGISTRY
+from core.coexistence import load_coexisting_attractors
+
+
+def test_mainwindow_construction():
+    """Verify that MainWindow can be constructed and has all required tabs."""
+    window = MainWindow()
+    assert window is not None
+    assert window.tabs.count() >= 12
+
+    # Check that the Coexistence tab is present
+    found_coex = False
+    for i in range(window.tabs.count()):
+        if 'coexistencia' in window.tabs.tabText(i).lower():
+            found_coex = True
+            break
+    assert found_coex, "Coexistence tab not found in MainWindow tabs"
+    window.deleteLater()
+
+
+def test_tab_save_buttons():
+    """Verify that each simulation/plotting tab contains a save button."""
+    window = MainWindow()
+
+    widgets_to_check = [
+        window.tab_3d_widget,
+        window.tab_2d_widget,
+        window.tab_time_widget,
+        window.tab_fft_widget,
+        window.tab_lyap_widget,
+        window.tab_bif_widget,
+        window.tab_basin_widget,
+        window.tab_spectrum_widget,
+        window.tab_method_compare_widget,
+        window.tab_coexistence_widget,
+    ]
+
+    for widget in widgets_to_check:
+        buttons = widget.findChildren(QPushButton)
+        save_btn = next(
+            (btn for btn in buttons if 'guardar' in btn.text().lower()), None
+        )
+        assert (
+            save_btn is not None
+        ), f"Save button not found in tab {widget.__class__.__name__}"
+
+    window.deleteLater()
+
+
+def test_fft_calculation_button():
+    """Verify FFT tab has its calculation button inside the tab."""
+    tab = TabFFTWidget()
+    buttons = tab.findChildren(QPushButton)
+    calc_btn = next(
+        (btn for btn in buttons if 'calcular fft' in btn.text().lower()), None
+    )
+    assert calc_btn is not None, "Calculation button not found in FFT tab"
+    tab.deleteLater()
+
+
+def test_bifurcation_calculation_button():
+    """Verify Bifurcation tab has its calculation button inside the tab."""
+    tab = TabBifurcationWidget()
+    buttons = tab.findChildren(QPushButton)
+    calc_btn = next(
+        (btn for btn in buttons if 'calcular bifurcaci' in btn.text().lower()),
+        None,
+    )
+    assert (
+        calc_btn is not None
+    ), "Calculation button not found in Bifurcation tab"
+    tab.deleteLater()
+
+
+def test_basin_calculation_button():
+    """Verify Basin tab has its calculation button inside the tab."""
+    tab = TabBasinWidget()
+    buttons = tab.findChildren(QPushButton)
+    calc_btn = next(
+        (btn for btn in buttons if 'calcular cuenca' in btn.text().lower()),
+        None,
+    )
+    assert calc_btn is not None, "Calculation button not found in Basin tab"
+    tab.deleteLater()
+
+
+def test_no_global_sidebar():
+    """Verify there is no global sidebar or controls layout in the main window."""
+    window = MainWindow()
+    # Central widget is parent layout of QTabWidget and info_label
+    # No global controls_scroll should be in MainWindow central widget or MainWindow layout
+    assert not hasattr(window, 'controls_scroll')
+    window.deleteLater()
+
+
+def test_parameter_panel_system_change():
+    """Verify that changing system in parameter panel updates dynamic parameters."""
+    window = MainWindow()
+    panel = window.tab_3d_widget.param_panel
+
+    # Switch to Rossler (a, b, c)
+    panel.system_combo.setCurrentIndex(panel.system_combo.findData('rossler'))
+    assert panel.param_labels[0].text() == 'a'
+    assert panel.param_labels[1].text() == 'b'
+    assert panel.param_labels[2].text() == 'c'
+    assert not panel.param_labels[3].isVisible()
+
+    # Switch to Lorenz (sigma, rho, beta)
+    panel.system_combo.setCurrentIndex(panel.system_combo.findData('lorenz'))
+    assert panel.param_labels[0].text() == 'sigma'
+    assert panel.param_labels[1].text() == 'rho'
+    assert panel.param_labels[2].text() == 'beta'
+    assert not panel.param_labels[3].isVisible()
+
+    window.deleteLater()
+
+
+def test_coexistence_yaml_loading():
+    """Verify data/coexisting_attractors.yaml contains valid metadata and references."""
+    cases = load_coexisting_attractors()
+    assert len(cases) > 0
+
+    for case in cases:
+        sys_key = case.get('system_key')
+        assert (
+            sys_key in SYSTEM_REGISTRY
+        ), f"System key {sys_key} in coexistence YAML is not present in SYSTEM_REGISTRY"
+
+        # Check initial condition dimension (usually 3D for flow systems)
+        attractors = case.get('attractors', [])
+        assert len(attractors) >= 2, "Each case must have at least 2 attractors"
+        for attr in attractors:
+            ic = attr.get('initial_condition', [])
+            assert (
+                len(ic) == 3
+            ), f"Initial condition {ic} must have exactly 3 coordinates"
