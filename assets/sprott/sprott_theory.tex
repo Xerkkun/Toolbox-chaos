@@ -13,212 +13,303 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{0.44em}
-\setlist[itemize]{nosep,leftmargin=1.35em}
-\definecolor{Accent}{HTML}{0B4F6C}
-\definecolor{Soft}{HTML}{F2F6FA}
+\definecolor{Accent}{HTML}{0F2D59}
+\definecolor{LightBlue}{HTML}{E8F0FE}
 \titleformat{\section}{\large\bfseries\color{Accent}}{}{0pt}{}
 \titleformat{\subsection}{\normalsize\bfseries\color{Accent}}{}{0pt}{}
+
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{Chaos Toolbox}
-\fancyhead[R]{Explorador Sprott}
+\fancyhead[R]{Teoría del Explorador Sprott}
 \fancyfoot[C]{\thepage}
-\renewcommand{\arraystretch}{1.18}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.44em}
+\setlist[itemize]{nosep,leftmargin=1.35em}
+\renewcommand{\arraystretch}{1.2}
 
 \newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
 
-{\LARGE\bfseries Teoria del Explorador Sprott}\par
-{\small Documento compilado para la pestana \emph{Explorador Sprott > Teoria}.}\par
+{\LARGE\bfseries Teoría del Explorador Sprott}\par
+{\small Documento de referencia para el módulo de exploración y visualización en Chaos Toolbox.}\par
 \vspace{0.8em}
 
 \tableofcontents
 \newpage
 
-\section{Fuente y alcance}
+\section{1. Fuente y alcance}
 
-La referencia principal es el libro de Julien C. Sprott,
-\emph{Strange Attractors: Creating Patterns in Chaos} \cite{sprott1993book},
-junto con el manuscrito oficial que Sprott mantiene en su sitio de la University
-of Wisconsin \cite{sprott1993online}. Tambien se cita la galeria oficial de
-Sprott \cite{sprottgallery} y su articulo sobre flujos caoticos simples
-\cite{sprott1994flows}.
+El módulo \textbf{Explorador Sprott} es una reimplementación educativa e independiente inspirada en el trabajo pionero de Julien C. Sprott, especialmente en su obra clásica \emph{Strange Attractors: Creating Patterns in Chaos} (1993) \cite{sprott1993book}. 
 
-Chaos Toolbox no redistribuye figuras, ejecutables, diccionarios ni codigo
-historico de Sprott. Las graficas de este documento son generadas localmente por
-la toolbox con ecuaciones y parametros indicados.
+Chaos Toolbox no redistribuye ejecutables, diccionarios de configuraciones originales (\code{BOOKFIGS.DIC}, \code{SELECTED.DIC}, etc.) ni código fuente original con copyright del disquete de Sprott, conforme a su política de distribución pública \cite{docsrelease}. La simulación se ejecuta a través de un backend numérico nativo optimizado desarrollado en C.
 
-\section{Idea central}
+---
 
-Sprott presenta el caos como una combinacion de determinismo, sensibilidad a
-condiciones iniciales y acotamiento no trivial. Dos estados iniciales cercanos
-pueden separarse de forma aproximadamente exponencial:
+\section{2. Idea central: de reglas simples a dinámica compleja}
+
+La filosofía de Sprott es que sistemas matemáticos sumamente simples y completamente deterministas son capaces de generar trayectorias acotadas complejas que no convergen a ciclos periódicos. Un sistema discreto (mapa) se define por:
 \[
-\lVert x_n-y_n\rVert \approx \lVert x_0-y_0\rVert e^{\lambda n}.
+x_{n+1} = F(x_n), \qquad x_n \in \mathbb{R}^D.
+\]
+Un sistema continuo (flujo) se modela mediante ecuaciones diferenciales autónomas:
+\[
+\frac{dx}{dt} = f(x), \qquad x(t) \in \mathbb{R}^D.
+\]
+En ambos casos, la firma inequívoca del caos es la \textbf{sensibilidad exponencial a las condiciones iniciales}, donde trayectorias vecinas separadas por una distancia infinitesimal inicial se alejan a una tasa promedio regida por el exponente de Lyapunov $\lambda_{\max} > 0$:
+\[
+\|x_n - y_n\| \approx \|x_0 - y_0\| e^{\lambda n}.
 \]
 
-Para la exploracion computacional esto implica una regla de lectura:
+---
+
+\section{3. Mapas polinomiales}
+
+Los mapas polinomiales en Chaos Toolbox se representan expandiendo la función de transición en una combinación lineal de una base de monomios de grado total menor o igual que un orden $O$:
+\[
+x_{i,n+1} = F_i(x_n) = \sum_{j=1}^{N_m} c_{ij} m_j(x_n), \qquad i = 1, \ldots, D.
+\]
+El número de monomios distintos $N_m$ y la cantidad total de coeficientes a definir $N_c$ se calculan como:
+\[
+N_m = \binom{D+O}{O}, \qquad N_c = D \binom{D+O}{O}.
+\]
+Por ejemplo, un mapa cuadrático en 2D ($D=2$, $O=2$) cuenta con $N_m = \binom{4}{2} = 6$ monomios, requiriendo un total de $N_c = 12$ coeficientes. Su base monomial es $\{1, x, y, x^2, xy, y^2\}$, expresándose como:
+\[
+\begin{aligned}
+x_{n+1} &= a_0 + a_1 x_n + a_2 y_n + a_3 x_n^2 + a_4 x_n y_n + a_5 y_n^2, \\
+y_{n+1} &= b_0 + b_1 x_n + b_2 y_n + b_3 x_n^2 + b_4 x_n y_n + b_5 y_n^2.
+\end{aligned}
+\]
+
+---
+
+\section{4. Flujos polinomiales}
+
+Los flujos continuos interpretan el polinomio como el campo vectorial de derivadas temporales:
+\[
+\dot{x}_i = f_i(x) = \sum_{j=1}^{N_m} c_{ij} m_j(x), \qquad i = 1, \ldots, D.
+\]
+La aproximación de la trayectoria se realiza mediante discretización temporal con paso $h$. La toolbox proporciona dos esquemas numéricos:
 \begin{itemize}
-  \item una figura visualmente atractiva no prueba caos;
-  \item una trayectoria irregular corta tampoco basta;
-  \item un candidato util debe conservar codigo, ecuaciones, parametros,
-        transitorio, grafica y diagnosticos.
+  \item \textbf{Euler explícito:}
+        \[
+        x_{k+1} = x_k + h f(x_k).
+        \]
+  \item \textbf{Runge-Kutta de 4º orden (RK4):}
+        \[
+        \begin{aligned}
+        k_1 &= f(x_k), \\
+        k_2 &= f\left(x_k + \frac{h}{2} k_1\right), \\
+        k_3 &= f\left(x_k + \frac{h}{2} k_2\right), \\
+        k_4 &= f(x_k + h k_3), \\
+        x_{k+1} &= x_k + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4).
+        \end{aligned}
+        \]
 \end{itemize}
+RK4 reduce drásticamente el error de truncamiento local acumulado y estabiliza integraciones numéricas complejas.
 
-\section{De reglas simples a formas complejas}
+---
 
-El ejemplo didactico basico es la ecuacion logistica:
+\section{5. Gramática compacta de códigos Sprott}
+
+Para representar y transferir ecuaciones de manera ágil, la toolbox decodifica cadenas de caracteres compactas. El primer carácter define la familia y el resto determina los coeficientes:
 \[
-x_{n+1}=R x_n(1-x_n).
+\text{código} = L \, s_1 s_2 \cdots s_k.
 \]
-Al variar \(R\), la orbita pasa de punto fijo a ciclos periodicos,
-duplicaciones de periodo y regiones caoticas con ventanas periodicas.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/logistic_bifurcation_sprott_theory.png}
-\caption{Bifurcacion logistica generada por Chaos Toolbox con 1000 valores de
-\(R\), 1200 iteraciones por valor y descarte de 700 iteraciones transitorias.}
-\end{figure}
-
-\section{Mapas polinomiales}
-
-Un mapa discreto calcula directamente el siguiente estado:
+Cada carácter $s_j$ se traduce en un coeficiente real $c_j$ mediante la regla aritmética:
 \[
-x_{n+1}=F(x_n), \qquad F_i(x)=\sum_j c_{ij}m_j(x).
+c_j = \frac{\operatorname{ord}(s_j) - 77}{10}.
 \]
-En dos dimensiones, cada iteracion produce un punto del plano. La no linealidad
-puede contraer areas en unas direcciones y estirar en otras, generando objetos
-que tienen mas detalle que una curva simple pero no llenan todo el plano.
+Donde \code{M} equivale a $0.0$, \code{A} a $-1.2$, e \code{Y} a $1.2$.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.72\linewidth]{images/henon_like_synthetic_sprott_theory.png}
-\caption{Mapa de Henon generado con \(x'=1-1.4x^2+y\), \(y'=0.3x\), 26000
-iteraciones y descarte de 1000.}
-\end{figure}
+\subsection{Familias Polinomiales A-X}
 
-\section{Flujos polinomiales}
-
-Un flujo continuo define derivadas:
-\[
-\dot{x}=F(x), \qquad x(t+h)\approx x(t)+hF(x(t)).
-\]
-El capitulo de campos y flujos del libro conecta esta idea con Lorenz y Rossler.
-Como ejemplo teorico, Sprott da un sistema tridimensional de cinco terminos:
-\[
-x'=yz,\qquad y'=x-y,\qquad z'=1-xy.
-\]
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.74\linewidth]{images/sprott_five_term_flow_theory.png}
-\caption{Flujo 3D de cinco terminos citado por Sprott, integrado con RK4,
-\(h=0.01\), 60000 pasos y descarte de 10000.}
-\end{figure}
-
-\section{Lenguaje visual}
-
-Las imagenes tipo Sprott no dependen solo de la ecuacion. La proyeccion, el
-color por una coordenada oculta, el fondo, la opacidad y el numero de puntos
-pueden revelar o esconder estructura.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\linewidth]{images/generated/comparison_color_z_black.png}
-\includegraphics[width=0.48\linewidth]{images/generated/improved_dense_color_z.png}
-\caption{Ejemplos generados por Chaos Toolbox: color por variable oculta y
-mejora visual usando mas puntos, alpha bajo y fondo oscuro.}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\linewidth]{images/generated/map3d_bands_z.png}
-\includegraphics[width=0.48\linewidth]{images/generated/map4d_projection_w.png}
-\caption{Bandas por coordenada sintetica y ejemplo 4D como proyeccion \(x-y\)
-con color por \(w\).}
-\end{figure}
-
-\section{Codigos compactos}
-
-El programa historico de Sprott codificaba familias de ecuaciones y coeficientes
-en cadenas compactas. La reimplementacion educativa conserva esa idea: la
-primera letra selecciona familia, dimension, tipo y orden; las letras
-siguientes se leen como coeficientes.
-\[
-c=\frac{\operatorname{ord}(\chi)-77}{10}.
-\]
-Asi, \(\chi=M\) produce \(c=0\); letras antes de \(M\) producen coeficientes
-negativos; letras despues de \(M\) producen coeficientes positivos.
-
-\subsection{Family letters}
+Las letras del grupo \code{A-X} codifican sistemas polinomiales:
 
 \begin{center}
-\begin{tabular}{llll}
+\begin{tabular}{llcccl}
 \toprule
-Letras & Tipo & Dimension & Ordenes \\
+Letras & Tipo & Dimensión & Ordenes & Coeficientes ($N_c$) & Descripción \\
 \midrule
-A--D & mapa polinomial & 1 & 2, 3, 4, 5 \\
-E--H & mapa polinomial & 2 & 2, 3, 4, 5 \\
-I--L & mapa polinomial & 3 & 2, 3, 4, 5 \\
-M--P & mapa polinomial & 4 & 2, 3, 4, 5 \\
-Q--T & flujo polinomial & 3 & 2, 3, 4, 5 \\
-U--X & flujo polinomial & 4 & 2, 3, 4, 5 \\
-Y--Z & funciones especiales & pendiente & pendiente \\
+\code{A - D} & Mapa & 1 & 2, 3, 4, 5 & 3, 4, 5, 6 & Monodimensional polinomial \\
+\code{E - H} & Mapa & 2 & 2, 3, 4, 5 & 12, 20, 30, 42 & Bidimensional polinomial \\
+\code{I - L} & Mapa & 3 & 2, 3, 4, 5 & 30, 60, 105, 168 & Tridimensional polinomial \\
+\code{M - P} & Mapa & 4 & 2, 3, 4, 5 & 60, 140, 280, 504 & Tetradimensional polinomial \\
+\code{Q - T} & Flujo & 3 & 2, 3, 4, 5 & 30, 60, 105, 168 & Flujo tridimensional continuo \\
+\code{U - X} & Flujo & 4 & 2, 3, 4, 5 & 60, 140, 280, 504 & Flujo tetradimensional continuo \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-Dentro de cada grupo de cuatro letras, la primera letra significa orden 2, la
-segunda orden 3, la tercera orden 4 y la cuarta orden 5.
+Dentro de cada grupo de 4 letras, la primera corresponde a orden 2, la segunda a orden 3, la tercera a orden 4, y la cuarta a orden 5.
 
-\section{Busqueda automatica}
+---
 
-El patron de busqueda de Sprott es experimental: generar muchas reglas simples,
-simularlas, descartar las triviales y estudiar las candidatas. En esta app el
-boton \emph{Buscar candidato} aplica filtros rapidos:
+\section{6. Familias especiales no polinomiales}
+
+Las familias especiales implementan dinámicas específicas con funciones no lineales complejas en dimensiones efectivas 2D, expandiendo su estado a 4D para visualización en la toolbox:
+
+\subsection{Familia \code{Y} (Valores Absolutos)}
+Introduce discontinuidades en derivadas:
+\[
+\begin{aligned}
+x_{n+1} &= a_0 + a_1 x_n + a_2 y_n + a_3 |x_n| + a_4 |y_n|, \\
+y_{n+1} &= a_5 + a_6 x_n + a_7 y_n + a_8 |x_n| + a_9 |y_n|, \\
+z_{n+1} &= x_{n+1}^2 + y_{n+1}^2, \\
+w_{n+1} &= \frac{n - 1000}{N_{\max} - 1000}.
+\end{aligned}
+\]
+
+\subsection{Familia \code{[} (Potencia de Valores Absolutos)}
+Usa exponentes variables y contiene protección numérica para bases nulas y exponentes negativos:
+\[
+\begin{aligned}
+x_{n+1} &= a_0 + a_1 x_n + a_2 y_n + a_3 |x_n|^{a_4} + a_5 |y_n|^{a_6}, \\
+y_{n+1} &= a_7 + a_8 x_n + a_9 y_n + a_{10} |x_n|^{a_{11}} + a_{12} |y_n|^{a_{13}}, \\
+z_{n+1} &= x_{n+1}^2 + y_{n+1}^2, \\
+w_{n+1} &= \frac{n - 1000}{N_{\max} - 1000}.
+\end{aligned}
+\]
+
+\subsection{Familia \code{\textbackslash} (Senos)}
+Aplica pliegues trigonométricos recurrentes:
+\[
+\begin{aligned}
+x_{n+1} &= a_0 + a_1 x_n + a_2 y_n + a_3 \sin(a_4 x_n + a_5) + a_6 \sin(a_7 y_n + a_8), \\
+y_{n+1} &= a_9 + a_{10} x_n + a_{11} y_n + a_{12} \sin(a_{13} x_n + a_{14}) + a_{15} \sin(a_{16} y_n + a_{17}), \\
+z_{n+1} &= x_{n+1}^2 + y_{n+1}^2, \\
+w_{n+1} &= \frac{n - 1000}{N_{\max} - 1000}.
+\end{aligned}
+\]
+
+\subsection{Familia \code{]} (Seno Rotacional)}
+Combina acoplamiento sinusoidal con rotación de ángulo $\theta$:
+\[
+\begin{aligned}
+\theta &= \frac{2\pi}{13 + 10a_5}, \\
+u_n &= x_n + a_1 \sin(a_2 y_n + a_3), \\
+x_{n+1} &= 10a_0 + u_n \cos\theta + y_n \sin\theta, \\
+y_{n+1} &= 10a_4 - u_n \sin\theta + y_n \cos\theta, \\
+z_{n+1} &= x_{n+1}^2 + y_{n+1}^2, \\
+w_{n+1} &= \frac{n - 1000}{N_{\max} - 1000}.
+\end{aligned}
+\]
+
+\subsection{Familia \code{\^{}} (Oscilador Forzado)}
+Aproximación por mapa discreto de un oscilador forzado no lineal:
+\[
+\begin{aligned}
+x_{n+1} &= x_n + 0.1 a_0 y_n, \\
+y_{n+1} &= y_n + 0.1 (a_1 x_n + a_2 x_n^3 + a_3 x_n^2 y_n + a_4 x_n y_n^2 + a_5 y_n + a_6 y_n^3 + a_7 \sin z_n), \\
+z_{n+1} &= (z_n + 0.1(a_8 + 1.3)) \bmod 2\pi, \\
+w_{n+1} &= \frac{n - 1000}{N_{\max} - 1000}.
+\end{aligned}
+\]
+
+\subsection{Familia \code{Z} (AND/OR Lógica)}
+Se reconoce como familia de lógica AND/OR, pero su comportamiento se encuentra marcado como \code{pending\_semantics\_validation} en el simulador actual.
+
+---
+
+\section{7. Simulación, transitorio y visualización}
+
+Para graficar la estructura estacionaria del atractor se calcula una trayectoria de longitud $N_{\max}$, omitiendo el tramo inicial (el \textbf{transitorio}) de longitud $N_T$:
+\[
+\mathcal{T}_{\text{post}} = \{x_{N_T}, x_{N_T+1}, \ldots, x_{N_{\max}}\}.
+\]
+El descarte del transitorio elimina el comportamiento de arranque y asegura la correcta visualización de las formas fractales. La condición inicial típica es $x_0 = (0.1, 0.1, \ldots, 0.1)$.
+
+---
+
+\section{8. Clasificación de candidatos}
+
+El algoritmo de búsqueda rápida en \code{core/sprott/search.py} evalúa trayectorias mediante los siguientes filtros:
 \begin{itemize}
-  \item rechaza trayectorias divergentes o con valores no finitos;
-  \item rechaza colapso a punto fijo;
-  \item marca como baja complejidad las colas con poca dispersion o muchos
-        estados repetidos;
-  \item etiqueta como \code{candidate\_chaotic} solo a una trayectoria acotada y
-        no colapsada.
+  \item \textbf{Divergente (\code{divergent}):} Se detiene de inmediato si el estado alcanza normas inaceptables ($\|x_n\| \geq 10^6$) o valores no finitos (\code{NaN}/\code{Inf}).
+  \item \textbf{Punto Fijo (\code{fixed\_point}):} Si la cola de la trayectoria colapsa a una única posición con tolerancia fina $\varepsilon$.
+  \item \textbf{Baja Complejidad / Periódica (\code{periodic\_or\_low\_complexity}):} Si tras redondear las coordenadas se identifica un ciclo repetitivo de periodo corto.
+  \item \textbf{Candidato Caótico (\code{candidate\_chaotic}):} Trayectorias acotadas, finitas y no colapsadas bajo los filtros anteriores.
+\end{itemize}
+\textbf{Importante:} El estado \code{candidate\_chaotic} no demuestra caos matemáticamente; representa únicamente una trayectoria acotada idónea para posterior diagnóstico riguroso.
+
+---
+
+\section{9. Lyapunov, dimensión de Kaplan--Yorke y límites de la evidencia}
+
+Un análisis dinámico exhaustivo estima los exponentes de Lyapunov $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_D$. En flujos tridimensionales, el caos se caracteriza por un espectro $(\lambda_1, 0, \lambda_3)$ donde $\lambda_1 > 0$ y $\lambda_1 + \lambda_3 < 0$ (disipación global).
+
+A partir del espectro se calcula la \textbf{dimensión de Kaplan-Yorke} ($D_{KY}$):
+\[
+D_{KY} = j + \frac{\sum_{i=1}^{j} \lambda_i}{|\lambda_{j+1}|}.
+\]
+Donde $j$ es el mayor entero tal que $\sum_{i=1}^j \lambda_i \geq 0$.
+
+---
+
+\section{10. Atractores ocultos y multistabilidad}
+
+La teoría moderna (Wang, Leonov, Kuznetsov, Chen) clasifica los atractores en:
+\begin{itemize}
+  \item \textbf{Atractor Autoexcitado:} Su cuenca de atracción intersecta una vecindad de algún punto de equilibrio inestable.
+  \item \textbf{Atractor Oculto:} Su cuenca de atracción no intersecta vecindades de los equilibrios:
+        \[
+        \mathcal{B}(A) \cap U_\varepsilon(E_i) = \varnothing.
+        \]
+\end{itemize}
+Los atractores ocultos surgen de forma común en sistemas sin equilibrios o en sistemas con un único equilibrio estable (coexistencia de atractores o multistabilidad). Su caracterización formal requiere un análisis topológico completo de las cuencas de atracción del espacio de fases.
+
+---
+
+\section{11. Sistemas caóticos Sprott clásicos (1994)}
+
+\begin{center}
+\begin{tabular}{cllcc}
+\toprule
+Caso & Ecuaciones & Puntos de Equilibrio & Lyapunov & $D_{KY}$ \\
+\midrule
+A & $\dot{x}=y, \; \dot{y}=-x+yz, \; \dot{z}=1-y^2$ & Ninguno (oculto) & $(0.014, 0, -0.014)$ & $3.000$ \\
+B & $\dot{x}=yz, \; \dot{y}=x-y, \; \dot{z}=1-xy$ & $(1,1,0), \; (-1,-1,0)$ & $(0.210, 0, -1.210)$ & $2.174$ \\
+C & $\dot{x}=yz, \; \dot{y}=x-y, \; \dot{z}=1-x^2$ & $(1,1,0), \; (-1,-1,0)$ & $(0.163, 0, -0.163)$ & $2.140$ \\
+D & $\dot{x}=-y, \; \dot{y}=x+z, \; \dot{z}=xz+3y^2$ & $(0,0,0)$ & $(0.103, 0, -1.320)$ & $2.078$ \\
+E & $\dot{x}=yz, \; \dot{y}=x^2-y, \; \dot{z}=1-4x$ & $(0.25, 0.063, 0)$ & $(0.078, 0, -1.078)$ & $2.072$ \\
+F & $\dot{x}=y+z, \; \dot{y}=-x+0.5y, \; \dot{z}=x^2-z$ & $(0,0,0), \; (-2,-4,4)$ & $(0.117, 0, -0.617)$ & $2.190$ \\
+G & $\dot{x}=0.4x+z, \; \dot{y}=xz-y, \; \dot{z}=-x+y$ & $(0,0,0), \; (-2.5,-2.5,1)$ & $(0.034, 0, -0.634)$ & $2.054$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+*Nota crucial:* No confundir los flujos clásicos 3D Sprott A-S con las letras de codificación polinomial de la toolbox (donde `A-D` son mapas 1D y `Q-T` son flujos 3D polinomiales de órdenes 2 a 5).
+
+---
+
+\section{12. Reproducibilidad y atribución}
+
+En consonancia con las políticas éticas y de licencias:
+\begin{itemize}
+  \item El código es una reimplementación didáctica propia sin copias de software antiguo ni archivos con propiedad intelectual original de Sprott.
+  \item Los archivos locales `.DIC` del usuario se cargan en caliente exclusivamente para estudio académico personal sin ser integrados al repositorio.
+  \item Cada imagen exportada guarda metadatos inalterables de simulación para una reproducción científica perfecta.
 \end{itemize}
 
-Esa etiqueta no es una demostracion de caos. Para afirmar caos hacen falta
-diagnosticos mas fuertes, por ejemplo exponentes de Lyapunov, espectro,
-secciones, dimension y pruebas de sensibilidad con integracion mas larga.
-
-\section{Reproduccion de figuras}
-
-Desde la raiz del repositorio:
-\[
-\code{python assets/sprott/generate\_theory\_figures.py}
-\]
-El script escribe las imagenes en \code{assets/sprott/images/} y usa parametros
-fijos para que este PDF sea reproducible.
+---
 
 \begin{thebibliography}{9}
 \bibitem{sprott1993book}
-J. C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, M\&T
-Books, 1993.
+J. C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, M\&T Books, 1993.
 
 \bibitem{sprott1993online}
-J. C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, manuscrito
-oficial en linea, University of Wisconsin,
-\url{https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM}.
-
-\bibitem{sprottgallery}
-J. C. Sprott, \emph{Sprott's Fractal Gallery}, University of Wisconsin,
-\url{https://sprott.physics.wisc.edu/FRACTALS.HTM}.
+J. C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos} (Manuscrito en línea), University of Wisconsin. \url{https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM}.
 
 \bibitem{sprott1994flows}
-J. C. Sprott, ``Some simple chaotic flows,'' \emph{Physical Review E}, vol. 50,
-pp. R647--R650, 1994. DOI: \url{https://doi.org/10.1103/PhysRevE.50.R647}.
+J. C. Sprott, ``Some simple chaotic flows,'' \emph{Physical Review E}, vol. 50, no. 2, pp. R647--R650, 1994.
+
+\bibitem{wang2021hidden}
+X. Wang, N. V. Kuznetsov, y G. Chen (Eds.), \emph{Chaotic Systems with Multistability and Hidden Attractors}, Springer, 2021.
+
+\bibitem{docsrelease}
+Chaos Toolbox, \emph{Política de Distribución Pública y Archivos Locales}, archivo local \code{docs/distribution\_policy.md}.
 \end{thebibliography}
 
 \end{document}

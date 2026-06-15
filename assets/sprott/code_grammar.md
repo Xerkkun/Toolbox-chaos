@@ -1,64 +1,84 @@
-# Code Grammar
+# Gramática de Códigos del Explorador Sprott
 
-## Family letters
+Este documento detalla la estructura sintáctica de los códigos compactos que el **Explorador Sprott** utiliza para parametrizar de forma compacta y reproducible las ecuaciones de sus sistemas dinámicos.
+
+---
+
+## 1. Letras de Familia
+
+El primer carácter del código (siempre una letra o un símbolo especial) determina la **familia** del sistema dinámico. Las familias se dividen en polinomiales estándar (`A-X`) y especiales no polinomiales (`Y`, `[`, `\`, `]`, `^`, `Z`).
+
+### Familias Polinomiales Estándar
+
+Las familias polinomiales se agrupan en bloques de 4 letras. Cada bloque comparte la misma dimensión y tipo (mapa o flujo). Dentro de cada bloque, las letras sucesivas representan órdenes polinomiales crecientes del 2 al 5:
 
 $$
-\begin{array}{c c c c c}
-\mathrm{Letters} & \mathrm{Kind} & \mathrm{Dimension} & \mathrm{Coefficients} & \mathrm{Description}\\
-A-D & \mathrm{Polynomial\ map} & 1 & D \times \binom{D+O}{O} & \mathrm{Orders\ 2,3,4,5}\\
-E-H & \mathrm{Polynomial\ map} & 2 & D \times \binom{D+O}{O} & \mathrm{Orders\ 2,3,4,5}\\
-I-L & \mathrm{Polynomial\ map} & 3 & D \times \binom{D+O}{O} & \mathrm{Orders\ 2,3,4,5}\\
-M-P & \mathrm{Polynomial\ map} & 4 & D \times \binom{D+O}{O} & \mathrm{Orders\ 2,3,4,5}\\
-Q-T & \mathrm{Polynomial\ flow} & 3 & D \times \binom{D+O}{O} & \mathrm{Orders\ 2,3,4,5}\\
-U-X & \mathrm{Polynomial\ flow} & 4 & D \times \binom{D+O}{O} & \mathrm{Orders\ 2,3,4,5}\\
-Y & \mathrm{Special\ map} & 4 & 10 & \mathrm{Absolute\ Values}\\
-[ & \mathrm{Special\ map} & 4 & 14 & \mathrm{Power\ Absolute\ Values}\\
-\backslash & \mathrm{Special\ map} & 4 & 18 & \mathrm{Sine\ functions}\\
-] & \mathrm{Special\ map} & 4 & 6 & \mathrm{Rotational\ Sine}\\
-^ & \mathrm{Special\ map} & 4 & 9 & \mathrm{Forced\ Oscillator\ Map}\\
-Z & \mathrm{Special\ map} & 4 & 10 & \mathrm{AND/OR\ (Pending\ validation)}
+\begin{array}{c c c c l}
+\text{Letras} & \text{Tipo} & \text{Dimensión} & \text{Ordenes} & \text{Estructura} \\
+\hline
+\text{A - D} & \text{Mapa polinomial} & 1 & 2, 3, 4, 5 & x_{n+1} = P_O(x_n) \\
+\text{E - H} & \text{Mapa polinomial} & 2 & 2, 3, 4, 5 & (x, y)_{n+1} = (P_O(x, y), Q_O(x, y)) \\
+\text{I - L} & \text{Mapa polinomial} & 3 & 2, 3, 4, 5 & (x, y, z)_{n+1} = (P_O(x,y,z), Q_O(x,y,z), R_O(x,y,z)) \\
+\text{M - P} & \text{Mapa polinomial} & 4 & 2, 3, 4, 5 & (x, y, z, w)_{n+1} = (P_O(x,y,z,w), \ldots) \\
+\text{Q - T} & \text{Flujo polinomial} & 3 & 2, 3, 4, 5 & (\dot{x}, \dot{y}, \dot{z}) = (P_O(x,y,z), Q_O(x,y,z), R_O(x,y,z)) \\
+\text{U - X} & \text{Flujo polinomial} & 4 & 2, 3, 4, 5 & (\dot{x}, \dot{y}, \dot{z}, \dot{w}) = (P_O(x,y,z,w), \ldots)
 \end{array}
 $$
 
-Within each four-letter polynomial group (A-X), the first letter means order 2, the second order
-3, the third order 4, and the fourth order 5.
+*Nota didáctica:* La primera letra de cada grupo (A, E, I, M, Q, U) representa orden 2 (cuadrático); la segunda representa orden 3 (cúbico); la tercera, orden 4; y la cuarta, orden 5 (quíntico).
 
-## Coefficients
+### Familias Especiales No Polinomiales
 
-After the family letter, each character encodes one coefficient with the initial
-rule:
+Las familias especiales implementan dinámicas específicas con funciones no lineales complejas (valores absolutos, senos, rotaciones y osciladores forzados) y cuentan con un número fijo de coeficientes.
 
-`coefficient = (ord(character) - 77) / 10`
+- **`Y` (Especial - Valores Absolutos):** Mapa 4D con 10 coeficientes.
+- **`[` (Especial - Potencia de Valores Absolutos):** Mapa 4D con 14 coeficientes.
+- **`\` (Especial - Senos):** Mapa 4D con 18 coeficientes.
+- **`]` (Especial - Seno Rotacional):** Mapa 4D con 6 coeficientes.
+- **`^` (Especial - Oscilador Forzado):** Mapa 4D con 9 coeficientes.
+- **`Z` (Especial - Lógica AND/OR):** Mapa 4D con 10 coeficientes *(pendiente de validación semántica en la simulación).*
 
-This maps `M` to `0.0`, `A` to `-1.2`, and `Y` to `1.2`.
+---
 
-## Monomial count
+## 2. Decodificación de Coeficientes
 
-For dimension `D` and polynomial order `O`, the monomial basis contains:
+A partir del segundo carácter, cada símbolo individual del código representa un coeficiente del sistema dinámico. El carácter se convierte a un valor decimal mediante la fórmula:
 
-`comb(D + O, O)`
+$$\text{coeficiente} = \frac{\operatorname{ord}(\text{carácter}) - 77}{10}$$
 
-$$N_m=\binom{D+O}{O}$$
+Donde $\operatorname{ord}(\cdot)$ devuelve el valor ASCII del carácter.
 
-The basis includes the constant term and all monomials with total degree less
-than or equal to `O`.
+Ejemplos comunes de correspondencia:
+- El carácter `M` (ASCII 77) equivale a `0.0`.
+- El carácter `A` (ASCII 65) equivale a `-1.2`.
+- El carácter `Y` (ASCII 89) equivale a `1.2`.
+- Los caracteres anteriores a `M` codifican coeficientes negativos.
+- Los caracteres posteriores a `M` codifican coeficientes positivos.
 
-## Coefficient count
+---
 
-Maps and flows both use one polynomial for each state component, so the
-coefficient count is:
+## 3. Conteo de Monomios y Coeficientes
 
-`D * comb(D + O, O)`
+Para una dimensión dada $D$ y un orden polinomial $O$, el número de monomios distintos en la base (que incluye el término constante) es:
 
-$$N_c=D\binom{D+O}{O}$$
+$$N_m = \binom{D + O}{O}$$
 
-For example, a 2D quadratic map needs `2 * comb(4, 2) = 12` coefficients. Special families use a fixed number of coefficients (10, 14, 18, 6, 9) as specified in their formulas.
+Como el sistema requiere definir una ecuación diferencial o una regla de iteración independiente para cada una de las $D$ componentes de estado, el número total de coeficientes esperados $N_c$ es:
 
-## Familias especiales implementadas
+$$N_c = D \binom{D + O}{O}$$
 
-This project includes a modern, clean, and independent educational reimplementation of Sprott's special-function families:
-- **A-X**: Polynomial maps and flows.
-- **Y, `[`, `\`, `]`, `^`**: Non-polynomial special families with absolute values, powers, sines, rotations, and forced oscillator integrations.
-- **Z**: A special-function family using AND/OR logic, which remains pending semantics validation.
+### Ejemplo de Conteo
+Para un mapa de la familia **`E`** (Mapa polinomial 2D de orden 2):
+- Dimensión $D = 2$, Orden $O = 2$.
+- Monomios en la base: $N_m = \binom{2+2}{2} = 6$. Monomios: $\{1, x_n, y_n, x_n^2, x_n y_n, y_n^2\}$.
+- Número total de coeficientes: $N_c = 2 \times 6 = 12$ coeficientes.
+- Un código de la familia `E` con sus 12 coeficientes completos requiere 13 caracteres en total (por ejemplo, `EWMWAMMMPMMMM`).
 
-These implementations are developed from the mathematical equations described in Appendix E of *Strange Attractors* for study and visualization, with no copy of original software source code.
+---
+
+## 4. Diferencia Importante: Familias de Codificación A-X vs. Flujos Clásicos Sprott A-S
+
+> [!WARNING]
+> Existe una distinción crucial en la nomenclatura de la literatura:
+> - **Familias de codificación `A-X`:** Son los identificadores del sistema de código compacto de la toolbox para mapas y flujos polinomiales arbitrarios de dimensiones 1 a 4 y órdenes 2 a 5.
+> - **Sistemas clásicos Sprott `A-S`:** Son diecinueve modelos de flujos caóticos tridimensionales algebraicamente simples presentados por Julien C. Sprott en su artículo original de 1994 (*Some simple chaotic flows*). Estos flujos se describen con ecuaciones explícitas y no coinciden con las familias de codificación polinomial directa `A-S` de la toolbox.

@@ -355,7 +355,26 @@ enum {
     SYS_SPROTT_A = 12,
     SYS_THOMAS = 13,
     SYS_HINDMARSH_ROSE = 14,
-    SYS_LORENZ96 = 15
+    SYS_LORENZ96 = 15,
+    SYS_UNIFIED_LORENZ_CHEN = 16,
+    SYS_SPROTT_B = 17,
+    SYS_SPROTT_C = 18,
+    SYS_SPROTT_D = 19,
+    SYS_SPROTT_E = 20,
+    SYS_SPROTT_F = 21,
+    SYS_SPROTT_G = 22,
+    SYS_SPROTT_H = 23,
+    SYS_SPROTT_I = 24,
+    SYS_SPROTT_J = 25,
+    SYS_SPROTT_K = 26,
+    SYS_SPROTT_L = 27,
+    SYS_SPROTT_M = 28,
+    SYS_SPROTT_N = 29,
+    SYS_SPROTT_O = 30,
+    SYS_SPROTT_P = 31,
+    SYS_SPROTT_Q = 32,
+    SYS_SPROTT_R = 33,
+    SYS_SPROTT_S = 34
 };
 
 static double param_at(const double *params, int n_params, int idx, double fallback) {
@@ -456,6 +475,121 @@ static void rhs3_generic(int system_id, double x, double y, double z,
         *dx = y;
         *dy = -x + y * z;
         *dz = 1.0 - y * y;
+        return;
+    }
+    if (system_id == SYS_UNIFIED_LORENZ_CHEN) {
+        double alpha = param_at(p, n_params, 0, 0.0);
+        *dx = (25.0 * alpha + 10.0) * (y - x);
+        *dy = (28.0 - 35.0 * alpha) * x + (29.0 * alpha - 1.0) * y - x * z;
+        *dz = -((alpha + 8.0) / 3.0) * z + x * y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_B) {
+        *dx = y * z;
+        *dy = x - y;
+        *dz = 1.0 - x * y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_C) {
+        *dx = y * z;
+        *dy = x - y;
+        *dz = 1.0 - x * x;
+        return;
+    }
+    if (system_id == SYS_SPROTT_D) {
+        *dx = -y;
+        *dy = x + z;
+        *dz = x * z + 3.0 * y * y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_E) {
+        *dx = y * z;
+        *dy = x * x - y;
+        *dz = 1.0 - 4.0 * x;
+        return;
+    }
+    if (system_id == SYS_SPROTT_F) {
+        *dx = y + z;
+        *dy = -x + 0.5 * y;
+        *dz = x * x - z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_G) {
+        *dx = 0.4 * x + z;
+        *dy = x * z - y;
+        *dz = -x + y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_H) {
+        *dx = -y + z * z;
+        *dy = x + 0.5 * y;
+        *dz = x - z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_I) {
+        *dx = 0.2 * y;
+        *dy = x + z;
+        *dz = x + y * y - z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_J) {
+        *dx = 2.0 * z;
+        *dy = -2.0 * y + z;
+        *dz = -x + y + y * y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_K) {
+        *dx = x * y - z;
+        *dy = x - y;
+        *dz = x + 0.3 * z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_L) {
+        *dx = y + 3.9 * z;
+        *dy = 0.9 * x * x - y;
+        *dz = 1.0 - x;
+        return;
+    }
+    if (system_id == SYS_SPROTT_M) {
+        *dx = -z;
+        *dy = -x * x - y;
+        *dz = 1.7 + 1.7 * x + y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_N) {
+        *dx = -2.0 * y;
+        *dy = x + z * z;
+        *dz = 1.0 + y - 2.0 * z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_O) {
+        *dx = y;
+        *dy = x - z;
+        *dz = x + x * z + 2.7 * y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_P) {
+        *dx = 2.7 * y + z;
+        *dy = -x + y * y;
+        *dz = x + y;
+        return;
+    }
+    if (system_id == SYS_SPROTT_Q) {
+        *dx = -z;
+        *dy = x - y;
+        *dz = 3.1 * x + y * y + 0.5 * z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_R) {
+        *dx = 0.9 - y;
+        *dy = 0.4 + z;
+        *dz = x * y - z;
+        return;
+    }
+    if (system_id == SYS_SPROTT_S) {
+        *dx = x - 4.0 * y;
+        *dy = x + z * z;
+        *dz = 1.0 + x;
         return;
     }
     if (system_id == SYS_THOMAS) {

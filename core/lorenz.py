@@ -100,7 +100,121 @@ SYSTEM_REGISTRY = {
     },
     'sprott_a': {
         'label': 'Sprott A', 'implemented': True, 'kind': 'flow',
-        'description': 'Flujo cuadratico simple Sprott A.',
+        'description': 'Flujo cuadrático simple Sprott A.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'unified_lorenz_chen': {
+        'label': 'Unified Lorenz-Chen', 'implemented': True, 'kind': 'flow',
+        'description': 'Sistema unificado de Lorenz-Chen parametrizado por alpha.',
+        'param_labels': ('alpha',), 'defaults': (0.0,), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': 0, 'bifurcation_range': (0.0, 1.0), 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_b': {
+        'label': 'Sprott B', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott B.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_c': {
+        'label': 'Sprott C', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott C.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_d': {
+        'label': 'Sprott D', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott D.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_e': {
+        'label': 'Sprott E', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott E.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_f': {
+        'label': 'Sprott F', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott F.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_g': {
+        'label': 'Sprott G', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott G.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_h': {
+        'label': 'Sprott H', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott H.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_i': {
+        'label': 'Sprott I', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott I.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_j': {
+        'label': 'Sprott J', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott J.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_k': {
+        'label': 'Sprott K', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott K.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_l': {
+        'label': 'Sprott L', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott L.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_m': {
+        'label': 'Sprott M', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott M.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_n': {
+        'label': 'Sprott N', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott N.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_o': {
+        'label': 'Sprott O', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott O.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_p': {
+        'label': 'Sprott P', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott P.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_q': {
+        'label': 'Sprott Q', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott Q.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_r': {
+        'label': 'Sprott R', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott R.',
+        'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
+        'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+    },
+    'sprott_s': {
+        'label': 'Sprott S', 'implemented': True, 'kind': 'flow',
+        'description': 'Flujo cuadrático simple Sprott S.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
     },
@@ -302,6 +416,49 @@ def vector_field(system_key: str, state, params):
         return np.array([-mu * x[0] + x[1] * x[2], -mu * x[1] + x[0] * (x[2] - a), 1.0 - x[0] * x[1]])
     if system_key == 'sprott_a':
         return np.array([x[1], -x[0] + x[1] * x[2], 1.0 - x[1] ** 2])
+    if system_key == 'unified_lorenz_chen':
+        alpha = p[0]
+        return np.array([
+            (25.0 * alpha + 10.0) * (x[1] - x[0]),
+            (28.0 - 35.0 * alpha) * x[0] + (29.0 * alpha - 1.0) * x[1] - x[0] * x[2],
+            -((alpha + 8.0) / 3.0) * x[2] + x[0] * x[1]
+        ])
+    if system_key == 'sprott_b':
+        return np.array([x[1] * x[2], x[0] - x[1], 1.0 - x[0] * x[1]])
+    if system_key == 'sprott_c':
+        return np.array([x[1] * x[2], x[0] - x[1], 1.0 - x[0] ** 2])
+    if system_key == 'sprott_d':
+        return np.array([-x[1], x[0] + x[2], x[0] * x[2] + 3.0 * x[1] ** 2])
+    if system_key == 'sprott_e':
+        return np.array([x[1] * x[2], x[0] ** 2 - x[1], 1.0 - 4.0 * x[0]])
+    if system_key == 'sprott_f':
+        return np.array([x[1] + x[2], -x[0] + 0.5 * x[1], x[0] ** 2 - x[2]])
+    if system_key == 'sprott_g':
+        return np.array([0.4 * x[0] + x[2], x[0] * x[2] - x[1], -x[0] + x[1]])
+    if system_key == 'sprott_h':
+        return np.array([-x[1] + x[2] ** 2, x[0] + 0.5 * x[1], x[0] - x[2]])
+    if system_key == 'sprott_i':
+        return np.array([0.2 * x[1], x[0] + x[2], x[0] + x[1] ** 2 - x[2]])
+    if system_key == 'sprott_j':
+        return np.array([2.0 * x[2], -2.0 * x[1] + x[2], -x[0] + x[1] + x[1] ** 2])
+    if system_key == 'sprott_k':
+        return np.array([x[0] * x[1] - x[2], x[0] - x[1], x[0] + 0.3 * x[2]])
+    if system_key == 'sprott_l':
+        return np.array([x[1] + 3.9 * x[2], 0.9 * x[0] ** 2 - x[1], 1.0 - x[0]])
+    if system_key == 'sprott_m':
+        return np.array([-x[2], -x[0] ** 2 - x[1], 1.7 + 1.7 * x[0] + x[1]])
+    if system_key == 'sprott_n':
+        return np.array([-2.0 * x[1], x[0] + x[2] ** 2, 1.0 + x[1] - 2.0 * x[2]])
+    if system_key == 'sprott_o':
+        return np.array([x[1], x[0] - x[2], x[0] + x[0] * x[2] + 2.7 * x[1]])
+    if system_key == 'sprott_p':
+        return np.array([2.7 * x[1] + x[2], -x[0] + x[1] ** 2, x[0] + x[1]])
+    if system_key == 'sprott_q':
+        return np.array([-x[2], x[0] - x[1], 3.1 * x[0] + x[1] ** 2 + 0.5 * x[2]])
+    if system_key == 'sprott_r':
+        return np.array([0.9 - x[1], 0.4 + x[2], x[0] * x[1] - x[2]])
+    if system_key == 'sprott_s':
+        return np.array([x[0] - 4.0 * x[1], x[0] + x[2] ** 2, 1.0 + x[0]])
     if system_key == 'thomas':
         b = p[0]
         return np.array([np.sin(x[1]) - b * x[0], np.sin(x[2]) - b * x[1], np.sin(x[0]) - b * x[2]])

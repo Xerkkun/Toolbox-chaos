@@ -1,14 +1,11 @@
-# 01 Overview
+# 01 - Introducción al Explorador Sprott
 
-Sprott popularizo una forma practica de explorar atractores extranos: buscar
-reglas deterministas simples, simular muchas variantes y conservar las que
-producen orbitas acotadas, sensibles y visualmente ricas.
+El módulo **Explorador Sprott** de Chaos Toolbox implementa un entorno interactivo y educativo diseñado para el descubrimiento, la simulación y la clasificación de sistemas dinámicos caóticos (tanto mapas discretos como flujos continuos).
 
-Chaos Toolbox reimplementa el flujo educativo: codigo compacto, decodificacion,
-simulacion, filtrado, visualizacion y exportacion. No reimplementa ni redistribuye
-el software historico, los diccionarios originales, ejecutables, imagenes ni texto
-extenso del libro.
+El flujo de trabajo general de la herramienta es el siguiente:
+$$\text{Código compacto} \to \text{Decodificación de ecuaciones} \to \text{Simulación numérica} \to \text{Filtrado dinámico} \to \text{Visualización y análisis}$$
 
-La diferencia clave con un navegador de fractales fijo es que aqui cada imagen
-proviene de un sistema dinamico explicito: mapa o flujo, parametros de simulacion,
-transitorio, proyeccion y estilo visual.
+## Objetivos Didácticos
+1. **Comprensión Matemática:** Estudiar cómo a partir de ecuaciones algebraicas y no lineales sencillas surge el caos determinista.
+2. **Exploración Computacional:** Experimentar en tiempo real con la sensibilidad a las condiciones iniciales, parámetros de integración numérica y técnicas de visualización científica.
+3. **Diagnóstico Riguroso:** Utilizar métricas dinámicas (como exponentes de Lyapunov y diagramas de fases) para analizar la complejidad de atractores caóticos.

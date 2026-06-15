@@ -1,10 +1,8 @@
-# 10 Legal Attribution
+# 10 - Atribución de Autoría y Licencia
 
-Chaos Toolbox es una reimplementacion educativa independiente inspirada por
-Julien C. Sprott, *Strange Attractors: Creating Patterns in Chaos*, M&T Books,
-1993.
+Chaos Toolbox es un desarrollo independiente con fines exclusivamente educativos. Toda la lógica del backend numérico (escrito en C), el analizador sintáctico de códigos y la interfaz gráfica de usuario en PyQt6 son propiedad intelectual original de sus respectivos desarrolladores y se distribuyen bajo licencias abiertas de código fuente.
 
-No se redistribuyen ejecutables, diccionarios originales, imagenes originales,
-programas historicos ni textos extensos del libro. Los archivos locales del
-usuario se leen desde disco y las imagenes exportadas se generan nuevamente a
-partir de trayectorias simuladas.
+## Agradecimientos y Referencia Histórica
+El módulo de exploración está inspirado y rinde homenaje al Profesor Julien C. Sprott de la Universidad de Wisconsin-Madison por su invaluable aporte a la difusión didáctica de la teoría del caos y los fractales. 
+
+Toda referencia a la obra original se realiza respetando escrupulosamente los derechos de autor, remitiendo al usuario a adquirir el libro oficial *Strange Attractors: Creating Patterns in Chaos* y a consultar el sitio web oficial del autor para obtener materiales de estudio complementarios.
