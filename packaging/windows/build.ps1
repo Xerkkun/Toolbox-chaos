@@ -163,6 +163,9 @@ $assetsAddData = "$assetsDir;assets"
 $pyInstallerWorkApp = Join-Path $repoRoot "build\pyinstaller\Chaos Toolbox"
 $distApp = Join-Path $repoRoot "dist\Chaos Toolbox"
 
+Write-Host "Verifying release cleanliness..."
+Invoke-Checked -FilePath $venvPython -Arguments @(Join-Path $repoRoot "tools\check_no_sprott_originals_in_release.py")
+
 Clear-GeneratedDirectory -Path $pyInstallerWorkApp
 Clear-GeneratedDirectory -Path $distApp
 

@@ -55,6 +55,10 @@ def build_metadata(
         'notes': notes,
         'attribution_warning': ATTRIBUTION_WARNING,
     }
+    if source == 'local_dic':
+        metadata['generated_by'] = 'Chaos Toolbox'
+        metadata['attribution'] = 'Julien C. Sprott, Strange Attractors: Creating Patterns in Chaos'
+        metadata['note'] = 'imagen generada localmente desde código proporcionado por el usuario; no es imagen original redistribuida.'
     return metadata
 
 

@@ -145,7 +145,21 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Banco de pruebas de sistemas caóticos')
-        self.resize(1720, 980)
+        # Adaptive sizing — respect monitor boundaries
+        _screen = QApplication.primaryScreen()
+        _avail = _screen.availableGeometry() if _screen else None
+        if _avail:
+            _w = min(1720, int(_avail.width() * 0.92))
+            _h = min(980, int(_avail.height() * 0.90))
+            _w = max(_w, 1150)
+            _h = max(_h, 720)
+            self.resize(_w, _h)
+            self.move(
+                _avail.x() + (_avail.width() - _w) // 2,
+                _avail.y() + (_avail.height() - _h) // 2,
+            )
+        else:
+            self.resize(1400, 900)
 
         pg.setConfigOptions(antialias=True)
 
@@ -745,11 +759,6 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
         layout.addWidget(self._make_tab_toolbar('Diccionario de conceptos', None), stretch=0)
-        if QT_PDF_AVAILABLE:
-            note = self._make_note_strip('Esta pestaña usa un PDF previamente compilado para mantener tipografía, ecuaciones y maquetación estables. Si QtPdf no está disponible, se usa una vista HTML mínima de respaldo.')
-        else:
-            note = self._make_note_strip('QtPdf no está disponible en este entorno; se muestra una vista HTML mínima y se puede abrir el PDF externo.')
-        layout.addWidget(note, stretch=0)
 
         assets_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets')
         self.dictionary_pdf_path = os.path.join(assets_dir, 'chaos_dictionary.pdf')
@@ -760,21 +769,45 @@ class MainWindow(QMainWindow):
             self.dict_open_pdf_btn.setEnabled(False)
         layout.addWidget(self.dict_open_pdf_btn, stretch=0)
 
+        # Diagnostic status label — always visible so failures are never silent
+        status_parts = []
+        pdf_exists = os.path.exists(self.dictionary_pdf_path)
+        status_parts.append(f'Archivo: {"encontrado" if pdf_exists else "NO ENCONTRADO — " + self.dictionary_pdf_path}')
+        status_parts.append(f'QtPdf: {"disponible" if QT_PDF_AVAILABLE else "NO disponible (instala PyQt6-Qt6 o PyQt6-QtPdf)"}')
+        self._dict_status_label = QLabel('  |  '.join(status_parts))
+        self._dict_status_label.setWordWrap(True)
+        self._dict_status_label.setStyleSheet('font-size: 10px; color: #555; padding: 2px 4px; background: #f9f9f9; border-radius: 3px;')
+        layout.addWidget(self._dict_status_label, stretch=0)
+
         viewer_added = False
-        if QT_PDF_AVAILABLE and os.path.exists(self.dictionary_pdf_path):
+        if QT_PDF_AVAILABLE and pdf_exists:
             try:
                 self.dict_pdf_document = QPdfDocument(self)
-                self.dict_pdf_view = QPdfView(self.tab_dict)
-                self.dict_pdf_view.setDocument(self.dict_pdf_document)
-                self.dict_pdf_document.load(self.dictionary_pdf_path)
-                if hasattr(self.dict_pdf_view, 'setZoomMode'):
-                    self.dict_pdf_view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
-                if hasattr(self.dict_pdf_view, 'setPageMode'):
-                    self.dict_pdf_view.setPageMode(QPdfView.PageMode.MultiPage)
-                layout.addWidget(self.dict_pdf_view, stretch=1)
-                viewer_added = True
-            except Exception:
-                viewer_added = False
+                load_err = self.dict_pdf_document.load(self.dictionary_pdf_path)
+                # QPdfDocument.Error is an enum; NoError == 0
+                err_val = int(load_err) if hasattr(load_err, '__int__') else load_err
+                page_count = self.dict_pdf_document.pageCount()
+                load_ok = (err_val == 0) and (page_count > 0)
+                status_extra = f'load()={err_val}, páginas={page_count}'
+                self._dict_status_label.setText(
+                    self._dict_status_label.text() + f'  |  {status_extra}'
+                    + ('' if load_ok else '  ⚠ El PDF no cargó correctamente.')
+                )
+                if load_ok:
+                    self.dict_pdf_view = QPdfView(self.tab_dict)
+                    self.dict_pdf_view.setDocument(self.dict_pdf_document)
+                    if hasattr(self.dict_pdf_view, 'setZoomMode'):
+                        self.dict_pdf_view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
+                    if hasattr(self.dict_pdf_view, 'setPageMode'):
+                        self.dict_pdf_view.setPageMode(QPdfView.PageMode.MultiPage)
+                    # Keep references alive
+                    self.dict_pdf_view._pdf_document = self.dict_pdf_document
+                    layout.addWidget(self.dict_pdf_view, stretch=1)
+                    viewer_added = True
+            except Exception as exc:
+                self._dict_status_label.setText(
+                    self._dict_status_label.text() + f'  |  Error: {exc}'
+                )
 
         if not viewer_added:
             self.dict_browser = QTextBrowser()

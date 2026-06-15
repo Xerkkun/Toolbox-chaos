@@ -27,8 +27,11 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QDoubleSpinBox,
+    QFrame,
     QSplitter,
     QStackedWidget,
     QTabWidget,
@@ -107,6 +110,14 @@ BUTTON_HELP = {
 }
 
 
+def _separator() -> QWidget:
+    """Return a thin horizontal line widget for use as visual separator in layouts."""
+    sep = QWidget()
+    sep.setFixedHeight(1)
+    sep.setStyleSheet('background-color: #cccccc;')
+    return sep
+
+
 class SprottExplorerTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -128,21 +139,28 @@ class SprottExplorerTab(QWidget):
         self.sections = QTabWidget()
         layout.addWidget(self.sections)
 
-        self._build_home_tab()
-        self._build_theory_tab()
-        self._build_codes_tab()
-        self._build_exploration_tab()
-        self._build_examples_tab()
-        self._build_tutorial_tab()
-        self._build_gallery_tab()
-        self._build_importer_tab()
-        self._build_backend_explained_tab()
-        self._last_explanation: dict | None = None
-        # Estado del modo lectura del libro
+        # Estado del modo lectura del libro (debe inicializarse antes de _build_examples_tab)
         self._reading_log: dict = {}
         self._reading_entries: list[dict] = []
         self._reading_visible: list[dict] = []
         self._mark_buttons: dict[str, QPushButton] = {}
+
+        self._build_home_tab()
+        self._build_tutorial_tab()   # Sube al 2º lugar
+        self._build_theory_tab()
+        self._build_codes_tab()
+        self._build_exploration_tab()
+        self._build_examples_tab()
+        self._build_gallery_tab()
+        self._build_importer_tab()
+        self._build_backend_explained_tab()
+        self._last_explanation: dict | None = None
+
+    def _go_to_tab(self, name: str):
+        for i in range(self.sections.count()):
+            if name.lower() in self.sections.tabText(i).lower():
+                self.sections.setCurrentIndex(i)
+                return
 
     def _read_asset(self, name: str, fallback: str = '') -> str:
         path = self.assets_dir / name
@@ -178,7 +196,38 @@ class SprottExplorerTab(QWidget):
             've a **Ejemplos**, selecciona un codigo local de `SELECTED.DIC` y pulsa **Simular codigo local**.\n\n'
             + self._read_asset('attribution.md')
         )
-        layout.addWidget(self._markdown_browser(text))
+        layout.addWidget(self._markdown_browser(text), stretch=1)
+
+        # Styled panel: Modo público vs modo personal
+        panel = QFrame()
+        panel.setFrameShape(QFrame.Shape.StyledPanel)
+        panel.setStyleSheet("""
+            QFrame {
+                background-color: #f8f9fa;
+                border: 1px solid #e4e7ed;
+                border-radius: 6px;
+                padding: 12px;
+            }
+        """)
+        panel_layout = QVBoxLayout(panel)
+        panel_layout.setContentsMargins(8, 8, 8, 8)
+        panel_layout.setSpacing(6)
+
+        title = QLabel('<b>⚖️ Modo público vs modo personal</b>')
+        title.setStyleSheet('font-size: 13px; font-weight: bold; color: #303133; background: transparent; border: none;')
+        panel_layout.addWidget(title)
+
+        desc = QLabel(
+            '• La aplicación pública no incluye archivos originales de Sprott.<br/>'
+            '• Para estudiar el libro físico, selecciona tus archivos .DIC locales.<br/>'
+            '• Los archivos se leen desde tu disco y no se copian al programa.<br/>'
+            '• Las imágenes generadas se guardan como resultados locales del usuario.'
+        )
+        desc.setWordWrap(True)
+        desc.setStyleSheet('font-size: 12px; color: #606266; line-height: 1.4; background: transparent; border: none;')
+        panel_layout.addWidget(desc)
+
+        layout.addWidget(panel, stretch=0)
         self.sections.addTab(widget, 'Inicio')
 
     def _build_theory_tab(self):
@@ -197,11 +246,17 @@ class SprottExplorerTab(QWidget):
         self.decode_button = QPushButton('Decodificar')
         self.decode_button.setToolTip(BUTTON_HELP['decode'])
         self.decode_button.clicked.connect(self.decode_current_code)
+        
+        self.use_in_exploration_button = QPushButton('→ Usar en Exploración')
+        self.use_in_exploration_button.setToolTip('Lleva este código a la pestaña de Exploración para simularlo y graficarlo.')
+        self.use_in_exploration_button.clicked.connect(self.use_code_in_exploration)
+
         row = QWidget()
         row_layout = QHBoxLayout(row)
         row_layout.setContentsMargins(0, 0, 0, 0)
         row_layout.addWidget(self.code_edit)
         row_layout.addWidget(self.decode_button)
+        row_layout.addWidget(self.use_in_exploration_button)
         form.addRow(make_help_label('Codigo tipo Sprott', EXPLORATION_HELP['code']), row)
         layout.addWidget(form_box, stretch=0)
 
@@ -214,16 +269,29 @@ class SprottExplorerTab(QWidget):
 
     def _build_exploration_tab(self):
         widget = QWidget()
-        layout = QGridLayout(widget)
+        outer = QVBoxLayout(widget)
+        outer.setContentsMargins(4, 4, 4, 4)
+        outer.setSpacing(4)
 
         guide = QLabel(
-            'Uso recomendado: 1) carga un ejemplo local desde SELECTED.DIC en la pestana Ejemplos, '
+            'Uso recomendado: 1) carga un ejemplo local desde SELECTED.DIC en la pestaña Ejemplos, '
             '2) pulsa Simular codigo local, 3) vuelve aqui para ajustar iteraciones/transitorio si quieres mas detalle. '
             'Generar codigo es didactico; los codigos locales del libro suelen producir figuras mas interesantes.'
         )
         guide.setWordWrap(True)
         guide.setStyleSheet('font-weight: bold; padding: 4px;')
-        layout.addWidget(guide, 0, 0, 1, 2)
+        outer.addWidget(guide, stretch=0)
+
+        # ── Main horizontal splitter: left=controls, right=canvas ─────────
+        main_splitter = QSplitter(Qt.Orientation.Horizontal)
+        main_splitter.setChildrenCollapsible(False)
+        outer.addWidget(main_splitter, stretch=1)
+
+        # ── LEFT: controls in a scrollable area ───────────────────────────
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(4)
 
         controls = QGroupBox('Controles con ayuda')
         form = QFormLayout(controls)
@@ -236,17 +304,17 @@ class SprottExplorerTab(QWidget):
         self.preset_combo.currentIndexChanged.connect(self.apply_preset)
         self.preset_combo.setToolTip('Ajusta varios controles a una configuracion razonable para aprender sin esperar demasiado.')
 
+        self.preset_status_label = QLabel("Preset aplicado: Mapa 2D rapido (recomendado) → tipo=map, dim=2, orden=2, iter=900, trans=150, h=0.01, método=rk4")
+        self.preset_status_label.setStyleSheet('color: gray; font-style: italic; font-size: 10px;')
+        self.preset_status_label.setWordWrap(True)
+
         self.kind_combo = QComboBox()
         self.kind_combo.addItems(['map', 'flow'])
         self.kind_combo.setToolTip(EXPLORATION_HELP['kind'])
         self.kind_combo.currentTextChanged.connect(self._sync_dimension_for_kind)
         self.dimension_combo = QComboBox()
-        for value in (1, 2, 3, 4):
-            self.dimension_combo.addItem(str(value), userData=value)
         self.dimension_combo.setToolTip(EXPLORATION_HELP['dimension'])
         self.order_combo = QComboBox()
-        for value in (2, 3, 4, 5):
-            self.order_combo.addItem(str(value), userData=value)
         self.order_combo.setToolTip(EXPLORATION_HELP['order'])
         self.iter_spin = _int_spin(900, 10, 200000, EXPLORATION_HELP['iterations'])
         self.transient_spin = _int_spin(150, 0, 100000, EXPLORATION_HELP['transient'])
@@ -263,7 +331,13 @@ class SprottExplorerTab(QWidget):
         self.explore_code_edit = QLineEdit('EWMWAMMMPMMMM')
         self.explore_code_edit.setToolTip(EXPLORATION_HELP['code'])
 
+        for value in (1, 2, 3, 4):
+            self.dimension_combo.addItem(str(value), userData=value)
+        for value in (2, 3, 4, 5):
+            self.order_combo.addItem(str(value), userData=value)
+
         form.addRow(make_help_label('Preset', 'Configuraciones iniciales para aprender rapido.'), self.preset_combo)
+        form.addRow('', self.preset_status_label)
         form.addRow(make_help_label('Tipo', EXPLORATION_HELP['kind']), self.kind_combo)
         form.addRow(make_help_label('Dimension', EXPLORATION_HELP['dimension']), self.dimension_combo)
         form.addRow(make_help_label('Orden', EXPLORATION_HELP['order']), self.order_combo)
@@ -303,6 +377,11 @@ class SprottExplorerTab(QWidget):
         self.visual_preset_combo = QComboBox()
         self.visual_preset_combo.addItems(list(VISUAL_PRESETS.keys()))
         self.visual_preset_combo.currentTextChanged.connect(self.apply_visual_preset)
+
+        self.visual_preset_status_label = QLabel("Simula un código para ver el resultado.")
+        self.visual_preset_status_label.setStyleSheet('color: gray; font-style: italic; font-size: 10px;')
+        self.visual_preset_status_label.setWordWrap(True)
+        self.visual_preset_combo.currentTextChanged.connect(self.apply_visual_preset)
         self.projection_combo = QComboBox()
         self.projection_combo.addItems(PROJECTIONS + ['esfera (pendiente)'])
         self.projection_combo.setToolTip('Selecciona que variables se proyectan o si se dibuja 3D x-y-z.')
@@ -339,6 +418,7 @@ class SprottExplorerTab(QWidget):
         self.copy_citation_button.clicked.connect(self.copy_sprott_citation)
 
         style_form.addRow(make_help_label('Preset visual', 'Estilos inspirados por el flujo visual del libro, generados desde datos propios.'), self.visual_preset_combo)
+        style_form.addRow('', self.visual_preset_status_label)
         style_form.addRow(make_help_label('Proyeccion', 'Proyeccion 2D o 3D. Esfera queda marcada como pendiente.'), self.projection_combo)
         style_form.addRow(make_help_label('Color por', 'Constante, tiempo, variable, radio o diferencia entre iterados.'), self.color_by_combo)
         style_form.addRow(make_help_label('Paleta', 'Mapa de colores para puntos con color variable.'), self.palette_combo)
@@ -369,31 +449,112 @@ class SprottExplorerTab(QWidget):
         copy_buttons_layout.addWidget(self.copy_citation_button)
         style_form.addRow(copy_buttons)
 
-        layout.addWidget(controls, 1, 0)
-        layout.addWidget(style_box, 2, 0)
-        self.sprott_canvas = Sprott2DCanvas(widget)
-        layout.addWidget(self.sprott_canvas, 1, 1, 2, 1)
+        # Assemble left panel in a QScrollArea so controls never clip
+        left_scroll = QScrollArea()
+        left_scroll.setWidgetResizable(True)
+        left_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        left_scroll_content = QWidget()
+        left_scroll_vlayout = QVBoxLayout(left_scroll_content)
+        left_scroll_vlayout.setContentsMargins(0, 0, 0, 0)
+        left_scroll_vlayout.addWidget(controls)
+        left_scroll_vlayout.addWidget(style_box)
+        left_scroll_vlayout.addStretch()
+        left_scroll.setWidget(left_scroll_content)
+        left_layout.addWidget(left_scroll, stretch=1)
 
+        # ── RIGHT: canvas + action bar + output splitter ──────────────────
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(4)
+
+        # Action bar directly above canvas
+        self.action_bar = QWidget()
+        action_bar_layout = QHBoxLayout(self.action_bar)
+        action_bar_layout.setContentsMargins(0, 0, 0, 0)
+        action_bar_layout.setSpacing(4)
+
+        self.quick_sim_btn = QPushButton("▶ Simular ejemplo rápido")
+        self.quick_sim_btn.setToolTip("Carga el código EWMWAMMMPMMMM con preset Color por profundidad y simula 8000 iteraciones.")
+        self.quick_sim_btn.clicked.connect(self.quick_simulate)
+
+        self.rerender_btn = QPushButton("🔄 Re-renderizar")
+        self.rerender_btn.setToolTip("Vuelve a trazar la trayectoria actual sin re-simular.")
+        self.rerender_btn.clicked.connect(self.rerender_last_result)
+
+        self.save_gallery_btn = QPushButton("💾 Guardar en galería")
+        self.save_gallery_btn.setToolTip("Guarda la simulación actual en tu galería local.")
+        self.save_gallery_btn.setStyleSheet("font-weight: bold;")
+        self.save_gallery_btn.clicked.connect(self.save_current_gallery_entry)
+
+        self.export_png_btn = QPushButton("📤 Exportar PNG")
+        self.export_png_btn.setToolTip("Exporta el canvas actual como un archivo PNG.")
+        self.export_png_btn.clicked.connect(self.export_current_image)
+
+        self.copy_code_btn = QPushButton("📋 Copiar código")
+        self.copy_code_btn.setToolTip("Copia el código actual al portapapeles.")
+        self.copy_code_btn.clicked.connect(self.copy_current_code)
+
+        action_bar_layout.addWidget(self.quick_sim_btn)
+        action_bar_layout.addWidget(self.rerender_btn)
+        action_bar_layout.addWidget(self.save_gallery_btn)
+        action_bar_layout.addWidget(self.export_png_btn)
+        action_bar_layout.addWidget(self.copy_code_btn)
+        right_layout.addWidget(self.action_bar, stretch=0)
+
+        # Empty canvas placeholder
+        self.canvas_empty_label = QLabel("No hay trayectoria. Pulsa ▶ Simular ejemplo rápido para ver una gráfica.")
+        self.canvas_empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.canvas_empty_label.setStyleSheet(
+            "color: #555555; font-size: 11px; font-weight: bold; background-color: #f7f7f7; "
+            "padding: 10px; border: 1px dashed #cccccc; border-radius: 4px; margin-bottom: 2px;"
+        )
+        right_layout.addWidget(self.canvas_empty_label, stretch=0)
+
+        # Vertical sub-splitter: canvas (top) | output tables (bottom)
+        right_vsplit = QSplitter(Qt.Orientation.Vertical)
+        right_vsplit.setChildrenCollapsible(False)
+
+        self.sprott_canvas = Sprott2DCanvas(right_widget)
+        right_vsplit.addWidget(self.sprott_canvas)
+
+        output_widget = QWidget()
+        output_layout = QHBoxLayout(output_widget)
+        output_layout.setContentsMargins(0, 0, 0, 0)
         self.explore_output = QTextEdit()
         self.explore_output.setReadOnly(True)
         self.explore_output.setStyleSheet("font-family: 'Consolas', 'Courier New', monospace;")
-        layout.addWidget(self.explore_output, 3, 0)
+        self.explore_output.setMinimumHeight(80)
         self.search_attempt_table = QTableWidget(0, 7)
         self.search_attempt_table.setHorizontalHeaderLabels(['Intento', 'Codigo', 'Estado', 'Razon', 'Rango x', 'Rango y', 'Lyap rapido'])
         self.search_attempt_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.search_attempt_table.cellDoubleClicked.connect(self.simulate_attempt_row)
-        layout.addWidget(self.search_attempt_table, 3, 1)
-        layout.setColumnStretch(0, 0)
-        layout.setColumnStretch(1, 1)
-        layout.setRowStretch(1, 3)
-        layout.setRowStretch(3, 1)
+        self.search_attempt_table.setMinimumHeight(80)
+        output_layout.addWidget(self.explore_output, stretch=1)
+        output_layout.addWidget(self.search_attempt_table, stretch=1)
+        right_vsplit.addWidget(output_widget)
+
+        right_vsplit.setStretchFactor(0, 3)
+        right_vsplit.setStretchFactor(1, 1)
+        right_layout.addWidget(right_vsplit, stretch=1)
+
+        # Add panels to horizontal splitter
+        main_splitter.addWidget(left_widget)
+        main_splitter.addWidget(right_widget)
+        main_splitter.setStretchFactor(0, 0)
+        main_splitter.setStretchFactor(1, 1)
+        main_splitter.setSizes([360, 900])
+
         self.sections.addTab(widget, 'Exploracion')
         self.apply_preset()
         self.apply_visual_preset(self.visual_preset_combo.currentText())
 
+
     def _build_examples_tab(self):
         widget = QWidget()
-        layout = QGridLayout(widget)
+        outer = QVBoxLayout(widget)
+        outer.setContentsMargins(4, 4, 4, 4)
+        outer.setSpacing(4)
 
         intro = QLabel(
             'Empieza por un ejemplo sintetico para aprender el flujo. Si tienes los diccionarios del libro descargados, '
@@ -401,26 +562,34 @@ class SprottExplorerTab(QWidget):
         )
         intro.setWordWrap(True)
         intro.setStyleSheet('font-weight: bold; padding: 4px;')
-        layout.addWidget(intro, 0, 0, 1, 2)
+        outer.addWidget(intro, stretch=0)
 
+        # Horizontal splitter: examples | DIC local
+        examples_splitter = QSplitter(Qt.Orientation.Horizontal)
+        examples_splitter.setChildrenCollapsible(False)
+        outer.addWidget(examples_splitter, stretch=1)
+
+        # ── LEFT: synthetic examples ────────────────────────────────────────
         synthetic_box = QGroupBox('Ejemplos sinteticos publicos')
         synthetic_layout = QVBoxLayout(synthetic_box)
         synthetic_layout.addWidget(QLabel('Ejemplos recomendados para empezar'))
         self.recommended_examples_list = QListWidget()
-        self.recommended_examples_list.setMaximumHeight(118)
+        self.recommended_examples_list.setMinimumHeight(80)
+        self.recommended_examples_list.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.recommended_examples_list.currentRowChanged.connect(self.select_recommended_example)
-        synthetic_layout.addWidget(self.recommended_examples_list, stretch=0)
+        synthetic_layout.addWidget(self.recommended_examples_list, stretch=1)
         synthetic_layout.addWidget(QLabel('Coleccion completa'))
         self.examples_list = QListWidget()
         self.examples_list.setToolTip('Ejemplos sinteticos creados para esta toolbox. No vienen de diccionarios historicos.')
         self.examples_list.currentRowChanged.connect(self.show_selected_example)
-        synthetic_layout.addWidget(self.examples_list, stretch=1)
+        synthetic_layout.addWidget(self.examples_list, stretch=2)
         self.example_thumbnail = SprottGalleryThumbnail()
         synthetic_layout.addWidget(self.example_thumbnail, stretch=0)
         self.example_detail = QTextEdit()
         self.example_detail.setReadOnly(True)
+        self.example_detail.setMinimumHeight(100)
         self.example_detail.setStyleSheet("font-family: 'Consolas', 'Courier New', monospace;")
-        synthetic_layout.addWidget(self.example_detail, stretch=1)
+        synthetic_layout.addWidget(self.example_detail, stretch=2)
         example_buttons = QWidget()
         example_buttons_layout = QHBoxLayout(example_buttons)
         example_buttons_layout.setContentsMargins(0, 0, 0, 0)
@@ -442,8 +611,9 @@ class SprottExplorerTab(QWidget):
         for button in (self.example_sim_button, self.example_style_button, self.example_decode_button, self.example_gallery_button, self.example_metadata_button):
             example_buttons_layout.addWidget(button)
         synthetic_layout.addWidget(example_buttons, stretch=0)
-        layout.addWidget(synthetic_box, 1, 0)
+        examples_splitter.addWidget(synthetic_box)
 
+        # ── RIGHT: DIC local ───────────────────────────────────────────────
         local_box = QGroupBox('Ejemplos del libro desde .DIC local')
         local_layout = QVBoxLayout(local_box)
         local_note = QLabel(
@@ -496,7 +666,46 @@ class SprottExplorerTab(QWidget):
         path_layout.addWidget(browse_dic)
         path_layout.addWidget(load_dic)
         local_layout.addWidget(path_row)
-        # ── Toggle modo lectura ───────────────────────────────────────────
+
+        # ── Load quantity row + BOOKFIGS shortcut ─────────────────────────
+        load_qty_row = QWidget()
+        lq_layout = QHBoxLayout(load_qty_row)
+        lq_layout.setContentsMargins(0, 0, 0, 0)
+        lq_layout.setSpacing(4)
+        lq_layout.addWidget(QLabel('Cargar:'))
+        self.dic_load_limit_combo = QComboBox()
+        self.dic_load_limit_combo.addItem('Todos', userData=None)
+        self.dic_load_limit_combo.addItem('350', userData=350)
+        self.dic_load_limit_combo.addItem('500', userData=500)
+        self.dic_load_limit_combo.addItem('1000', userData=1000)
+        self.dic_load_limit_combo.setToolTip('Número máximo de entradas a cargar del archivo .DIC.')
+        lq_layout.addWidget(self.dic_load_limit_combo)
+        load_all_btn = QPushButton('Cargar BOOKFIGS.DIC completo')
+        load_all_btn.setToolTip('Selecciona BOOKFIGS.DIC automáticamente y carga todas las entradas.')
+        load_all_btn.clicked.connect(self._load_bookfigs_full)
+        lq_layout.addWidget(load_all_btn)
+        lq_layout.addStretch()
+        local_layout.addWidget(load_qty_row)
+
+        # ── DIC status counter ────────────────────────────────────────────
+        self.dic_status_label = QLabel('Sin archivo .DIC cargado.')
+        self.dic_status_label.setWordWrap(True)
+        self.dic_status_label.setStyleSheet(
+            'font-size: 10px; color: #333; padding: 3px 6px; '
+            'background: #f0f8ff; border-radius: 3px; border: 1px solid #c8e0f8;'
+        )
+        local_layout.addWidget(self.dic_status_label)
+
+        # Instructions button (shown if BOOKFIGS.DIC is not found in standard paths)
+        has_bookfigs = self._find_local_dic('BOOKFIGS.DIC').exists()
+        self.instrucciones_btn = QPushButton('Abrir instrucciones para obtener archivos originales')
+        self.instrucciones_btn.setToolTip('Haz clic para ver cómo conseguir los archivos .DIC originales de Sprott.')
+        self.instrucciones_btn.clicked.connect(self.show_sprott_instructions)
+        self.instrucciones_btn.setStyleSheet("font-weight: bold; color: #0066cc;")
+        self.instrucciones_btn.setVisible(not has_bookfigs)
+        local_layout.addWidget(self.instrucciones_btn)
+
+        # ── Toggle modo lectura ────────────────────────────────────────────
         self.reading_mode_check = QCheckBox('☰ Modo lectura del libro')
         self.reading_mode_check.setToolTip(
             'Activa tabla enriquecida con marcas, notas y filtros por rango de lineas '
@@ -525,6 +734,7 @@ class SprottExplorerTab(QWidget):
 
         self.local_dic_detail = QTextEdit()
         self.local_dic_detail.setReadOnly(True)
+        self.local_dic_detail.setMinimumHeight(100)
         self.local_dic_detail.setStyleSheet("font-family: 'Consolas', 'Courier New', monospace;")
         _p0_layout.addWidget(self.local_dic_detail, stretch=1)
 
@@ -556,15 +766,16 @@ class SprottExplorerTab(QWidget):
         self._local_dic_stack.addWidget(self._build_reading_panel())
 
         local_layout.addWidget(self._local_dic_stack, stretch=1)
-        layout.addWidget(local_box, 1, 1)
-        layout.setColumnStretch(0, 1)
-        layout.setColumnStretch(1, 1)
-        layout.setRowStretch(1, 1)
+        examples_splitter.addWidget(local_box)
+
+        examples_splitter.setStretchFactor(0, 1)
+        examples_splitter.setStretchFactor(1, 1)
 
         self._load_examples()
         if self.local_dic_path_edit.text():
-            self.load_local_dic_examples(limit=120)
+            self.load_local_dic_examples()
         self.sections.addTab(widget, 'Ejemplos')
+
 
     def _build_tutorial_tab(self):
         widget = QWidget()
@@ -572,8 +783,9 @@ class SprottExplorerTab(QWidget):
         text = (
             '# Tutorial Sprott\n\n'
             '## 1. Ver una figura rapidamente\n'
-            'Abre Ejemplos, carga `SELECTED.DIC`, filtra `solo simulables`, selecciona un codigo y pulsa '
-            '**Simular con estilo recomendado**. Despues cambia `Color por` a `z` o `tiempo` y exporta.\n\n'
+            'Pulsa **▶ Simular ejemplo rápido** en la pestaña Exploración. También puedes ir a Ejemplos, '
+            'cargar `SELECTED.DIC`, filtrar `solo simulables`, seleccionar un codigo y pulsar '
+            '**Simular con estilo recomendado**. Después cambia `Color por` a `z` o `tiempo` y exporta.\n\n'
             '## 2. Entender un codigo\n'
             'Copia el codigo, abre Codigos, decodifica y compara familia, dimension, orden y ecuaciones con la trayectoria.\n\n'
             '## 3. Crear una imagen propia\n'
@@ -583,21 +795,21 @@ class SprottExplorerTab(QWidget):
             'Si parece una linea simple, aumenta iteraciones/transitorio o cambia proyeccion. Si diverge, reduce `h` '
             'en flujos o usa RK4. Si esta muy dispersa, baja tamano de punto y opacidad.\n\n'
             '## 5. Exportar y citar\n'
-            'Exporta PNG/CSV/JSON o agrega la imagen a Galeria. Cita a Sprott y no redistribuyas archivos originales.\n\n'
+            'Exporta PNG/CSV/JSON o agrega la imagen a Galeria con el botón **💾 Guardar en galería** junto a la gráfica. '
+            'Cita a Sprott y no redistribuyas archivos originales.\n\n'
             '## Como leer el libro con la toolbox\n'
             'Puedes usar el libro fisico de Sprott como guia de navegacion por los codigos del .DIC local:\n'
-            '- En **Ejemplos**, seccion libro, activa **Modo lectura del libro**.\n'
-            '- Carga `BOOKFIGS.DIC` con **Cargar codigos** (si ya estaba cargado, se reutiliza automaticamente).\n'
-            '- Usa **Capitulo (lineas)** para filtrar el rango de lineas del capitulo que estas leyendo.\n'
-            '  Ejemplo: si el capitulo 3 corresponde a las figuras de las lineas 50 a 120, pon desde=50 hasta=120.\n'
+            '- Pulsa **📖 Modo lectura del libro físico** abajo para ir directamente al modo lectura.\n'
+            '- Carga `BOOKFIGS.DIC` con **Cargar BOOKFIGS.DIC completo** para ver los 350+ códigos.\n'
+            '- Usa **Capítulo (lineas)** para filtrar el rango de lineas del capitulo que estas leyendo.\n'
             '- Selecciona un codigo y pulsa **Simular con estilo recomendado**.\n'
             '- Si la figura coincide con el libro, marca **Visto**.\n'
             '- Si no coincide todavia, marca **No coincide** y escribe una nota con el numero de pagina.\n'
             '- Al terminar el capitulo, cambia el filtro a **solo pendientes** para ver que falta.\n'
-            '- Guarda con **Galeria**: el JSON incluye la linea del .DIC, las marcas y la cita a Sprott.\n'
-            '- Las marcas y notas se guardan en tu carpeta de usuario y persisten entre sesiones.\n\n'
+            '- Guarda con **💾 Guardar en galería**: el JSON incluye la linea del .DIC, las marcas y la cita a Sprott.\n\n'
             '## Receta: Quiero una imagen bonita rapido\n'
-            'Abre Ejemplos, elige **Primera imagen bonita** y pulsa **Simular con estilo recomendado**. Exporta PNG.\n\n'
+            'Pulsa **Preset Color por profundidad** abajo — navega a Exploracion y simula automáticamente. O ve a Ejemplos, '
+            'elige **Primera imagen bonita** y pulsa **Simular con estilo recomendado**.\n\n'
             '## Receta: Quiero algo parecido al espiritu visual del libro\n'
             'Usa un ejemplo 3D, proyeccion `x-y`, color por `z`, paleta `Turbo`, fondo negro, puntos pequenos, muchas iteraciones y sin ejes.\n\n'
             '## Receta: Quiero bandas\n'
@@ -610,23 +822,56 @@ class SprottExplorerTab(QWidget):
         layout.addWidget(self._markdown_browser(text), 0, 0, 1, 2)
         actions = QGroupBox('Acciones rapidas')
         action_layout = QVBoxLayout(actions)
-        buttons = [
-            ('Ir a Ejemplos', lambda: self.sections.setCurrentIndex(4)),
-            ('Ir a Exploracion', lambda: self.sections.setCurrentIndex(3)),
-            ('Preset Color por profundidad', lambda: self.visual_preset_combo.setCurrentText('Color por profundidad')),
-            ('Preset Alta densidad', lambda: self.visual_preset_combo.setCurrentText('Alta densidad')),
-            ('Preset Didactico', lambda: self.visual_preset_combo.setCurrentText('Didactico')),
-            ('Copiar cita', self.copy_sprott_citation),
+
+        # Navigation buttons
+        nav_buttons = [
+            ('Ir a Ejemplos', lambda: self._go_to_tab('Ejemplos')),
+            ('Ir a Exploracion', lambda: self._go_to_tab('Explorac')),
         ]
-        for label, callback in buttons:
-            button = QPushButton(label)
-            button.clicked.connect(callback)
-            action_layout.addWidget(button)
+        for label, callback in nav_buttons:
+            btn = QPushButton(label)
+            btn.clicked.connect(callback)
+            action_layout.addWidget(btn)
+
+        action_layout.addWidget(_separator())
+
+        # Preset buttons — navigate to Exploración AND simulate
+        preset_label = QLabel('Presets (navegan a Exploración y simulan):')
+        preset_label.setStyleSheet('font-size: 10px; color: #666; font-weight: bold;')
+        action_layout.addWidget(preset_label)
+
+        preset_buttons = [
+            ('Preset Color por profundidad', 'Color por profundidad'),
+            ('Preset Alta densidad', 'Alta densidad'),
+            ('Preset Didactico', 'Didactico'),
+        ]
+        for label, preset_name in preset_buttons:
+            btn = QPushButton(label)
+            btn.setToolTip(f'Navega a Exploración, aplica el preset «{preset_name}» y simula un ejemplo si no hay trayectoria.')
+            btn.clicked.connect(lambda checked=False, p=preset_name: self.tutorial_apply_preset_and_show(p))
+            action_layout.addWidget(btn)
+
+        action_layout.addWidget(_separator())
+
+        # Book reading shortcut
+        book_btn = QPushButton('📖 Modo lectura del libro físico')
+        book_btn.setToolTip('Navega a Ejemplos, carga BOOKFIGS.DIC completo y activa el modo lectura.')
+        book_btn.setStyleSheet('font-weight: bold; padding: 4px;')
+        book_btn.clicked.connect(self._open_book_reading_mode)
+        action_layout.addWidget(book_btn)
+
+        action_layout.addWidget(_separator())
+
+        cite_btn = QPushButton('Copiar cita')
+        cite_btn.clicked.connect(self.copy_sprott_citation)
+        action_layout.addWidget(cite_btn)
+
         action_layout.addStretch(1)
         layout.addWidget(actions, 0, 2)
         layout.setColumnStretch(0, 2)
         layout.setColumnStretch(2, 0)
         self.sections.addTab(widget, 'Tutorial')
+
 
     def _build_gallery_tab(self):
         widget = QWidget()
@@ -684,6 +929,16 @@ class SprottExplorerTab(QWidget):
     def _build_importer_tab(self):
         widget = QWidget()
         layout = QVBoxLayout(widget)
+
+        # Panel explicativo al tope
+        explanation = QLabel(
+            "Este panel te permite gestionar archivos de texto de códigos (.DIC) propios o del libro. "
+            "Puedes validar su formato, buscar inconsistencias y cargarlos directamente al Inventario del Explorador."
+        )
+        explanation.setWordWrap(True)
+        explanation.setStyleSheet("color: #444444; font-size: 11px; font-weight: bold; background-color: #f7f7f7; padding: 10px; border-radius: 4px; border: 1px solid #e0e0e0; margin-bottom: 6px;")
+        layout.addWidget(explanation, stretch=0)
+
         controls = QWidget()
         row = QHBoxLayout(controls)
         row.setContentsMargins(0, 0, 0, 0)
@@ -705,6 +960,7 @@ class SprottExplorerTab(QWidget):
 
         note = QLabel('El importador solo inventaria referencias locales. No ejecuta EXE, no modifica originales y no copia archivos al repo.')
         note.setWordWrap(True)
+        note.setStyleSheet("color: gray; font-style: italic; font-size: 10px;")
         layout.addWidget(note, stretch=0)
 
         self.import_table = QTableWidget(0, 6)
@@ -712,62 +968,124 @@ class SprottExplorerTab(QWidget):
         self.import_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.import_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.import_table, stretch=1)
-        self.sections.addTab(widget, 'Importador local')
+
+        # Botón para enviar el archivo DIC seleccionado a la pestaña Ejemplos
+        btn_layout = QHBoxLayout()
+        self.load_dic_btn = QPushButton("Cargar .DIC seleccionado en Ejemplos")
+        self.load_dic_btn.setToolTip("Carga el archivo de códigos seleccionado en la pestaña de Ejemplos para poder visualizar sus códigos.")
+        self.load_dic_btn.clicked.connect(self.load_selected_dic_to_examples)
+        btn_layout.addWidget(self.load_dic_btn)
+        btn_layout.addStretch(1)
+        layout.addLayout(btn_layout, stretch=0)
+
+        self.sections.addTab(widget, 'Inventario local')
+
+    def _make_pdf_viewer(self, pdf_path: Path, title: str, fallback_html: str = '') -> QWidget:
+        """Reusable validated PDF viewer with explicit diagnostics.
+
+        Returns a QWidget that either shows the embedded PDF viewer or a clear
+        fallback message explaining *why* it failed (file missing, QtPdf
+        unavailable, load error, zero pages).
+        """
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(3)
+
+        status_parts: list[str] = []
+        file_ok = pdf_path.exists()
+        status_parts.append(f'Archivo: {"OK " + pdf_path.name if file_ok else "NO ENCONTRADO — " + str(pdf_path)}')
+        status_parts.append(f'QtPdf: {"disponible" if QT_PDF_AVAILABLE else "NO disponible"}')
+
+        open_btn = QPushButton(f'Abrir {pdf_path.name} externamente')
+        open_btn.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(pdf_path))))
+        open_btn.setEnabled(file_ok)
+        layout.addWidget(open_btn, stretch=0)
+
+        status_label = QLabel()
+        status_label.setWordWrap(True)
+        status_label.setStyleSheet(
+            'font-size: 10px; color: #444; padding: 3px 6px; '
+            'background: #f5f5f5; border-radius: 3px; border: 1px solid #ddd;'
+        )
+        layout.addWidget(status_label, stretch=0)
+
+        viewer_ok = False
+        if QT_PDF_AVAILABLE and file_ok:
+            try:
+                document = QPdfDocument(container)
+                load_err = document.load(str(pdf_path))
+                err_val = int(load_err) if hasattr(load_err, '__int__') else load_err
+                page_count = document.pageCount()
+                load_ok = (err_val == 0) and (page_count > 0)
+                status_parts.append(f'load()={err_val}, p\u00e1ginas={page_count}')
+                if not load_ok:
+                    status_parts.append('\u26a0 El PDF no carg\u00f3 correctamente')
+                else:
+                    view = QPdfView(container)
+                    view.setDocument(document)
+                    if hasattr(view, 'setZoomMode'):
+                        view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
+                    if hasattr(view, 'setPageMode'):
+                        view.setPageMode(QPdfView.PageMode.MultiPage)
+                    # Keep references alive on the container
+                    container._pdf_document = document
+                    container._pdf_view = view
+                    layout.addWidget(view, stretch=1)
+                    viewer_ok = True
+            except Exception as exc:
+                status_parts.append(f'Error: {exc}')
+        elif not QT_PDF_AVAILABLE:
+            status_parts.append('Instala PyQt6-Qt6 \u2265 6.4 o PyQt6-QtPdf para el visor embebido')
+
+        status_label.setText('  \u2502  '.join(status_parts))
+
+        if not viewer_ok:
+            fallback = QTextBrowser()
+            fallback.setOpenExternalLinks(True)
+            if fallback_html:
+                fallback.setHtml(fallback_html)
+            else:
+                pdf_uri = QUrl.fromLocalFile(str(pdf_path)).toString()
+                fallback.setHtml(
+                    '<html><body style="font-family: Segoe UI, Arial, sans-serif; margin: 14px;">'
+                    f'<h2>{html.escape(title)}</h2>'
+                    '<p>El visor embebido no est\u00e1 disponible (ver estado arriba).</p>'
+                    f'<p><a href="{html.escape(pdf_uri)}">Abrir PDF externamente</a></p>'
+                    '</body></html>'
+                )
+            layout.addWidget(fallback, stretch=1)
+
+        return container
 
     def _theory_page_browser(self):
         pdf_path = self.assets_dir / 'sprott_theory.pdf'
-        if pdf_path.exists() and not QT_PDF_AVAILABLE:
-            browser = QTextBrowser()
-            browser.setOpenExternalLinks(True)
-            pdf_uri = QUrl.fromLocalFile(str(pdf_path)).toString()
-            browser.setHtml(
-                '<html><body style="font-family: Segoe UI, Arial, sans-serif; margin: 14px;">'
-                '<h2>Teoria del Explorador Sprott</h2>'
-                '<p>Esta pestana esta preparada como PDF compilado para mantener tipografia, '
-                'ecuaciones y maquetacion estables. QtPdf no esta disponible en este entorno.</p>'
-                f'<p><a href="{html.escape(pdf_uri)}">Abrir sprott_theory.pdf</a></p>'
-                '</body></html>'
+        if not QT_PDF_AVAILABLE and not pdf_path.exists():
+            # No PDF and no viewer: fall back to markdown text
+            text = (
+                self._read_asset('theory_intro.md') + '\n\n'
+                + self._read_asset('code_grammar.md') + '\n\n'
+                + self._read_asset('examples_readme.md')
             )
-            return browser
-        if QT_PDF_AVAILABLE and pdf_path.exists():
-            widget = QWidget()
-            layout = QVBoxLayout(widget)
-            note = QLabel('Esta pestana usa un PDF compilado para mantener tipografia, ecuaciones y maquetacion estables.')
-            note.setWordWrap(True)
-            note.setStyleSheet('font-weight: bold; padding: 4px;')
-            layout.addWidget(note, stretch=0)
-            open_button = QPushButton('Abrir PDF externo')
-            open_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(pdf_path))))
-            layout.addWidget(open_button, stretch=0)
-            view = QPdfView(widget)
-            document = QPdfDocument(view)
-            view.setDocument(document)
-            document.load(str(pdf_path))
-            if hasattr(view, 'setZoomMode'):
-                view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
-            if hasattr(view, 'setPageMode'):
-                view.setPageMode(QPdfView.PageMode.MultiPage)
-            view._sprott_pdf_document = document
-            layout.addWidget(view, stretch=1)
-            return widget
-        text = self._read_asset('theory_intro.md') + '\n\n' + self._read_asset('code_grammar.md') + '\n\n' + self._read_asset('examples_readme.md')
-        return self._markdown_browser(text)
+            return self._markdown_browser(text)
+        return self._make_pdf_viewer(
+            pdf_path,
+            title='Teor\u00eda del Explorador Sprott',
+        )
 
     def _pdf_guide_or_browser(self):
         pdf_path = self.assets_dir / 'sprott_explorer_guide.pdf'
-        if QT_PDF_AVAILABLE and pdf_path.exists():
-            view = QPdfView(self)
-            document = QPdfDocument(view)
-            view.setDocument(document)
-            document.load(str(pdf_path))
-            if hasattr(view, 'setZoomMode'):
-                view.setZoomMode(QPdfView.ZoomMode.FitToWidth)
-            if hasattr(view, 'setPageMode'):
-                view.setPageMode(QPdfView.PageMode.MultiPage)
-            view._sprott_pdf_document = document
-            return view
-        text = self._read_asset('theory_intro.md') + '\n\n' + self._read_asset('code_grammar.md') + '\n\n' + self._read_asset('examples_readme.md')
-        return self._markdown_browser(text)
+        if not QT_PDF_AVAILABLE and not pdf_path.exists():
+            text = (
+                self._read_asset('theory_intro.md') + '\n\n'
+                + self._read_asset('code_grammar.md') + '\n\n'
+                + self._read_asset('examples_readme.md')
+            )
+            return self._markdown_browser(text)
+        return self._make_pdf_viewer(
+            pdf_path,
+            title='Gu\u00eda del Explorador Sprott',
+        )
 
     def apply_preset(self):
         data = self.preset_combo.currentData()
@@ -781,6 +1099,10 @@ class SprottExplorerTab(QWidget):
         self.transient_spin.setValue(transient)
         self.h_spin.setValue(h)
         self.method_combo.setCurrentText(method)
+        preset_name = self.preset_combo.currentText()
+        self.preset_status_label.setText(
+            f"Preset aplicado: {preset_name} → tipo={kind}, dim={dimension}, orden={order}, iter={iterations}, trans={transient}, h={h}, método={method}"
+        )
 
     def apply_visual_preset(self, name: str):
         config = visual_preset(name)
@@ -798,6 +1120,64 @@ class SprottExplorerTab(QWidget):
         self.grid_check.setChecked(config.show_grid)
         self.equal_aspect_check.setChecked(config.equal_aspect)
         self.apply_current_style()
+        if not self.last_result:
+            self.visual_preset_status_label.setText("Simula un código para ver el resultado.")
+        else:
+            self.visual_preset_status_label.setText(f"Preset visual «{name}» aplicado. Gráfica actualizada.")
+
+    def quick_simulate(self):
+        self.explore_code_edit.setText('EWMWAMMMPMMMM')
+        self.apply_visual_preset('Color por profundidad')
+        self.iter_spin.setValue(8000)
+        self.simulate_exploration_code()
+        if self.visual_preset_status_label:
+            self.visual_preset_status_label.setText(
+                '▶ Ejemplo rápido: EWMWAMMMPMMMM, 8000 iter., Color por profundidad. '
+                'Pulsa 💾 Guardar en galería para conservarlo.'
+            )
+
+    def tutorial_apply_preset_and_show(self, preset_name: str):
+        """Navigate to Exploración, apply visual preset, simulate if no trajectory exists."""
+        self._go_to_tab('Explorac')
+        self.visual_preset_combo.setCurrentText(preset_name)
+        self.apply_visual_preset(preset_name)
+        if not self.last_result:
+            self.load_quick_example_for_preset(preset_name)
+        else:
+            self.apply_current_style()
+        if self.visual_preset_status_label:
+            self.visual_preset_status_label.setText(
+                f'Preset «{preset_name}» aplicado desde Tutorial. '
+                f'Cambió: proyección, color, paleta, fondo, punto, alpha, max_points.'
+            )
+
+    def load_quick_example_for_preset(self, preset_name: str):
+        """Simulate a quick example to populate the canvas for the given preset."""
+        # Try to find a starter example in the built-in list
+        starter = None
+        if hasattr(self, 'examples') and self.examples:
+            for ex in self.examples:
+                label = ex.get('label', '') or ex.get('name', '')
+                if 'primera' in label.lower() or 'starter' in label.lower() or 'bonita' in label.lower():
+                    starter = ex
+                    break
+            if starter is None:
+                starter = self.examples[0]
+        if starter:
+            try:
+                from ui.sprott_explorer_tab import apply_example_to_controls  # noqa: F401
+                apply_example_to_controls(self, starter, apply_visual=True)
+            except Exception:
+                pass
+        # Fall back to quick default code
+        self.quick_simulate()
+
+    def rerender_last_result(self):
+        if self.last_result:
+            self._plot_result(self.last_result)
+            self.visual_preset_status_label.setText("Gráfica re-renderizada.")
+        else:
+            QMessageBox.information(self, 'Sin datos', 'Simula un código primero para poder re-renderizar.')
 
     def current_visual_config(self) -> SprottVisualConfig:
         projection = self.projection_combo.currentText()
@@ -871,6 +1251,11 @@ class SprottExplorerTab(QWidget):
             lines.extend(['', 'ADVERTENCIAS'])
             lines.extend(f'  - {warning}' for warning in code.warnings)
         self.decode_output.setPlainText('\n'.join(lines))
+
+    def use_code_in_exploration(self):
+        code_text = self.code_edit.text().strip()
+        self.explore_code_edit.setText(code_text)
+        self._go_to_tab('Explorac')
 
     def generate_code(self):
         rng = np.random.default_rng(self.seed_spin.value())
@@ -1031,6 +1416,8 @@ class SprottExplorerTab(QWidget):
         trajectory = np.asarray(result['post_transient'], dtype=float)
         title = f"Trayectoria post-transitorio - {result['code'].family_letter}"
         self.sprott_canvas.plot_trajectory(trajectory, self.current_visual_config(), title=title)
+        if hasattr(self, 'canvas_empty_label'):
+            self.canvas_empty_label.hide()
 
     def _show_result_summary(self, result: dict, classification: dict, elapsed_ms: float, attempts: int | None = None):
         code = result['code']
@@ -1048,13 +1435,25 @@ class SprottExplorerTab(QWidget):
             'candidate_chaotic': 'La orbita quedo acotada y no colapso; requiere Lyapunov/espectro/dimension.',
             'unknown': 'No hay evidencia suficiente con esta simulacion corta.',
         }.get(classification['state'], 'Estado no documentado.')
-        lines = [
+        
+        lines = []
+        if self.last_local_entry:
+            lines.extend([
+                '======================================================================',
+                f"ORIGEN: Ejemplo local .DIC — Línea {self.last_local_entry.get('line', '?')}",
+                f"Código: {self.last_local_entry.get('code', '')} | Familia: {self.last_local_entry.get('family', '')} ({code.family_name})",
+                f"Soporte: {self.last_local_entry.get('support', 'N/A')} | F={self.last_local_entry.get('f_metric', 'N/A')} L={self.last_local_entry.get('l_metric', 'N/A')}",
+                '======================================================================',
+                '',
+            ])
+
+        lines.extend([
             'RESULTADO DE EXPLORACION',
             f'  codigo: {code.raw}',
             f'  familia: {code.family_name}',
             f'  backend: {result.get("backend", "python").upper()}',
             f'  tiempo de calculo: {elapsed_ms:.1f} ms',
-        ]
+        ])
         if attempts is not None:
             lines.append(f'  intentos de busqueda: {attempts}')
         lines.extend([
@@ -1064,6 +1463,20 @@ class SprottExplorerTab(QWidget):
             f'  muestras post-transitorio finitas: {finite_count}',
             f'  porcentaje descartado por transitorio: {discarded_pct:.1f}%',
             f'  recomendacion visual: {visual_recommendation(result["post_transient"], classification)}',
+        ])
+
+        if classification['state'] == 'divergent':
+            lines.extend([
+                '',
+                '⚠ Diverge o no produce puntos finitos.',
+                'Sugerencias:',
+                ' • Genera otro código aleatorio',
+                ' • Si es flujo: reduce h (0.005) o cambia a RK4',
+                ' • Sube el transitorio',
+                ' • Verifica que la familia sea A-X (simulable)',
+            ])
+
+        lines.extend([
             '',
             'RANGOS Y MOMENTOS',
         ])
@@ -1248,7 +1661,7 @@ class SprottExplorerTab(QWidget):
             return
         self.apply_example_to_controls(item, apply_visual=apply_visual)
         self.simulate_exploration_code()
-        self.sections.setCurrentIndex(3)
+        self._go_to_tab('Explorac')
 
     def apply_example_to_controls(self, item: dict, *, apply_visual: bool = True):
         params = item.get('parameters', {})
@@ -1311,7 +1724,7 @@ class SprottExplorerTab(QWidget):
             return
         self.code_edit.setText(item.get('code', ''))
         self.decode_current_code()
-        self.sections.setCurrentIndex(2)
+        self._go_to_tab('Codigos')
 
     def add_selected_example_to_gallery(self):
         item = self._selected_example()
@@ -1321,7 +1734,7 @@ class SprottExplorerTab(QWidget):
         self.simulate_exploration_code()
         self.favorite_note.setText(item.get('learning_goal', item.get('name', '')))
         self.save_current_gallery_entry()
-        self.sections.setCurrentIndex(6)
+        self._go_to_tab('Galeria')
 
     def export_selected_example_metadata(self):
         item = self._selected_example()
@@ -1348,6 +1761,37 @@ class SprottExplorerTab(QWidget):
         if path:
             self.local_dic_path_edit.setText(path)
 
+    def show_sprott_instructions(self):
+        """Show dialog with instructions to obtain original Sprott files."""
+        msg = QMessageBox(self)
+        msg.setWindowTitle('Instrucciones para obtener archivos originales')
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setTextFormat(Qt.TextFormat.RichText)
+        
+        text = (
+            "<h3>📚 Obtener archivos originales de Sprott</h3>"
+            "<p>La aplicación <b>Chaos Toolbox</b> no redistribuye los diccionarios ni archivos "
+            "originales del libro de Julien C. Sprott por políticas de distribución y derechos de autor.</p>"
+            "<p>Para estudiar el libro físico y cargar todos los ejemplos locales, sigue estos pasos:</p>"
+            "<ol>"
+            "<li>Visita el sitio oficial del Prof. Julien C. Sprott en la Universidad de Wisconsin-Madison: "
+            "<b><a href='http://sprott.physics.wisc.edu'>sprott.physics.wisc.edu</a></b> (o busca <i>'Strange Attractors book disk'</i>).</li>"
+            "<li>Descarga el archivo <b>SADISK.ZIP</b> (la versión del disquete original que acompaña al libro).</li>"
+            "<li>Extrae los archivos en un directorio local de tu computadora.</li>"
+            "<li>Usa el botón <b>«Elegir .DIC»</b> en esta pestaña para seleccionar el archivo deseado en tu disco.</li>"
+            "</ol>"
+            "<p><b>Descripción de los archivos principales del libro:</b></p>"
+            "<ul>"
+            "<li><b>BOOKFIGS.DIC:</b> Contiene todos los códigos de las figuras que aparecen impresas en el libro original.</li>"
+            "<li><b>SELECTED.DIC:</b> Ejemplos seleccionados de atractores extraños y mapas caóticos.</li>"
+            "<li><b>SPECIAL.DIC:</b> Familias especiales de ecuaciones descritas en el libro.</li>"
+            "</ul>"
+            "<p><i>Nota: Los archivos se leen directamente desde el directorio de tu disco en tiempo de ejecución "
+            "y no se copia nada al repositorio ni al código del programa.</i></p>"
+        )
+        msg.setText(text)
+        msg.exec()
+
     def _find_local_dic(self, name: str) -> Path:
         candidates = [
             self.repo_root / 'external' / 'sprott_site_bookdisk' / 'files' / 'fractals' / 'bookdisk' / name,
@@ -1366,7 +1810,8 @@ class SprottExplorerTab(QWidget):
         path = self._find_local_dic(str(name))
         self.local_dic_path_edit.setText(str(path) if path.exists() else '')
 
-    def load_local_dic_examples(self, limit=300):
+    def load_local_dic_examples(self, limit=None):
+        """Load DIC entries. limit=None loads all entries."""
         path = self.local_dic_path_edit.text().strip()
         self.local_dic_table.setRowCount(0)
         self.local_dic_detail.clear()
@@ -1374,19 +1819,76 @@ class SprottExplorerTab(QWidget):
         self.local_dic_visible_entries = []
         if not path:
             self.local_dic_detail.setPlainText('Selecciona primero un archivo .DIC local.')
+            if hasattr(self, 'dic_status_label'):
+                self.dic_status_label.setText('Sin archivo .DIC cargado.')
             return
+        # Resolve limit from combo if not explicitly supplied
+        if limit is None and hasattr(self, 'dic_load_limit_combo'):
+            limit = self.dic_load_limit_combo.currentData()  # None means all
         try:
-            self.local_dic_entries = read_dic_entries(path, limit=int(limit))
+            if limit is None:
+                self.local_dic_entries = read_dic_entries(path)
+            else:
+                self.local_dic_entries = read_dic_entries(path, limit=int(limit))
         except Exception as exc:
             self.local_dic_detail.setPlainText(f'No se pudo leer el .DIC local:\n{exc}')
+            if hasattr(self, 'dic_status_label'):
+                self.dic_status_label.setText(f'Error: {exc}')
             return
         self.apply_local_dic_filter()
+        if hasattr(self, 'instrucciones_btn'):
+            self.instrucciones_btn.setVisible(not self._find_local_dic('BOOKFIGS.DIC').exists())
         if self.local_dic_entries:
             preferred = 2 if len(self.local_dic_entries) > 2 and Path(path).name.upper() == 'SELECTED.DIC' else 0
             if self.local_dic_table.rowCount() > 0:
                 self.local_dic_table.setCurrentCell(min(preferred, self.local_dic_table.rowCount() - 1), 0)
+            # Update status counter
+            if hasattr(self, 'dic_status_label'):
+                total = len(self.local_dic_entries)
+                simulable = sum(1 for e in self.local_dic_entries if e.get('support') == 'simulable')
+                special = sum(1 for e in self.local_dic_entries if e.get('kind') == 'special')
+                visible = len(self.local_dic_visible_entries)
+                fname = Path(path).name
+                self.dic_status_label.setText(
+                    f'Archivo: {fname}  |  Leídos: {total}  |  '
+                    f'Simulables: {simulable}  |  Especiales: {special}  |  '
+                    f'Visibles (filtro actual): {visible}'
+                )
         else:
             self.local_dic_detail.setPlainText('El archivo no contiene codigos reconocibles.')
+            if hasattr(self, 'dic_status_label'):
+                self.dic_status_label.setText(f'Archivo: {Path(path).name}  |  Sin códigos reconocibles.')
+
+    def _load_bookfigs_full(self):
+        """Select BOOKFIGS.DIC and load all entries — shortcut from UI."""
+        path = self._find_local_dic('BOOKFIGS.DIC')
+        if not path.exists():
+            QMessageBox.warning(
+                self, 'BOOKFIGS.DIC no encontrado',
+                f'No se encontró BOOKFIGS.DIC en las rutas de búsqueda.\n'
+                f'Ruta buscada: {path}\n\n'
+                'Descarga la carpeta de datos del libro de Sprott y coloca los .DIC en external/sprott_site_bookdisk/...'
+            )
+            return
+        self.local_dic_path_edit.setText(str(path))
+        self.load_local_dic_examples(limit=None)
+
+    def _open_book_reading_mode(self):
+        """Navigate to Ejemplos, load BOOKFIGS.DIC, and activate reading mode."""
+        self._go_to_tab('Ejemplos')
+        path = self._find_local_dic('BOOKFIGS.DIC')
+        if path.exists():
+            self.local_dic_path_edit.setText(str(path))
+            self.load_local_dic_examples(limit=None)
+        else:
+            QMessageBox.information(
+                self, 'BOOKFIGS.DIC no encontrado',
+                'No se encontró BOOKFIGS.DIC automáticamente.\n'
+                'Usa «Elegir .DIC» para seleccionarlo manualmente, luego pulsa «Cargar BOOKFIGS.DIC completo».'
+            )
+        if not self.reading_mode_check.isChecked():
+            self.reading_mode_check.setChecked(True)
+
 
     def apply_local_dic_filter(self, *_args):
         current_filter = self.local_dic_filter_combo.currentText() if hasattr(self, 'local_dic_filter_combo') else 'todos'
@@ -1504,7 +2006,7 @@ class SprottExplorerTab(QWidget):
         self._set_combo_data(self.dimension_combo, code.dimension)
         self._set_combo_data(self.order_combo, code.order)
         self.simulate_exploration_code()
-        self.sections.setCurrentIndex(3)
+        self._go_to_tab('Explorac')
 
     def simulate_selected_local_dic_recommended(self):
         entry = self._current_local_dic_entry()
@@ -1644,6 +2146,11 @@ class SprottExplorerTab(QWidget):
             entry_dir = save_gallery_entry(render_path=render, thumbnail_path=thumb, metadata=metadata)
         self.favorites_label.setText(f'Galeria local: {gallery_root()}')
         self.refresh_gallery()
+        code = metadata.get('code', '?')
+        if hasattr(self, 'visual_preset_status_label') and self.visual_preset_status_label:
+            self.visual_preset_status_label.setText(
+                f'💾 Guardado en galería: código {code} | {entry_dir.name}'
+            )
         QMessageBox.information(self, 'Galeria local', f'Imagen guardada en:\n{entry_dir}')
 
     def refresh_favorites(self):
@@ -1697,6 +2204,13 @@ class SprottExplorerTab(QWidget):
             '',
             item.get('attribution_warning', ''),
         ]
+        if item.get('source') == 'local_dic':
+            lines.extend([
+                '',
+                f"generado por: {item.get('generated_by', '')}",
+                f"atribución: {item.get('attribution', '')}",
+                f"nota: {item.get('note', '')}",
+            ])
         self.gallery_detail.setPlainText('\n'.join(lines))
 
     def open_selected_gallery_entry(self):
@@ -1720,7 +2234,7 @@ class SprottExplorerTab(QWidget):
         self.last_source = 'manual'
         self.last_local_entry = None
         self.simulate_exploration_code()
-        self.sections.setCurrentIndex(3)
+        self._go_to_tab('Explorac')
 
     def edit_style_from_gallery_entry(self):
         item = self._current_gallery_entry()
@@ -1789,6 +2303,28 @@ class SprottExplorerTab(QWidget):
                 if col == 1:
                     cell.setToolTip(value)
                 self.import_table.setItem(row, col, cell)
+
+    def load_selected_dic_to_examples(self):
+        row = self.import_table.currentRow()
+        if row < 0:
+            QMessageBox.information(self, 'Sin selección', 'Selecciona una fila de la tabla primero.')
+            return
+        path_item = self.import_table.item(row, 1)
+        if not path_item:
+            return
+        path_str = path_item.text().strip()
+        path = Path(path_str)
+        if not path.exists() or not path.is_file():
+            QMessageBox.warning(self, 'Archivo no encontrado', f'El archivo no existe o no es válido: {path_str}')
+            return
+        if path.suffix.upper() != '.DIC':
+            QMessageBox.warning(self, 'No es un archivo .DIC', 'Solo se pueden cargar archivos de texto con extensión .DIC en la sección de Ejemplos.')
+            return
+        
+        self.local_dic_path_edit.setText(str(path))
+        self.load_local_dic_examples()
+        self._go_to_tab('Ejemplos')
+        QMessageBox.information(self, 'Archivo cargado', f'Se ha cargado «{path.name}» en la pestaña de Ejemplos.')
 
 
     # -----------------------------------------------------------------------
@@ -2229,6 +2765,8 @@ class SprottExplorerTab(QWidget):
         # Cargar en la pestaña de exploración y simular
         self.explore_code_edit.setText(code_text)
         self.code_edit.setText(code_text)
+        self.last_source = 'local_dic'
+        self.last_local_entry = entry
         if hasattr(self, '_set_combo_data'):
             self._set_combo_data(self.dimension_combo, code.dimension)
             self._set_combo_data(self.order_combo, code.order)
@@ -2242,11 +2780,7 @@ class SprottExplorerTab(QWidget):
             self.transient_spin.setValue(max(self.transient_spin.value(), 800))
             self.h_spin.setValue(min(self.h_spin.value(), 0.01))
         self.simulate_exploration_code()
-        # Navegar a Exploración
-        for idx in range(self.sections.count()):
-            if self.sections.tabText(idx) in ('Exploración', 'Exploracion', 'Exploration'):
-                self.sections.setCurrentIndex(idx)
-                break
+        self._go_to_tab('Explorac')
 
     def simulate_reading_entry_recommended(self):
         """Simula el código seleccionado aplicando el visual recomendado."""
@@ -2267,10 +2801,7 @@ class SprottExplorerTab(QWidget):
             return
         self.code_edit.setText(entry.get('code', ''))
         self.decode_current_code()
-        for idx in range(self.sections.count()):
-            if self.sections.tabText(idx) in ('Códigos', 'Codigos', 'Codes'):
-                self.sections.setCurrentIndex(idx)
-                break
+        self._go_to_tab('Codigos')
 
     def save_reading_note(self):
         """Persiste la nota del campo de texto en el log de usuario."""
@@ -2516,10 +3047,7 @@ class SprottExplorerTab(QWidget):
         self.export_explain_button.setEnabled(True)
 
         # Navegar a la subpestaña Backend explicado
-        for idx in range(self.sections.count()):
-            if self.sections.tabText(idx) == 'Backend explicado':
-                self.sections.setCurrentIndex(idx)
-                break
+        self._go_to_tab('Backend explicado')
 
     def export_explanation_markdown(self):
         """Exporta la explicación actualmente mostrada como archivo .md."""

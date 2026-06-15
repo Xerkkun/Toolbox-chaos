@@ -25,44 +25,139 @@ from tools.generate_sprott_example_thumbnails import render_example_thumbnail
 from ui.sprott_explorer_tab import SprottExplorerTab
 
 
+# ── Helper ────────────────────────────────────────────────────────────────────
+
+def _check(condition: bool, msg: str) -> None:
+    if not condition:
+        raise RuntimeError(msg)
+
+
 def main() -> int:
     _ = (matplotlib, np, pyqtgraph, QtCore)
 
+    # ── 1. Native library ─────────────────────────────────────────────────────
     library()
 
+    # ── 2. Lorenz simulation ──────────────────────────────────────────────────
     params, initial = system_defaults('lorenz')
     t, states = simulate_system('lorenz', initial, params, dt=0.01, T=0.1, method_key='rk4')
-    if t.shape[0] < 2 or states.shape != (t.shape[0], 3):
-        raise RuntimeError(f'Unexpected Lorenz output shapes: t={t.shape}, states={states.shape}')
-    if not np.all(np.isfinite(states)):
-        raise RuntimeError('Lorenz smoke simulation returned non-finite values.')
+    _check(t.shape[0] >= 2 and states.shape == (t.shape[0], 3),
+           f'Unexpected Lorenz output shapes: t={t.shape}, states={states.shape}')
+    _check(np.all(np.isfinite(states)),
+           'Lorenz smoke simulation returned non-finite values.')
 
+    # ── 3. Required assets ────────────────────────────────────────────────────
     dictionary = REPO_ROOT / 'assets' / 'chaos_dictionary.pdf'
-    if not dictionary.exists():
-        raise FileNotFoundError(f'Required educational asset is missing: {dictionary}')
+    _check(dictionary.exists(), f'Required educational asset is missing: {dictionary}')
 
+    theory_pdf = REPO_ROOT / 'assets' / 'sprott' / 'sprott_theory.pdf'
+    if not theory_pdf.exists():
+        print(f'WARNING: sprott_theory.pdf not found at {theory_pdf} — PDF viewer will fall back to HTML')
+    else:
+        print(f'sprott_theory.pdf OK: {theory_pdf}')
+
+    # ── 4. QtPdf availability ─────────────────────────────────────────────────
+    try:
+        from PyQt6.QtPdf import QPdfDocument        # noqa: F401
+        from PyQt6.QtPdfWidgets import QPdfView     # noqa: F401
+        print('QtPdf OK: embedded PDF viewer will be available')
+    except ImportError as exc:
+        print(f'WARNING: QtPdf not available ({exc}) — PDF viewer will fall back to HTML/text')
+
+    # ── 5. Sprott codec ───────────────────────────────────────────────────────
     code = decode_code('AWMA')
-    if code.family_letter != 'A' or code.dimension != 1 or code.order != 2:
-        raise RuntimeError(f'Unexpected Sprott decode result: {code}')
-    if len(multi_indices(2, 2)) != 6:
-        raise RuntimeError('Unexpected Sprott monomial count for D=2, O=2.')
-    examples = load_synthetic_examples()
-    if len(examples) < 10:
-        raise RuntimeError('Sprott synthetic examples did not load.')
-    if not all(item.get('learning_goal') and item.get('visual_intent') for item in examples):
-        raise RuntimeError('Sprott synthetic examples must include learning_goal and visual_intent.')
+    _check(code.family_letter == 'A' and code.dimension == 1 and code.order == 2,
+           f'Unexpected Sprott decode result: {code}')
+    _check(len(multi_indices(2, 2)) == 6,
+           'Unexpected Sprott monomial count for D=2, O=2.')
 
+    # ── 6. Synthetic examples ─────────────────────────────────────────────────
+    examples = load_synthetic_examples()
+    _check(len(examples) >= 10, 'Sprott synthetic examples did not load.')
+    _check(all(item.get('learning_goal') and item.get('visual_intent') for item in examples),
+           'Sprott synthetic examples must include learning_goal and visual_intent.')
+
+    # ── 7. Thumbnail rendering ────────────────────────────────────────────────
     app = QApplication.instance() or QApplication([])
-    first_visual = next((item for item in examples if item.get('starter_label') == 'Primera imagen bonita'), examples[0])
+    first_visual = next(
+        (item for item in examples if item.get('starter_label') == 'Primera imagen bonita'),
+        examples[0],
+    )
     thumb_dir = REPO_ROOT / '.pytest_tmp' / 'smoke_sprott'
     thumb_dir.mkdir(parents=True, exist_ok=True)
     thumb = render_example_thumbnail(first_visual, thumb_dir / 'smoke_thumb.png', app=app)
-    if not thumb.exists() or thumb.stat().st_size < 1000:
-        raise RuntimeError('Sprott example thumbnail smoke render failed.')
+    _check(thumb.exists() and thumb.stat().st_size >= 1000,
+           'Sprott example thumbnail smoke render failed.')
 
+    # ── 8. SprottExplorerTab construction ─────────────────────────────────────
     tab = SprottExplorerTab()
-    if tab.sections.count() != 8:
-        raise RuntimeError(f'Unexpected Sprott tab section count: {tab.sections.count()}')
+
+    # Tab count
+    _check(tab.sections.count() == 9,
+           f'Unexpected Sprott tab section count: {tab.sections.count()}')
+
+    # Tab order: Tutorial must be 2nd (index 1), Exploración must be 4th (index 3)
+    expected_tab_prefixes = {
+        0: 'Inicio',
+        1: 'Tutorial',
+        2: 'Teoria',
+        3: 'Codigos',
+        4: 'Exploracion',
+        5: 'Ejemplos',
+        6: 'Galeria',
+    }
+    for idx, prefix in expected_tab_prefixes.items():
+        actual = tab.sections.tabText(idx)
+        _check(
+            prefix.lower() in actual.lower(),
+            f'Tab {idx}: expected prefix "{prefix}", found "{actual}"',
+        )
+
+    # No magic numeric tab indices in sprott_explorer_tab.py
+    src_path = REPO_ROOT / 'ui' / 'sprott_explorer_tab.py'
+    src = src_path.read_text(encoding='utf-8')
+    for bad in ('setCurrentIndex(3)', 'setCurrentIndex(6)'):
+        _check(bad not in src,
+               f'Magic tab index found in sprott_explorer_tab.py: {bad!r}')
+
+    # load_local_dic_examples must use limit=None as default
+    _check(
+        'def load_local_dic_examples(self, limit=None)' in src,
+        'load_local_dic_examples still has a non-None default limit',
+    )
+
+    # Action buttons and new widgets must exist on the tab
+    for attr in (
+        'quick_sim_btn', 'save_gallery_btn', 'dic_status_label',
+        'dic_load_limit_combo', 'reading_mode_check',
+    ):
+        _check(hasattr(tab, attr), f'SprottExplorerTab missing attribute: {attr}')
+
+    # New methods must exist
+    for method in (
+        'tutorial_apply_preset_and_show', 'load_quick_example_for_preset',
+        '_load_bookfigs_full', '_open_book_reading_mode', '_make_pdf_viewer',
+    ):
+        _check(hasattr(tab, method), f'SprottExplorerTab missing method: {method}')
+
+    # PyInstaller spec must list QtPdf in hiddenimports
+    spec_path = REPO_ROOT / 'packaging' / 'pyinstaller' / 'chaos_toolbox.spec'
+    if spec_path.exists():
+        spec_src = spec_path.read_text(encoding='utf-8')
+        _check(
+            'PyQt6.QtPdf' in spec_src and 'PyQt6.QtPdfWidgets' in spec_src,
+            'chaos_toolbox.spec is missing PyQt6.QtPdf / PyQt6.QtPdfWidgets in hiddenimports',
+        )
+        print('PyInstaller spec: hiddenimports OK')
+    else:
+        print(f'WARNING: spec file not found at {spec_path}')
+
+    # ── 9. Verify no Sprott original files in release paths ──────────────────
+    from tools.check_no_sprott_originals_in_release import check_release_cleanliness
+    banned_found = check_release_cleanliness()
+    _check(len(banned_found) == 0, f"Sprott release check failed: found original files in release paths: {banned_found}")
+    print('Sprott release cleanliness check: OK')
+
     tab.deleteLater()
     app.processEvents()
 
