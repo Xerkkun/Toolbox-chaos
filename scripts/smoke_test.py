@@ -21,6 +21,7 @@ from core.native import library
 from core.lorenz import simulate_system, system_defaults
 from core.sprott import decode_code, multi_indices
 from core.sprott.catalog import load_synthetic_examples
+from tools.generate_sprott_example_thumbnails import render_example_thumbnail
 from ui.sprott_explorer_tab import SprottExplorerTab
 
 
@@ -45,10 +46,20 @@ def main() -> int:
         raise RuntimeError(f'Unexpected Sprott decode result: {code}')
     if len(multi_indices(2, 2)) != 6:
         raise RuntimeError('Unexpected Sprott monomial count for D=2, O=2.')
-    if not load_synthetic_examples():
+    examples = load_synthetic_examples()
+    if len(examples) < 10:
         raise RuntimeError('Sprott synthetic examples did not load.')
+    if not all(item.get('learning_goal') and item.get('visual_intent') for item in examples):
+        raise RuntimeError('Sprott synthetic examples must include learning_goal and visual_intent.')
 
     app = QApplication.instance() or QApplication([])
+    first_visual = next((item for item in examples if item.get('starter_label') == 'Primera imagen bonita'), examples[0])
+    thumb_dir = REPO_ROOT / '.pytest_tmp' / 'smoke_sprott'
+    thumb_dir.mkdir(parents=True, exist_ok=True)
+    thumb = render_example_thumbnail(first_visual, thumb_dir / 'smoke_thumb.png', app=app)
+    if not thumb.exists() or thumb.stat().st_size < 1000:
+        raise RuntimeError('Sprott example thumbnail smoke render failed.')
+
     tab = SprottExplorerTab()
     if tab.sections.count() != 8:
         raise RuntimeError(f'Unexpected Sprott tab section count: {tab.sections.count()}')

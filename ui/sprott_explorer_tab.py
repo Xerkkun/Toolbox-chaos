@@ -72,7 +72,7 @@ from core.sprott.visual import (
     visual_recommendation,
 )
 from ui.math_render import render_math_to_path
-from ui.sprott_canvases import Sprott2DCanvas
+from ui.sprott_canvases import Sprott2DCanvas, SprottGalleryThumbnail
 from ui.widgets import make_help_label
 
 
@@ -390,18 +390,43 @@ class SprottExplorerTab(QWidget):
 
         synthetic_box = QGroupBox('Ejemplos sinteticos publicos')
         synthetic_layout = QVBoxLayout(synthetic_box)
+        synthetic_layout.addWidget(QLabel('Ejemplos recomendados para empezar'))
+        self.recommended_examples_list = QListWidget()
+        self.recommended_examples_list.setMaximumHeight(118)
+        self.recommended_examples_list.currentRowChanged.connect(self.select_recommended_example)
+        synthetic_layout.addWidget(self.recommended_examples_list, stretch=0)
+        synthetic_layout.addWidget(QLabel('Coleccion completa'))
         self.examples_list = QListWidget()
         self.examples_list.setToolTip('Ejemplos sinteticos creados para esta toolbox. No vienen de diccionarios historicos.')
         self.examples_list.currentRowChanged.connect(self.show_selected_example)
         synthetic_layout.addWidget(self.examples_list, stretch=1)
+        self.example_thumbnail = SprottGalleryThumbnail()
+        synthetic_layout.addWidget(self.example_thumbnail, stretch=0)
         self.example_detail = QTextEdit()
         self.example_detail.setReadOnly(True)
         self.example_detail.setStyleSheet("font-family: 'Consolas', 'Courier New', monospace;")
-        self.example_sim_button = QPushButton('Simular ejemplo sintetico')
-        self.example_sim_button.setToolTip('Carga el codigo del ejemplo, ajusta iteraciones/transitorio y ejecuta la simulacion en C.')
-        self.example_sim_button.clicked.connect(self.simulate_selected_example)
         synthetic_layout.addWidget(self.example_detail, stretch=1)
-        synthetic_layout.addWidget(self.example_sim_button, stretch=0)
+        example_buttons = QWidget()
+        example_buttons_layout = QHBoxLayout(example_buttons)
+        example_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.example_sim_button = QPushButton('Simular')
+        self.example_style_button = QPushButton('Simular con estilo recomendado')
+        self.example_decode_button = QPushButton('Decodificar')
+        self.example_gallery_button = QPushButton('Agregar a galeria')
+        self.example_metadata_button = QPushButton('Exportar metadata')
+        self.example_sim_button.setToolTip('Carga parametros y simula el codigo del ejemplo.')
+        self.example_style_button.setToolTip('Carga parametros, aplica el visual recomendado y simula.')
+        self.example_decode_button.setToolTip('Lleva el codigo a la pestana Codigos y lo decodifica.')
+        self.example_gallery_button.setToolTip('Simula con visual recomendado y guarda una imagen generada en la galeria local.')
+        self.example_metadata_button.setToolTip('Exporta el JSON educativo del ejemplo seleccionado.')
+        self.example_sim_button.clicked.connect(lambda: self.simulate_selected_example(apply_visual=False))
+        self.example_style_button.clicked.connect(lambda: self.simulate_selected_example(apply_visual=True))
+        self.example_decode_button.clicked.connect(self.decode_selected_example)
+        self.example_gallery_button.clicked.connect(self.add_selected_example_to_gallery)
+        self.example_metadata_button.clicked.connect(self.export_selected_example_metadata)
+        for button in (self.example_sim_button, self.example_style_button, self.example_decode_button, self.example_gallery_button, self.example_metadata_button):
+            example_buttons_layout.addWidget(button)
+        synthetic_layout.addWidget(example_buttons, stretch=0)
         layout.addWidget(synthetic_box, 1, 0)
 
         local_box = QGroupBox('Ejemplos del libro desde .DIC local')
@@ -473,11 +498,20 @@ class SprottExplorerTab(QWidget):
         self.local_dic_style_button = QPushButton('Simular con estilo recomendado')
         self.local_dic_style_button.setToolTip('Carga el codigo local, ajusta parametros largos y aplica un preset visual segun dimension.')
         self.local_dic_style_button.clicked.connect(self.simulate_selected_local_dic_recommended)
+        self.local_dic_gallery_limit_combo = QComboBox()
+        for value in (10, 25, 50):
+            self.local_dic_gallery_limit_combo.addItem(str(value), userData=value)
+        self.local_dic_gallery_button = QPushButton('Generar galeria local desde este .DIC')
+        self.local_dic_gallery_button.setToolTip('Simula los primeros N codigos visibles y guarda imagenes propias en la galeria local del usuario.')
+        self.local_dic_gallery_button.clicked.connect(self.generate_local_gallery_from_dic)
         local_buttons = QWidget()
         local_buttons_layout = QHBoxLayout(local_buttons)
         local_buttons_layout.setContentsMargins(0, 0, 0, 0)
         local_buttons_layout.addWidget(self.local_dic_sim_button)
         local_buttons_layout.addWidget(self.local_dic_style_button)
+        local_buttons_layout.addWidget(QLabel('N'))
+        local_buttons_layout.addWidget(self.local_dic_gallery_limit_combo)
+        local_buttons_layout.addWidget(self.local_dic_gallery_button)
         local_layout.addWidget(local_buttons)
         layout.addWidget(local_box, 1, 1)
         layout.setColumnStretch(0, 1)
@@ -506,7 +540,17 @@ class SprottExplorerTab(QWidget):
             'Si parece una linea simple, aumenta iteraciones/transitorio o cambia proyeccion. Si diverge, reduce `h` '
             'en flujos o usa RK4. Si esta muy dispersa, baja tamano de punto y opacidad.\n\n'
             '## 5. Exportar y citar\n'
-            'Exporta PNG/CSV/JSON o agrega la imagen a Galeria. Cita a Sprott y no redistribuyas archivos originales.'
+            'Exporta PNG/CSV/JSON o agrega la imagen a Galeria. Cita a Sprott y no redistribuyas archivos originales.\n\n'
+            '## Receta: Quiero una imagen bonita rapido\n'
+            'Abre Ejemplos, elige **Primera imagen bonita** y pulsa **Simular con estilo recomendado**. Exporta PNG.\n\n'
+            '## Receta: Quiero algo parecido al espiritu visual del libro\n'
+            'Usa un ejemplo 3D, proyeccion `x-y`, color por `z`, paleta `Turbo`, fondo negro, puntos pequenos, muchas iteraciones y sin ejes.\n\n'
+            '## Receta: Quiero bandas\n'
+            'Usa un ejemplo 4D o de bandas, color por `w` o `radio`, `band_count=12` o `16`, fondo negro y paleta ciclica.\n\n'
+            '## Receta: Quiero explorar mis archivos de Sprott\n'
+            'Carga `SELECTED.DIC`, filtra simulables, simula con estilo recomendado y guarda en Galeria local. Para lotes, usa **Generar galeria local desde este .DIC**.\n\n'
+            '## Receta: Quiero crear ejemplos nuevos\n'
+            'Usa Buscar candidato con mas intentos, guarda el codigo, ajusta estilo y exporta metadatos. Los scripts en `tools/` ayudan a proponer y promover ejemplos sinteticos.'
         )
         layout.addWidget(self._markdown_browser(text), 0, 0, 1, 2)
         actions = QGroupBox('Acciones rapidas')
@@ -1071,25 +1115,64 @@ class SprottExplorerTab(QWidget):
 
     def _load_examples(self):
         self.examples_list.clear()
+        self.recommended_examples_list.clear()
         try:
             self.examples = load_synthetic_examples()
         except Exception as exc:
             self.examples = []
             self.examples_list.addItem(f'No se pudieron cargar ejemplos: {exc}')
             return
-        for item in self.examples:
-            self.examples_list.addItem(item.get('name', item.get('id', 'example')))
+        for idx, item in enumerate(self.examples):
+            label = f"{item.get('category', 'sin categoria')} | {item.get('name', item.get('id', 'example'))}"
+            self.examples_list.addItem(label)
+            starter = item.get('starter_label')
+            if starter:
+                self.recommended_examples_list.addItem(f"{starter} -> {item.get('name', item.get('id', 'example'))}")
+                self.recommended_examples_list.item(self.recommended_examples_list.count() - 1).setData(256, idx)
         if self.examples:
             self.examples_list.setCurrentRow(0)
+            if self.recommended_examples_list.count() > 0:
+                self.recommended_examples_list.setCurrentRow(0)
+
+    def select_recommended_example(self, row: int):
+        if row < 0:
+            return
+        item = self.recommended_examples_list.item(row)
+        if not item:
+            return
+        idx = item.data(256)
+        if idx is not None and 0 <= int(idx) < len(self.examples):
+            self.examples_list.setCurrentRow(int(idx))
 
     def show_selected_example(self, row: int):
         if row < 0 or row >= len(self.examples):
             return
         item = self.examples[row]
+        code = decode_code(item.get('code', ''))
+        params = item.get('parameters', {})
+        visual = item.get('visual', {})
+        thumbnail = item.get('thumbnail', '')
+        thumb_path = self.assets_dir / thumbnail if thumbnail else None
+        if thumb_path and thumb_path.exists():
+            self.example_thumbnail.set_image(thumb_path)
+        else:
+            self.example_thumbnail.clear()
         lines = [
             f"name: {item.get('name', '')}",
+            f"category: {item.get('category', '')}",
+            f"starter_label: {item.get('starter_label', '')}",
             f"source: {item.get('source', '')}",
             f"code: {item.get('code', '')}",
+            f"family: {code.family_letter} | kind: {code.kind} | dimension: {code.dimension} | order: {code.order}",
+            '',
+            f"learning_goal: {item.get('learning_goal', '')}",
+            f"visual_intent: {item.get('visual_intent', '')}",
+            '',
+            'recommended parameters:',
+            json.dumps(params, indent=2, ensure_ascii=False),
+            '',
+            'recommended visual:',
+            json.dumps(visual, indent=2, ensure_ascii=False),
             '',
             'equations:',
             item.get('equations', ''),
@@ -1098,11 +1181,21 @@ class SprottExplorerTab(QWidget):
         ]
         self.example_detail.setPlainText('\n'.join(lines))
 
-    def simulate_selected_example(self):
+    def _selected_example(self) -> dict | None:
         row = self.examples_list.currentRow()
         if row < 0 or row >= len(self.examples):
+            return None
+        return self.examples[row]
+
+    def simulate_selected_example(self, apply_visual: bool = True):
+        item = self._selected_example()
+        if not item:
             return
-        item = self.examples[row]
+        self.apply_example_to_controls(item, apply_visual=apply_visual)
+        self.simulate_exploration_code()
+        self.sections.setCurrentIndex(3)
+
+    def apply_example_to_controls(self, item: dict, *, apply_visual: bool = True):
         params = item.get('parameters', {})
         self.explore_code_edit.setText(item.get('code', ''))
         self.last_source = 'synthetic'
@@ -1117,8 +1210,78 @@ class SprottExplorerTab(QWidget):
             self._set_combo_data(self.dimension_combo, int(params['dimension']))
         if 'order' in params:
             self._set_combo_data(self.order_combo, int(params['order']))
+        if 'method' in params:
+            self.method_combo.setCurrentText(str(params['method']))
+        if 'divergence_threshold' in params:
+            self.divergence_spin.setValue(float(params['divergence_threshold']))
+        if apply_visual:
+            self.apply_visual_dict(item.get('visual', {}))
+
+    def apply_visual_dict(self, data: dict):
+        if not data:
+            return
+        preset = data.get('preset')
+        if preset:
+            self.visual_preset_combo.setCurrentText(str(preset))
+        setters = [
+            ('projection', self.projection_combo.setCurrentText),
+            ('color_by', self.color_by_combo.setCurrentText),
+            ('palette', self.palette_combo.setCurrentText),
+            ('background', self.background_combo.setCurrentText),
+            ('draw_mode', self.draw_mode_combo.setCurrentText),
+        ]
+        for key, setter in setters:
+            if key in data:
+                setter(str(data[key]))
+        if 'point_size' in data:
+            self.point_size_spin.setValue(float(data['point_size']))
+        if 'alpha' in data:
+            self.alpha_spin.setValue(float(data['alpha']))
+        if 'max_points' in data:
+            self.max_plot_points_spin.setValue(int(data['max_points']))
+        if 'show_axes' in data:
+            self.axes_check.setChecked(bool(data['show_axes']))
+        if 'show_grid' in data:
+            self.grid_check.setChecked(bool(data['show_grid']))
+        if 'equal_aspect' in data:
+            self.equal_aspect_check.setChecked(bool(data['equal_aspect']))
+        if 'band_count' in data:
+            self.band_count_spin.setValue(int(data['band_count']))
+        if 'export_dpi' in data:
+            self.export_dpi_spin.setValue(int(data['export_dpi']))
+
+    def decode_selected_example(self):
+        item = self._selected_example()
+        if not item:
+            return
+        self.code_edit.setText(item.get('code', ''))
+        self.decode_current_code()
+        self.sections.setCurrentIndex(2)
+
+    def add_selected_example_to_gallery(self):
+        item = self._selected_example()
+        if not item:
+            return
+        self.apply_example_to_controls(item, apply_visual=True)
         self.simulate_exploration_code()
-        self.sections.setCurrentIndex(3)
+        self.favorite_note.setText(item.get('learning_goal', item.get('name', '')))
+        self.save_current_gallery_entry()
+        self.sections.setCurrentIndex(6)
+
+    def export_selected_example_metadata(self):
+        item = self._selected_example()
+        if not item:
+            return
+        path, _filter = QFileDialog.getSaveFileName(
+            self,
+            'Exportar metadata del ejemplo sintetico',
+            str(gallery_root() / f"{item.get('id', 'sprott_example')}_metadata.json"),
+            'JSON (*.json)',
+        )
+        if not path:
+            return
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(json.dumps(item, indent=2, ensure_ascii=False), encoding='utf-8')
 
     def browse_local_dic(self):
         path, _selected_filter = QFileDialog.getOpenFileName(
@@ -1293,13 +1456,103 @@ class SprottExplorerTab(QWidget):
         if not entry:
             QMessageBox.information(self, 'Sin codigo local', 'Selecciona un codigo del .DIC local primero.')
             return
-        if entry.get('dimension', 0) >= 4:
-            self.visual_preset_combo.setCurrentText('Mapa 4D')
-        elif entry.get('dimension', 0) == 3:
-            self.visual_preset_combo.setCurrentText('Color por profundidad')
-        else:
-            self.visual_preset_combo.setCurrentText('Sprott libro blanco')
+        self.apply_visual_config_to_widgets(self._recommended_visual_for_entry(entry))
         self.simulate_selected_local_dic()
+
+    def _recommended_visual_for_entry(self, entry: dict) -> SprottVisualConfig:
+        if entry.get('kind') == 'flow':
+            config = visual_preset('Color por profundidad')
+            config.projection = '3D x-y-z' if entry.get('dimension', 0) >= 3 else 'x-y'
+            config.color_by = 'z'
+            config.max_points = 16000
+            return config
+        if entry.get('dimension', 0) >= 4:
+            return visual_preset('Mapa 4D')
+        if entry.get('dimension', 0) == 3:
+            return visual_preset('Color por profundidad')
+        if entry.get('dimension', 0) == 2:
+            return visual_preset('Alta densidad')
+        config = visual_preset('Didactico')
+        config.projection = 'n-x'
+        return config
+
+    def apply_visual_config_to_widgets(self, config: SprottVisualConfig):
+        self.projection_combo.setCurrentText(config.projection)
+        self.color_by_combo.setCurrentText(config.color_by)
+        self.palette_combo.setCurrentText(config.palette)
+        self.background_combo.setCurrentText(config.background)
+        self.draw_mode_combo.setCurrentText(config.draw_mode)
+        self.point_size_spin.setValue(config.point_size)
+        self.alpha_spin.setValue(config.alpha)
+        self.max_plot_points_spin.setValue(config.max_points)
+        self.band_count_spin.setValue(config.band_count)
+        self.export_dpi_spin.setValue(config.export_dpi)
+        self.axes_check.setChecked(config.show_axes)
+        self.grid_check.setChecked(config.show_grid)
+        self.equal_aspect_check.setChecked(config.equal_aspect)
+
+    def generate_local_gallery_from_dic(self):
+        if not self.local_dic_visible_entries:
+            QMessageBox.information(self, 'Sin codigos', 'Carga y filtra un .DIC local primero.')
+            return
+        limit = int(self.local_dic_gallery_limit_combo.currentData() or 10)
+        saved = 0
+        errors = 0
+        for entry in self.local_dic_visible_entries:
+            if saved >= limit:
+                break
+            if entry.get('support') != 'simulable':
+                continue
+            code = decode_code(entry['code'])
+            config = self._recommended_visual_for_entry(entry)
+            if code.kind == 'map':
+                n_iter, transient, h, method = 12000, 2000, 0.01, 'rk4'
+            else:
+                n_iter, transient, h, method = 6500, 900, 0.01, 'rk4'
+            try:
+                result = simulate_candidate(
+                    entry['code'],
+                    n_iter=n_iter,
+                    transient=transient,
+                    h=h,
+                    method=method,
+                    divergence_threshold=1e9,
+                    backend='c',
+                )
+                classification = classify_candidate(result['post_transient'], divergence_threshold=1e9)
+                self.sprott_canvas.plot_trajectory(
+                    result['post_transient'],
+                    config,
+                    title=f"Local .DIC {entry.get('source_name', '')}:{entry.get('line', '')}",
+                )
+                with tempfile.TemporaryDirectory() as tmp:
+                    tmpdir = Path(tmp)
+                    render = self.sprott_canvas.export_image(tmpdir / 'render.png', dpi=config.export_dpi)
+                    thumb = self.sprott_canvas.export_thumbnail(tmpdir / 'thumbnail.png')
+                    metadata = build_metadata(
+                        code=entry['code'],
+                        source='local_dic',
+                        source_file=entry.get('source_file', ''),
+                        source_line=entry.get('line'),
+                        simulation={
+                            'iterations': n_iter,
+                            'transient': transient,
+                            'h': h,
+                            'method': method,
+                            'divergence_threshold': 1e9,
+                        },
+                        style=config.to_dict(),
+                        classification=classification,
+                        notes='Imagen generada localmente desde un codigo .DIC proporcionado por el usuario.',
+                    )
+                    save_gallery_entry(render_path=render, thumbnail_path=thumb, metadata=metadata)
+                saved += 1
+                QApplication.processEvents()
+            except Exception:
+                errors += 1
+                continue
+        self.refresh_gallery()
+        QMessageBox.information(self, 'Galeria local', f'Imagenes guardadas: {saved}\nErrores u omitidos: {errors}')
 
     def save_current_favorite(self):
         if not self.last_result:

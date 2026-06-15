@@ -61,6 +61,7 @@ class Sprott2DCanvas(FigureCanvas):
         bg = background_color(cfg.background)
         fg = foreground_color(cfg.background)
         transparent = cfg.background == 'transparente'
+        self.fig.patch.set_facecolor('none' if transparent else bg)
         self.fig.patch.set_alpha(0.0 if transparent else 1.0)
         self.ax.set_facecolor('none' if transparent else bg)
         self.ax.tick_params(colors=fg)
@@ -100,6 +101,7 @@ class Sprott2DCanvas(FigureCanvas):
         bg = background_color(cfg.background)
         fg = foreground_color(cfg.background)
         transparent = cfg.background == 'transparente'
+        self.fig.patch.set_facecolor('none' if transparent else bg)
         self.fig.patch.set_alpha(0.0 if transparent else 1.0)
         self.ax.set_facecolor('none' if transparent else bg)
         cvals = quantize(color_values(values, cfg.color_by), cfg.band_count)
