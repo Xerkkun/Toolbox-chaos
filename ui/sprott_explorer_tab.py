@@ -1015,12 +1015,20 @@ class SprottExplorerTab(QWidget):
             try:
                 document = QPdfDocument(container)
                 load_err = document.load(str(pdf_path))
-                err_val = int(load_err) if hasattr(load_err, '__int__') else load_err
+                is_no_error = False
+                if hasattr(QPdfDocument, 'Error') and hasattr(QPdfDocument.Error, 'None_'):
+                    is_no_error = (load_err == QPdfDocument.Error.None_)
+                else:
+                    try:
+                        is_no_error = (int(load_err) == 0)
+                    except (ValueError, TypeError):
+                        is_no_error = (str(load_err) in ('0', 'Error.None_', 'None_') or 'None' in str(load_err))
+
                 page_count = document.pageCount()
-                load_ok = (err_val == 0) and (page_count > 0)
-                status_parts.append(f'load()={err_val}, p\u00e1ginas={page_count}')
+                load_ok = is_no_error and (page_count > 0)
+                status_parts.append(f'load()={repr(load_err)}, páginas={page_count}')
                 if not load_ok:
-                    status_parts.append('\u26a0 El PDF no carg\u00f3 correctamente')
+                    status_parts.append('⚠ El PDF no cargó correctamente')
                 else:
                     view = QPdfView(container)
                     view.setDocument(document)
@@ -1165,8 +1173,7 @@ class SprottExplorerTab(QWidget):
                 starter = self.examples[0]
         if starter:
             try:
-                from ui.sprott_explorer_tab import apply_example_to_controls  # noqa: F401
-                apply_example_to_controls(self, starter, apply_visual=True)
+                self.apply_example_to_controls(starter, apply_visual=True)
             except Exception:
                 pass
         # Fall back to quick default code
@@ -1870,22 +1877,25 @@ class SprottExplorerTab(QWidget):
                 'Descarga la carpeta de datos del libro de Sprott y coloca los .DIC en external/sprott_site_bookdisk/...'
             )
             return
+        
+        # Selecciona BOOKFIGS.DIC en el combo de selección rápida
+        idx = self.local_dic_quick_combo.findData('BOOKFIGS.DIC')
+        if idx >= 0:
+            self.local_dic_quick_combo.setCurrentIndex(idx)
+            
+        # Pone el selector de cantidad en 'Todos' (su userData es None)
+        if hasattr(self, 'dic_load_limit_combo'):
+            idx_all = self.dic_load_limit_combo.findData(None)
+            if idx_all >= 0:
+                self.dic_load_limit_combo.setCurrentIndex(idx_all)
+                
         self.local_dic_path_edit.setText(str(path))
         self.load_local_dic_examples(limit=None)
 
     def _open_book_reading_mode(self):
         """Navigate to Ejemplos, load BOOKFIGS.DIC, and activate reading mode."""
         self._go_to_tab('Ejemplos')
-        path = self._find_local_dic('BOOKFIGS.DIC')
-        if path.exists():
-            self.local_dic_path_edit.setText(str(path))
-            self.load_local_dic_examples(limit=None)
-        else:
-            QMessageBox.information(
-                self, 'BOOKFIGS.DIC no encontrado',
-                'No se encontró BOOKFIGS.DIC automáticamente.\n'
-                'Usa «Elegir .DIC» para seleccionarlo manualmente, luego pulsa «Cargar BOOKFIGS.DIC completo».'
-            )
+        self._load_bookfigs_full()
         if not self.reading_mode_check.isChecked():
             self.reading_mode_check.setChecked(True)
 

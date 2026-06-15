@@ -15,7 +15,7 @@ import matplotlib
 import numpy as np
 import pyqtgraph
 from PyQt6 import QtCore
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QLabel
 
 from core.native import library
 from core.lorenz import simulate_system, system_defaults
@@ -91,6 +91,24 @@ def main() -> int:
 
     # ── 8. SprottExplorerTab construction ─────────────────────────────────────
     tab = SprottExplorerTab()
+
+    # ── 8a. Test _make_pdf_viewer on both PDFs ────────────────────────────────
+    theory_pdf_path = REPO_ROOT / 'assets' / 'sprott' / 'sprott_theory.pdf'
+    dict_pdf_path = REPO_ROOT / 'assets' / 'chaos_dictionary.pdf'
+    
+    for pdf_p, title in [(theory_pdf_path, 'Teoría'), (dict_pdf_path, 'Diccionario')]:
+        pdf_widget = tab._make_pdf_viewer(pdf_p, title)
+        _check(pdf_widget is not None, f"make_pdf_viewer returned None for {pdf_p}")
+        
+        # Check that it contains a status label with the diagnostics
+        labels = pdf_widget.findChildren(QLabel)
+        _check(len(labels) >= 1, f"make_pdf_viewer widget has no QLabel children for {pdf_p}")
+        
+        # Verify diagnostics label text format
+        status_lbl = next((l for l in labels if 'Archivo:' in l.text() and 'QtPdf:' in l.text()), None)
+        _check(status_lbl is not None, f"make_pdf_viewer status label not found or has incorrect text format: {[l.text() for l in labels]}")
+        print(f"PDF viewer smoke check for {pdf_p.name} OK: {status_lbl.text().replace(chr(0x2502), '|')}")
+
 
     # Tab count
     _check(tab.sections.count() == 9,
