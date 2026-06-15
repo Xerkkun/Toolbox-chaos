@@ -1,0 +1,34 @@
+[project]
+name = "chaos-toolbox"
+version = "0.1.0"
+description = "Desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Fer Moreno" }
+]
+keywords = ["chaos", "dynamical-systems", "pyqt", "numerical-analysis", "attractors"]
+dependencies = [
+  "PyQt6>=6.7",
+  "numpy>=1.26",
+  "matplotlib>=3.8",
+  "pyqtgraph>=0.13"
+]
+
+[project.optional-dependencies]
+build = [
+  "pyinstaller>=6",
+  "pypdf>=4"
+]
+
+[project.urls]
+Homepage = "https://example.invalid/chaos-toolbox"
+Repository = "https://example.invalid/chaos-toolbox"
+
+[tool.chaos_toolbox]
+developer = "Fer Moreno"
+license = "MIT"
+release_api_url_env = "CHAOS_TOOLBOX_RELEASES_API_URL"
+update_check_interval_days = 7
+artifact_name_pattern = "chaos-toolbox-v{version}-{platform}"

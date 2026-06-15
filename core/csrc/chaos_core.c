@@ -813,6 +813,7 @@ CHAOS_API int chaos_bifurcation_generic(
     const double *params,
     int n_params,
     int param_idx,
+    int observed_var_idx,
     double x0, double y0, double z0,
     double param_min, double param_max,
     int n_param,
@@ -824,7 +825,7 @@ CHAOS_API int chaos_bifurcation_generic(
     double *out_value,
     int *out_count
 ) {
-    if (params == NULL || n_params < 0 || param_idx < 0 || n_param < 1 || dt <= 0.0 ||
+    if (params == NULL || n_params < 0 || param_idx < 0 || observed_var_idx < 0 || observed_var_idx > 2 || n_param < 1 || dt <= 0.0 ||
         T_keep <= 0.0 || max_points < 1 || out_param == NULL || out_value == NULL || out_count == NULL) {
         return -1;
     }
@@ -865,7 +866,8 @@ CHAOS_API int chaos_bifurcation_generic(
             }
             int kept = 0;
             for (int i = 0; valid && i < steps_keep; ++i) {
-                fallback[kept % max_points] = x;
+                double val = (observed_var_idx == 0) ? x : ((observed_var_idx == 1) ? y : z);
+                fallback[kept % max_points] = val;
                 kept += 1;
                 map_step_generic(system_id, &x, &y, &z, p, n_params);
                 if (state_invalid(x, y, z, 1e12)) valid = 0;
@@ -885,7 +887,8 @@ CHAOS_API int chaos_bifurcation_generic(
                     break;
                 }
             }
-            double zm2 = z, zm1 = z;
+            double initial_val = (observed_var_idx == 0) ? x : ((observed_var_idx == 1) ? y : z);
+            double val_m2 = initial_val, val_m1 = initial_val;
             int maxima_count = 0;
             int fallback_count = 0;
             for (int i = 0; valid && i < steps_keep; ++i) {
@@ -895,14 +898,15 @@ CHAOS_API int chaos_bifurcation_generic(
                     valid = 0;
                     break;
                 }
-                if (i >= 1 && zm1 > zm2 && zm1 >= znew) {
-                    maxima[maxima_count % max_points] = zm1;
+                double val_new = (observed_var_idx == 0) ? xnew : ((observed_var_idx == 1) ? ynew : znew);
+                if (i >= 1 && val_m1 > val_m2 && val_m1 >= val_new) {
+                    maxima[maxima_count % max_points] = val_m1;
                     maxima_count += 1;
                 }
-                fallback[fallback_count % max_points] = znew;
+                fallback[fallback_count % max_points] = val_new;
                 fallback_count += 1;
-                zm2 = zm1;
-                zm1 = znew;
+                val_m2 = val_m1;
+                val_m1 = val_new;
                 x = xnew;
                 y = ynew;
                 z = znew;

@@ -5,13 +5,15 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
+from core.paths import sprott_asset_path
+
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
 def examples_path() -> Path:
-    return repo_root() / 'assets' / 'sprott' / 'examples' / 'synthetic_examples.json'
+    return sprott_asset_path('examples', 'synthetic_examples.json')
 
 
 def load_synthetic_examples(path: str | Path | None = None) -> list[dict]:

@@ -38,18 +38,51 @@ if found_banned:
     print("Aborting build. Please remove these files.")
     sys.exit(1)
 
+from core.app_metadata import APP_VERSION
+
+runtime_resources = ROOT / 'resources' / 'bundled'
+if not runtime_resources.exists():
+    print("CRITICAL: resources/bundled does not exist. Run scripts/prepare_runtime_resources.py before PyInstaller.")
+    sys.exit(1)
+
+binaries = []
+windows_dll = ROOT / 'core' / 'bin' / 'chaos_core.dll'
+if windows_dll.exists():
+    binaries.append((str(windows_dll), 'core/bin'))
+
+datas = [
+    (str(runtime_resources), 'resources/bundled'),
+    (str(ROOT / 'LICENSE'), '.'),
+    (str(ROOT / 'NOTICE.md'), '.'),
+    (str(ROOT / 'AUTHORS.md'), '.'),
+    (str(ROOT / 'RELEASE_NOTES.md'), '.'),
+    (str(ROOT / 'packaging' / 'linux' / 'chaos-toolbox.desktop'), '.'),
+    (str(ROOT / 'docs' / 'installation.md'), 'docs'),
+    (str(ROOT / 'docs' / 'user-guide.md'), 'docs'),
+    (str(ROOT / 'docs' / 'troubleshooting.md'), 'docs'),
+    (str(ROOT / 'docs' / 'license.md'), 'docs'),
+    (str(ROOT / 'docs' / 'custom_systems_future.md'), 'docs'),
+]
 
 
 a = Analysis(
     [str(ROOT / 'main.py')],
     pathex=[str(ROOT)],
-    binaries=[(str(ROOT / 'core' / 'bin' / 'chaos_core.dll'), 'core/bin')],
-    datas=[(str(ROOT / 'assets'), 'assets')],
+    binaries=binaries,
+    datas=datas,
     hiddenimports=['PyQt6.QtPdf', 'PyQt6.QtPdfWidgets'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        'scipy',
+        'pytest',
+        'IPython',
+        'jedi',
+        'notebook',
+        'OpenGL',
+        'tkinter',
+    ],
     noarchive=False,
     optimize=0,
 )

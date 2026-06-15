@@ -112,21 +112,14 @@ class SystemParameterPanel(QWidget):
             ic_form = QFormLayout(self.ic_box)
 
             self.ic_labels: list[QLabel] = []
-            self.x0 = make_double_spin(0.1, -10000.0, 10000.0, 6)
-            self.y0 = make_double_spin(0.1, -10000.0, 10000.0, 6)
-            self.z0 = make_double_spin(0.1, -10000.0, 10000.0, 6)
-
-            for spin in (self.x0, self.y0, self.z0):
+            self.ic_spins: list[QDoubleSpinBox] = []
+            for idx in range(7):
+                label = QLabel(f'x{idx + 1}(0)')
+                spin = make_double_spin(0.1, -10000.0, 10000.0, 6)
                 spin.valueChanged.connect(self._emit_changed)
-
-            for label_text, spin in (
-                ('x(0)', self.x0),
-                ('y(0)', self.y0),
-                ('z(0)', self.z0),
-            ):
-                lbl = QLabel(label_text)
-                self.ic_labels.append(lbl)
-                ic_form.addRow(lbl, spin)
+                self.ic_labels.append(label)
+                self.ic_spins.append(spin)
+                ic_form.addRow(label, spin)
 
             main_layout.addWidget(self.ic_box)
 
@@ -174,10 +167,25 @@ class SystemParameterPanel(QWidget):
         n_params = len(meta.get('param_labels', ()))
         return [self.param_spins[i].value() for i in range(n_params)]
 
-    def current_initial(self) -> tuple[float, float, float]:
+    def current_initial(self) -> tuple[float, ...]:
         if self.show_ic:
-            return (self.x0.value(), self.y0.value(), self.z0.value())
+            key = self.current_system_key()
+            meta = SYSTEM_REGISTRY[key]
+            dim = meta.get('dimension', 3)
+            return tuple(self.ic_spins[i].value() for i in range(dim))
         return (0.1, 0.1, 0.1)
+
+    @property
+    def x0(self):
+        return self.ic_spins[0] if len(self.ic_spins) > 0 else None
+
+    @property
+    def y0(self):
+        return self.ic_spins[1] if len(self.ic_spins) > 1 else None
+
+    @property
+    def z0(self):
+        return self.ic_spins[2] if len(self.ic_spins) > 2 else None
 
     def _on_system_combo_changed(self):
         key = self.current_system_key()
@@ -210,19 +218,25 @@ class SystemParameterPanel(QWidget):
 
         # Update initial conditions
         if self.show_ic:
-            for idx, label in enumerate(
-                meta.get('initial_labels', ('x(0)', 'y(0)', 'z(0)'))
-            ):
-                self.ic_labels[idx].setText(label)
-            self.x0.blockSignals(True)
-            self.y0.blockSignals(True)
-            self.z0.blockSignals(True)
-            self.x0.setValue(float(initial[0]))
-            self.y0.setValue(float(initial[1]))
-            self.z0.setValue(float(initial[2]))
-            self.x0.blockSignals(False)
-            self.y0.blockSignals(False)
-            self.z0.blockSignals(False)
+            dim = meta.get('dimension', 3)
+            initial_labels = meta.get('initial_labels', ('x(0)', 'y(0)', 'z(0)'))
+            for idx, spin in enumerate(self.ic_spins):
+                spin.blockSignals(True)
+                if idx < dim:
+                    label_text = initial_labels[idx] if idx < len(initial_labels) else f'x{idx + 1}(0)'
+                    self.ic_labels[idx].setText(label_text)
+                    if idx < len(initial):
+                        spin.setValue(float(initial[idx]))
+                    spin.setEnabled(True)
+                    spin.show()
+                    self.ic_labels[idx].show()
+                else:
+                    self.ic_labels[idx].setText(f'x{idx + 1}(0)')
+                    spin.setValue(0.1)
+                    spin.setEnabled(False)
+                    spin.hide()
+                    self.ic_labels[idx].hide()
+                spin.blockSignals(False)
 
         # Update dt/T defaults
         if self.show_time:

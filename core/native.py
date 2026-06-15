@@ -179,6 +179,7 @@ def _load_library() -> ctypes.CDLL:
         ctypes.POINTER(ctypes.c_double),
         ctypes.c_int,
         ctypes.c_int,
+        ctypes.c_int,
         ctypes.c_double, ctypes.c_double, ctypes.c_double,
         ctypes.c_double, ctypes.c_double,
         ctypes.c_int,
@@ -447,12 +448,12 @@ def _parameter_chunks(param_min: float, param_max: float, n_param: int, workers:
 def _bifurcation_chunk(args):
     (
         system_key, initial, params, param_idx, param_min, param_max, n_param,
-        dt, T_trans, T_keep, max_points, continuation, method_key,
+        dt, T_trans, T_keep, max_points, continuation, method_key, observed_var_idx,
     ) = args
     return bifurcation_generic_native(
         system_key, initial, params, param_idx, param_min, param_max, n_param,
         dt, T_trans, T_keep, max_points, continuation=continuation,
-        method_key=method_key, workers=1,
+        method_key=method_key, observed_var_idx=observed_var_idx, workers=1,
     )
 
 
@@ -481,6 +482,7 @@ def bifurcation_generic_native(
     max_points: int,
     continuation: bool = False,
     method_key: str = 'rk4',
+    observed_var_idx: int = 2,
     workers: int | None = None,
 ):
     n_param = int(n_param)
@@ -493,7 +495,7 @@ def bifurcation_generic_native(
         tasks = [
             (
                 system_key, tuple(initial), tuple(params), int(param_idx), lo, hi, count,
-                float(dt), float(T_trans), float(T_keep), max_points, False, method_key,
+                float(dt), float(T_trans), float(T_keep), max_points, False, method_key, observed_var_idx,
             )
             for lo, hi, count in _parameter_chunks(param_min, param_max, n_param, workers)
         ]
@@ -517,6 +519,7 @@ def bifurcation_generic_native(
         p.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
         int(p.size),
         int(param_idx),
+        int(observed_var_idx),
         float(initial[0]), float(initial[1]), float(initial[2]),
         float(param_min), float(param_max),
         n_param,

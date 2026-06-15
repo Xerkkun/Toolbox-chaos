@@ -1,0 +1,1106 @@
+- system_id: lorenz
+  name: Lorenz system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [3]
+  primary_reference:
+    authors: "Edward N. Lorenz"
+    year: 1963
+    title: "Deterministic nonperiodic flow"
+    venue: "Journal of the Atmospheric Sciences"
+    doi: "10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters:
+      sigma: 10.0
+      rho: 28.0
+      beta: 2.6666666666666665
+    equations_latex: |
+      \dot{x}=\sigma(y-x)
+      \dot{y}=\rho x-y-xz
+      \dot{z}=-bz+xy
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.9056, 0.0, -14.5723]
+    kaplan_yorke_dimension: 2.06
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: O
+        point: [0, 0, 0]
+      - name: E+
+        point: [8.48528137, 8.48528137, 27]
+      - name: E-
+        point: [-8.48528137, -8.48528137, 27]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: rossler
+  name: Rössler system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [4]
+  primary_reference:
+    authors: "Otto E. Rössler"
+    year: 1976
+    title: "An Equation for Continuous Chaos"
+    venue: "Physics Letters A"
+    doi: "10.1016/0375-9601(76)90101-8"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters:
+      a: 0.2
+      b: 0.2
+      c: 5.7
+    equations_latex: |
+      \dot{x}=-y-z
+      \dot{y}=x+ay
+      \dot{z}=b+z(x-c)
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.0714, 0.0, -5.3943]
+    kaplan_yorke_dimension: 2.013
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.0, 0.0]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.00702, -0.03508, 0.03508]
+      - name: E2
+        point: [5.69298, -28.46492, 28.46492]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: chua
+  name: Chua circuit
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [4, 5]
+  primary_reference:
+    authors: "Leon O. Chua"
+    year: 1984
+    title: "A Chaotic Attractor from Chua's Circuit"
+    venue: "IEEE Transactions on Circuits and Systems"
+    doi: null
+  model:
+    model_type: piecewise_affine
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters:
+      alpha: 15.6
+      beta: 28.0
+      m0: -1.143
+      m1: -0.714
+    equations_latex: |
+      \dot{x}=\alpha(y-x-h(x))
+      \dot{y}=x-y+z
+      \dot{z}=-\beta y
+      h(x)=m_1 x + 0.5(m_0 - m_1)(|x+1| - |x-1|)
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: []
+    kaplan_yorke_dimension: null
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.0, 0.0]
+  equilibria:
+    reported:
+      - name: O
+        point: [0, 0, 0]
+      - name: P+
+        point: [1.5, 0, -1.5]
+      - name: P-
+        point: [-1.5, 0, 1.5]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: chen
+  name: Chen system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "G. Chen, T. Ueta"
+    year: 1999
+    title: "Yet another chaotic attractor"
+    venue: "International Journal of Bifurcation and Chaos"
+    doi: "10.1142/S0218127499001024"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters:
+      a: 35.0
+      b: 3.0
+      c: 28.0
+    equations_latex: |
+      \dot{x}=a(y-x)
+      \dot{y}=(c-a)x-xz+cy
+      \dot{z}=xy-bz
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: []
+    kaplan_yorke_dimension: null
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: O
+        point: [0, 0, 0]
+      - name: E1
+        point: [7.93725393, 7.93725393, 21]
+      - name: E2
+        point: [-7.93725393, -7.93725393, 21]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: unified_lorenz_chen
+  name: Unified Lorenz-Chen system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. Lü, G. Chen, S. Zhang"
+    year: 2002
+    title: "The compound structure of a new chaotic attractor"
+    venue: "Chaos, Solitons & Fractals"
+    doi: "10.1016/S0960-0779(01)00192-3"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters:
+      alpha: 0.0
+    equations_latex: |
+      \dot{x}=(25\alpha+10)(y-x)
+      \dot{y}=(28-35\alpha)x+(29\alpha-1)y-xz
+      \dot{z}=-\frac{\alpha+8}{3}z+xy
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: []
+    kaplan_yorke_dimension: null
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported: []
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+# Sprott A to S Systems
+- system_id: sprott_a
+  name: Sprott A system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=y
+      \dot{y}=-x+yz
+      \dot{z}=1-y^2
+  reported_dynamics:
+    attractor_type: conservative_chaotic_sea
+    lyapunov_exponents: [0.014, 0.0, -0.014]
+    kaplan_yorke_dimension: 3.0
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported: []
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_b
+  name: Sprott B system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=yz
+      \dot{y}=x-y
+      \dot{z}=1-xy
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.21, 0.0, -1.21]
+    kaplan_yorke_dimension: 2.174
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [1.0, 1.0, 0.0]
+      - name: E2
+        point: [-1.0, -1.0, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_c
+  name: Sprott C system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=yz
+      \dot{y}=x-y
+      \dot{z}=1-x^2
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.163, 0.0, -0.163]
+    kaplan_yorke_dimension: 2.14
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [1.0, 1.0, 0.0]
+      - name: E2
+        point: [-1.0, -1.0, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_d
+  name: Sprott D system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=-y
+      \dot{y}=x+z
+      \dot{z}=xz+3y^2
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.103, 0.0, -1.32]
+    kaplan_yorke_dimension: 2.078
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_e
+  name: Sprott E system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=yz
+      \dot{y}=x^2-y
+      \dot{z}=1-4x
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.078, 0.0, -1.078]
+    kaplan_yorke_dimension: 2.072
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.25, 0.0625, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_f
+  name: Sprott F system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=y+z
+      \dot{y}=-x+0.5y
+      \dot{z}=x^2-z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.117, 0.0, -0.617]
+    kaplan_yorke_dimension: 2.19
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [-2.0, -4.0, 4.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_g
+  name: Sprott G system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=0.4x+z
+      \dot{y}=xz-y
+      \dot{z}=-x+y
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.034, 0.0, -0.634]
+    kaplan_yorke_dimension: 2.054
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [-2.5, -2.5, 1.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_h
+  name: Sprott H system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=-y+z^2
+      \dot{y}=x+0.5y
+      \dot{z}=x-z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.117, 0.0, -0.617]
+    kaplan_yorke_dimension: 2.19
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [-2.0, 4.0, -2.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_i
+  name: Sprott I system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=0.2y
+      \dot{y}=x+z
+      \dot{z}=x+y^2-z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.012, 0.0, -1.012]
+    kaplan_yorke_dimension: 2.012
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_j
+  name: Sprott J system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=2z
+      \dot{y}=-2y+z
+      \dot{z}=-x+y+y^2
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.076, 0.0, -2.076]
+    kaplan_yorke_dimension: 2.037
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_k
+  name: Sprott K system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=xy-z
+      \dot{y}=x-y
+      \dot{z}=x+0.3z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.038, 0.0, -0.89]
+    kaplan_yorke_dimension: 2.042
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [-3.333, -3.333, 11.111]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_l
+  name: Sprott L system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=y+3.9z
+      \dot{y}=0.9x^2-y
+      \dot{z}=1-x
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.061, 0.0, -1.061]
+    kaplan_yorke_dimension: 2.057
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [1.0, 1.111, -0.231]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: false
+    smoke_simulation_passed: true
+    notes: "Discrepancia en la coordenada y del equilibrio (calculada = 0.9, reportada = 1.111)"
+
+- system_id: sprott_m
+  name: Sprott M system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=-z
+      \dot{y}=-x^2-y
+      \dot{z}=1.7+1.7x+y
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.044, 0.0, -1.044]
+    kaplan_yorke_dimension: 2.042
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [2.406, -5.791, 0.0]
+      - name: E2
+        point: [-0.706, -0.499, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_n
+  name: Sprott N system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=-2y
+      \dot{y}=x+z^2
+      \dot{z}=1+y-2z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.076, 0.0, -2.076]
+    kaplan_yorke_dimension: 2.037
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [-0.25, 0.0, 0.5]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_o
+  name: Sprott O system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=y
+      \dot{y}=x-z
+      \dot{z}=x+xz+2.7y
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.049, 0.0, -0.319]
+    kaplan_yorke_dimension: 2.154
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [-1.0, 0.0, -1.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_p
+  name: Sprott P system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=2.7y+z
+      \dot{y}=-x+y^2
+      \dot{z}=x+y
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.087, 0.0, -0.481]
+    kaplan_yorke_dimension: 2.181
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [1.0, -1.0, 2.7]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_q
+  name: Sprott Q system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=-z
+      \dot{y}=x-y
+      \dot{z}=3.1x+y^2+0.5z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.109, 0.0, -0.609]
+    kaplan_yorke_dimension: 2.179
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [0.0, 0.0, 0.0]
+      - name: E2
+        point: [-3.1, -3.1, 0.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: true
+    smoke_simulation_passed: true
+
+- system_id: sprott_r
+  name: Sprott R system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=0.9-y
+      \dot{y}=0.4+z
+      \dot{z}=xy-z
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.062, 0.0, -1.062]
+    kaplan_yorke_dimension: 2.058
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [-0.444, 1.111, -0.4]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: false
+    smoke_simulation_passed: true
+    notes: "Discrepancia en la coordenada y del equilibrio (calculada = 0.9, reportada = 1.111)"
+
+- system_id: sprott_s
+  name: Sprott S system
+  aliases: []
+  source:
+    book: "Wang, Kuznetsov & Chen (eds.), 2021"
+    chapter_number: 1
+    chapter_title: "Introduction"
+    pages: [5]
+  primary_reference:
+    authors: "J. C. Sprott"
+    year: 1994
+    title: "Some simple chaotic flows"
+    venue: "Physical Review E"
+    doi: "10.1103/PhysRevE.50.R647"
+  model:
+    model_type: ode
+    dimension: 3
+    state_variables: [x, y, z]
+    parameters: {}
+    equations_latex: |
+      \dot{x}=x-4y
+      \dot{y}=x+z^2
+      \dot{z}=1+x
+  reported_dynamics:
+    attractor_type: self_excited
+    lyapunov_exponents: [0.188, 0.0, -1.188]
+    kaplan_yorke_dimension: 2.151
+  initial_conditions:
+    reported: []
+    recommended_for_reproduction: [0.1, 0.1, 0.1]
+  equilibria:
+    reported:
+      - name: E1
+        point: [-1.0, 0.25, 1.0]
+      - name: E2
+        point: [-1.0, 0.25, -1.0]
+  implementation:
+    file: "core/lorenz.py"
+    preset_file: "core/lorenz.py"
+    test_file: "tests/test_wang2021_ch01.py"
+    simulation_status: implemented
+  validation:
+    equation_verified_against_pdf: true
+    equilibria_verified: false
+    smoke_simulation_passed: true
+    notes: "Discrepancia en la coordenada y del equilibrio (calculada = -0.25, reportada = 0.25)"

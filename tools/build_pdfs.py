@@ -2,8 +2,10 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
+BUNDLED_DOCS = ROOT / "resources" / "bundled" / "docs"
 
 def build_pdf(tex_relative_path, runs=3):
     tex_path = ROOT / tex_relative_path
@@ -77,6 +79,17 @@ def main():
     
     # Build sprott_theory.tex
     build_pdf("assets/sprott/sprott_theory.tex")
+
+    BUNDLED_DOCS.mkdir(parents=True, exist_ok=True)
+    for source in (
+        ROOT / "assets" / "chaos_dictionary.pdf",
+        ROOT / "assets" / "sprott" / "sprott_theory.pdf",
+        ROOT / "assets" / "sprott" / "sprott_explorer_guide.pdf",
+    ):
+        if source.exists():
+            shutil.copy2(source, BUNDLED_DOCS / source.name)
+        else:
+            print(f"Warning: PDF not found for runtime bundle: {source}")
     
     print("\n==================================================")
     print("All PDFs built successfully!")

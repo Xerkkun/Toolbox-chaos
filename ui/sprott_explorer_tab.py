@@ -82,6 +82,7 @@ from core.sprott.visual import (
     visual_preset,
     visual_recommendation,
 )
+from core.paths import bundled_doc_path, sprott_assets_dir
 from ui.math_render import render_math_to_path
 from ui.sprott_canvases import Sprott2DCanvas, SprottGalleryThumbnail
 from ui.widgets import make_help_label
@@ -121,7 +122,7 @@ def _separator() -> QWidget:
 class SprottExplorerTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.assets_dir = Path(__file__).resolve().parents[1] / 'assets' / 'sprott'
+        self.assets_dir = sprott_assets_dir()
         self.repo_root = Path(__file__).resolve().parents[1]
         self.examples = []
         self.local_dic_entries = []
@@ -1005,7 +1006,7 @@ class SprottExplorerTab(QWidget):
         return make_pdf_viewer(pdf_path, title, fallback_html)
 
     def _theory_page_browser(self):
-        pdf_path = self.assets_dir / 'sprott_theory.pdf'
+        pdf_path = bundled_doc_path('sprott_theory.pdf')
         if not QT_PDF_AVAILABLE and not pdf_path.exists():
             # No PDF and no viewer: fall back to markdown text
             text = (
@@ -1020,7 +1021,7 @@ class SprottExplorerTab(QWidget):
         )
 
     def _pdf_guide_or_browser(self):
-        pdf_path = self.assets_dir / 'sprott_explorer_guide.pdf'
+        pdf_path = bundled_doc_path('sprott_explorer_guide.pdf')
         if not QT_PDF_AVAILABLE and not pdf_path.exists():
             text = (
                 self._read_asset('theory_intro.md') + '\n\n'

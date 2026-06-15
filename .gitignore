@@ -18,7 +18,10 @@ pytest-cache-files-*/
 build/
 dist/
 installer/
+release/
 *.egg-info/
+resources/user/*
+!resources/user/.gitkeep
 
 external/sprott_site*/
 external/sprott_originals/

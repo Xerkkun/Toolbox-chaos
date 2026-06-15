@@ -157,3 +157,46 @@ def test_coexistence_yaml_loading():
             assert (
                 len(ic) == 3
             ), f"Initial condition {ic} must have exactly 3 coordinates"
+
+
+def test_high_dimension_widgets():
+    """Verify that selecting a 4D system updates Tab3DWidget, Tab2DWidget, TabTimeSeriesWidget, and SystemParameterPanel correctly."""
+    window = MainWindow()
+
+    # Get the tabs
+    tab3d = window.tab_3d_widget
+    tab2d = window.tab_2d_widget
+    tabtime = window.tab_time_widget
+
+    # Set system to hyper_lorenz (4D) in 3D tab
+    tab3d.param_panel.system_combo.setCurrentIndex(
+        tab3d.param_panel.system_combo.findData('hyper_lorenz')
+    )
+    # Check 3D widget is disabled
+    assert tab3d.stacked_widget.currentIndex() == 1
+    assert not tab3d.btn_run.isEnabled()
+    assert not tab3d.btn_save.isEnabled()
+    
+    # Check 4 initial conditions in SystemParameterPanel
+    assert not tab3d.param_panel.ic_spins[0].isHidden()
+    assert not tab3d.param_panel.ic_spins[3].isHidden()
+    assert tab3d.param_panel.ic_spins[4].isHidden()
+
+    # Set system to hyper_lorenz in 2D tab
+    tab2d.param_panel.system_combo.setCurrentIndex(
+        tab2d.param_panel.system_combo.findData('hyper_lorenz')
+    )
+    # 4D system has 6 pairwise combinations (4 choose 2)
+    assert len(tab2d.checkboxes) == 6
+    assert len(tab2d.plot_widgets) == 6
+
+    # Set system to hyper_lorenz in Time Series tab
+    tabtime.param_panel.system_combo.setCurrentIndex(
+        tabtime.param_panel.system_combo.findData('hyper_lorenz')
+    )
+    # 4D system has 4 time series plots
+    assert len(tabtime.plot_widgets) == 4
+    assert len(tabtime.color_combos) == 4
+
+    window.deleteLater()
+

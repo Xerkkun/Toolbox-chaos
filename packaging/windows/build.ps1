@@ -157,30 +157,26 @@ Invoke-Checked -FilePath $compiler -Arguments @("-O3", "-shared", "-std=c11", $s
 
 Invoke-Checked -FilePath $venvPython -Arguments @("-c", "from core.native import library; library(); print('Native backend OK')")
 
-$assetsDir = Join-Path $repoRoot "assets"
-$dllAddBinary = "$dll;core\bin"
-$assetsAddData = "$assetsDir;assets"
 $pyInstallerWorkApp = Join-Path $repoRoot "build\pyinstaller\Chaos Toolbox"
 $distApp = Join-Path $repoRoot "dist\Chaos Toolbox"
 
 Write-Host "Verifying release cleanliness..."
 Invoke-Checked -FilePath $venvPython -Arguments @(Join-Path $repoRoot "tools\check_no_sprott_originals_in_release.py")
+Invoke-Checked -FilePath $venvPython -Arguments @(Join-Path $repoRoot "scripts\prepare_runtime_resources.py")
+Invoke-Checked -FilePath $venvPython -Arguments @(Join-Path $repoRoot "scripts\verify_packaging.py")
+
+$appVersion = (& $venvPython -c "from core.app_metadata import APP_VERSION; print(APP_VERSION)").Trim()
+$versionInclude = Join-Path $repoRoot "packaging\windows\generated_version.iss"
+Set-Content -LiteralPath $versionInclude -Encoding ASCII -Value "#define MyAppVersion `"$appVersion`""
 
 Clear-GeneratedDirectory -Path $pyInstallerWorkApp
 Clear-GeneratedDirectory -Path $distApp
 
 $pyInstallerArgs = @(
     "--noconfirm",
-    "--windowed",
-    "--name", "Chaos Toolbox",
     "--distpath", "dist",
     "--workpath", "build\pyinstaller",
-    "--specpath", "build\pyinstaller",
-    "--add-binary", $dllAddBinary,
-    "--add-data", $assetsAddData,
-    "--hidden-import", "PyQt6.QtPdf",
-    "--hidden-import", "PyQt6.QtPdfWidgets",
-    "main.py"
+    "packaging\pyinstaller\chaos_toolbox.spec"
 )
 Invoke-Checked -FilePath $venvPython -Arguments (@("-m", "PyInstaller") + $pyInstallerArgs)
 

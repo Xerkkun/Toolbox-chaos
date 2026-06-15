@@ -1,8 +1,10 @@
 import os
 import multiprocessing as mp
 import sys
+import logging
 
 from PyQt6.QtWidgets import QApplication
+from core.app_metadata import APP_NAME, APP_VERSION
 from ui.main_window import MainWindow
 
 def configure_qt_platform():
@@ -15,8 +17,12 @@ def configure_qt_platform():
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(name)s:%(message)s')
+    logging.getLogger(__name__).info('Starting %s %s', APP_NAME, APP_VERSION)
     configure_qt_platform()
     app = QApplication(sys.argv)
+    app.setApplicationName(APP_NAME)
+    app.setApplicationVersion(APP_VERSION)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

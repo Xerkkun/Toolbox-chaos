@@ -1,0 +1,22 @@
+# Release Process
+
+Chaos Toolbox 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+
+1. Update `pyproject.toml` using semantic versioning `MAJOR.MINOR.PATCH`.
+2. Update `CHANGELOG.md`, `RELEASE_NOTES.md`, `CITATION.cff`, and documentation references.
+3. Run:
+
+```powershell
+python scripts\prepare_runtime_resources.py
+python scripts\verify_packaging.py
+python scripts\bundle_size_report.py
+python -m pytest tests\test_packaging_metadata.py tests\test_ui_refactoring.py -q
+```
+
+4. Build platform artifacts on their native OS.
+5. Upload artifacts to a GitHub Release tagged `v0.1.0`.
+6. Configure `CHAOS_TOOLBOX_RELEASES_API_URL` to the GitHub latest-release API URL for update checks.
+
+Signing and notarization remain manual until certificates are configured.
+
+Academic warning: numerical results are computational evidence, not automatic mathematical proof.

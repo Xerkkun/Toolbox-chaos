@@ -2,22 +2,43 @@ from __future__ import annotations
 
 import os
 import sys
+from concurrent.futures import Future, ThreadPoolExecutor
+from datetime import date
 from pathlib import Path
 
 if __package__ in {None, ''}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import Qt, QSettings, QTimer, QUrl
+from PyQt6.QtGui import QAction, QDesktopServices
 from PyQt6.QtWidgets import (
     QApplication,
+    QDialog,
+    QDialogButtonBox,
     QMainWindow,
+    QMessageBox,
     QTabWidget,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
     QLabel,
 )
 
+from core.app_metadata import (
+    ACADEMIC_NOTICE,
+    APP_DEVELOPER,
+    APP_DESCRIPTION,
+    APP_LICENSE,
+    APP_NAME,
+    APP_ORGANIZATION,
+    APP_VERSION,
+    APP_YEAR,
+    DOCUMENTATION_ENTRY,
+    RELEASE_API_ENV,
+    UPDATE_CHECK_INTERVAL_DAYS,
+)
+from core.paths import bundled_doc_path, ensure_user_data_dir, resource_path
+from core.update_checker import UpdateCheckError, UpdateInfo, check_for_updates
 from ui.sprott_explorer_tab import SprottExplorerTab
 from ui.tab_controls import (
     Tab3DWidget,
@@ -36,7 +57,11 @@ from ui.tab_controls import (
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Banco de pruebas de sistemas caóticos')
+        self.settings = QSettings(APP_ORGANIZATION, APP_NAME)
+        self._update_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='chaos-updates')
+        self._update_future: Future | None = None
+        self._update_timer: QTimer | None = None
+        self.setWindowTitle(f'{APP_NAME} {APP_VERSION}')
 
         # Adaptive sizing — respect monitor boundaries
         _screen = QApplication.primaryScreen()
@@ -59,6 +84,8 @@ class MainWindow(QMainWindow):
         self.last_X = None
         self.last_system_key = None
         self.last_params = None
+
+        self._create_menus()
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -94,6 +121,184 @@ class MainWindow(QMainWindow):
         self.build_sprott_explorer_tab()
 
         self.tabs.currentChanged.connect(self.on_main_tab_changed)
+        QTimer.singleShot(1500, self._maybe_check_updates_on_startup)
+
+    def _create_menus(self):
+        help_menu = self.menuBar().addMenu('Ayuda')
+
+        docs_action = QAction('Documentacion', self)
+        docs_action.triggered.connect(self.open_documentation)
+        help_menu.addAction(docs_action)
+
+        results_action = QAction('Abrir carpeta de resultados', self)
+        results_action.triggered.connect(self.open_results_folder)
+        help_menu.addAction(results_action)
+
+        help_menu.addSeparator()
+
+        updates_action = QAction('Buscar actualizaciones', self)
+        updates_action.triggered.connect(lambda: self._start_update_check(silent=False))
+        help_menu.addAction(updates_action)
+
+        self.auto_update_action = QAction('Revisar actualizaciones automaticamente', self)
+        self.auto_update_action.setCheckable(True)
+        auto_enabled = self.settings.value('updates/automatic_enabled', True, type=bool)
+        self.auto_update_action.setChecked(auto_enabled)
+        self.auto_update_action.toggled.connect(
+            lambda checked: self.settings.setValue('updates/automatic_enabled', checked)
+        )
+        help_menu.addAction(self.auto_update_action)
+
+        help_menu.addSeparator()
+
+        about_action = QAction('Acerca de', self)
+        about_action.triggered.connect(self.show_about_dialog)
+        help_menu.addAction(about_action)
+
+    def open_documentation(self):
+        doc_path = resource_path(DOCUMENTATION_ENTRY)
+        if not doc_path.exists():
+            doc_path = resource_path('README.md')
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(doc_path)))
+
+    def open_results_folder(self):
+        target = ensure_user_data_dir()
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(target)))
+
+    def show_about_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f'Acerca de {APP_NAME}')
+        layout = QVBoxLayout(dialog)
+        browser = QTextBrowser(dialog)
+        browser.setOpenExternalLinks(True)
+        docs_path = resource_path(DOCUMENTATION_ENTRY)
+        release_source = self._release_api_url() or f'Configurable con {RELEASE_API_ENV}'
+        browser.setHtml(
+            '<html><body style="font-family: Segoe UI, Arial, sans-serif; line-height: 1.45;">'
+            f'<h2>{APP_NAME}</h2>'
+            f'<p><b>Version:</b> {APP_VERSION}<br>'
+            f'<b>Desarrolladora:</b> {APP_DEVELOPER}<br>'
+            f'<b>Licencia:</b> {APP_LICENSE}<br>'
+            f'<b>Anio:</b> {APP_YEAR}</p>'
+            f'<p>{APP_DESCRIPTION}</p>'
+            f'<p><b>Creditos principales:</b> Python, PyQt6, NumPy, Matplotlib, pyqtgraph y PyInstaller.</p>'
+            f'<p><b>Documentacion local:</b> {docs_path}</p>'
+            f'<p><b>Fuente de actualizaciones:</b> {release_source}</p>'
+            '<p><b>Sistemas personalizados:</b> Esta version no permite registrar sistemas dinamicos '
+            'nuevos desde la interfaz principal. El soporte para sistemas personalizados esta planeado '
+            'para una version futura.</p>'
+            f'<p><b>Uso academico:</b> {ACADEMIC_NOTICE}</p>'
+            '</body></html>'
+        )
+        layout.addWidget(browser)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok, parent=dialog)
+        buttons.accepted.connect(dialog.accept)
+        layout.addWidget(buttons)
+        dialog.resize(560, 430)
+        dialog.exec()
+
+    def _release_api_url(self) -> str:
+        configured = self.settings.value('updates/release_api_url', '', type=str)
+        return os.environ.get(RELEASE_API_ENV, configured).strip()
+
+    def _maybe_check_updates_on_startup(self):
+        if not self.settings.value('updates/automatic_enabled', True, type=bool):
+            return
+        if not self._release_api_url():
+            return
+        last = self.settings.value('updates/last_check_date', '', type=str)
+        if last:
+            try:
+                elapsed = (date.today() - date.fromisoformat(last)).days
+                if elapsed < UPDATE_CHECK_INTERVAL_DAYS:
+                    return
+            except ValueError:
+                pass
+        self._start_update_check(silent=True)
+
+    def _start_update_check(self, *, silent: bool):
+        if self._update_future and not self._update_future.done():
+            if not silent:
+                QMessageBox.information(self, 'Actualizaciones', 'Ya hay una revision de actualizaciones en curso.')
+            return
+        release_api_url = self._release_api_url()
+        if not release_api_url:
+            if not silent:
+                QMessageBox.information(
+                    self,
+                    'Actualizaciones',
+                    'No hay fuente de releases configurada. Define '
+                    f'{RELEASE_API_ENV} con la URL de GitHub Releases latest, por ejemplo '
+                    'https://api.github.com/repos/OWNER/REPO/releases/latest.',
+                )
+            return
+        if hasattr(self, 'info_label'):
+            self.info_label.setText('Buscando actualizaciones...')
+        self._update_future = self._update_executor.submit(
+            check_for_updates,
+            installed_version=APP_VERSION,
+            release_api_url=release_api_url,
+        )
+        self._update_timer = QTimer(self)
+        self._update_timer.setInterval(250)
+        self._update_timer.timeout.connect(lambda: self._poll_update_future(self._update_future, silent=silent))
+        self._update_timer.start()
+
+    def _poll_update_future(self, future: Future | None, *, silent: bool):
+        if future is None or not future.done():
+            return
+        if self._update_timer:
+            self._update_timer.stop()
+            self._update_timer.deleteLater()
+            self._update_timer = None
+        self.settings.setValue('updates/last_check_date', date.today().isoformat())
+        try:
+            info = future.result()
+        except UpdateCheckError as exc:
+            if hasattr(self, 'info_label'):
+                self.info_label.setText('Listo.')
+            if not silent:
+                QMessageBox.warning(self, 'Actualizaciones', str(exc))
+            return
+        self._handle_update_info(info, silent=silent)
+
+    def _handle_update_info(self, info: UpdateInfo, *, silent: bool):
+        if hasattr(self, 'info_label'):
+            self.info_label.setText('Listo.')
+        if not info.update_available:
+            if not silent:
+                QMessageBox.information(
+                    self,
+                    'Actualizaciones',
+                    f'{APP_NAME} {info.installed_version} ya esta actualizado.',
+                )
+            return
+
+        message = QMessageBox(self)
+        message.setIcon(QMessageBox.Icon.Information)
+        message.setWindowTitle('Actualizacion disponible')
+        message.setText(f'Hay una nueva version de {APP_NAME}.')
+        details = (
+            f'Instalada: {info.installed_version}\n'
+            f'Disponible: {info.latest_version}\n'
+            f'Publicada: {info.published_at}\n'
+            f'Artefacto: {info.asset_name or "no encontrado para esta plataforma"}\n\n'
+            f'{info.summary}'
+        )
+        message.setInformativeText(details)
+        download_button = None
+        if info.download_url:
+            download_button = message.addButton('Descargar', QMessageBox.ButtonRole.AcceptRole)
+        notes_button = message.addButton('Release notes', QMessageBox.ButtonRole.ActionRole)
+        later_button = message.addButton('Recordar despues', QMessageBox.ButtonRole.RejectRole)
+        message.exec()
+        clicked = message.clickedButton()
+        if clicked is download_button:
+            QDesktopServices.openUrl(QUrl(info.download_url))
+        elif clicked is notes_button and info.release_notes_url:
+            QDesktopServices.openUrl(QUrl(info.release_notes_url))
+        elif clicked is later_button:
+            return
 
     def build_3d_tab(self):
         self.tab_3d_widget = Tab3DWidget(self, self)
@@ -141,8 +346,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
-        assets_dir = Path(__file__).resolve().parent.parent / 'assets'
-        self.dictionary_pdf_path = str(assets_dir / 'chaos_dictionary.pdf')
+        self.dictionary_pdf_path = str(bundled_doc_path('chaos_dictionary.pdf'))
 
         from ui.pdf_viewer import PdfViewerWidget
 
@@ -210,6 +414,10 @@ class MainWindow(QMainWindow):
             if filter_text in selected_filter:
                 return f'{file_path}{suffix}'
         return file_path
+
+    def closeEvent(self, event):
+        self._update_executor.shutdown(wait=False, cancel_futures=True)
+        super().closeEvent(event)
 
 
 if __name__ == '__main__':

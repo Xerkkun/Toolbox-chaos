@@ -107,12 +107,63 @@ class MplBifCanvas(_BaseCanvas):
             xmax = float(np.max(param_values))
             ymin = float(np.min(event_values))
             ymax = float(np.max(event_values))
+            ymax = float(np.max(event_values))
             padx = max(0.5, 0.015 * max(abs(xmin), abs(xmax), 1.0))
             pady = max(0.5, 0.03 * max(abs(ymin), abs(ymax), 1.0))
             self.ax.set_xlim(xmin - padx, xmax + padx)
             self.ax.set_ylim(ymin - pady, ymax + pady)
         else:
             self.ax.text(0.5, 0.5, 'No hubo cruces registrados.', ha='center', va='center', transform=self.ax.transAxes)
+        self.ax.set_title(title)
+        self.ax.set_xlabel(xlabel)
+        self.ax.set_ylabel(ylabel)
+        self.ax.grid(alpha=0.14, linewidth=0.6)
+        self.fig.subplots_adjust(left=0.10, right=0.98, bottom=0.12, top=0.92)
+        self.draw_idle()
+
+    def plot_bifurcation_multi(self, datasets, title, xlabel, ylabel):
+        if self.cbar is not None:
+            self.cbar.remove()
+            self.cbar = None
+        self.ax.clear()
+        
+        all_param = []
+        all_event = []
+        
+        for data in datasets:
+            param_vals = data['param_values']
+            event_vals = data['event_values']
+            lbl = data['label']
+            color = data['color']
+            if len(param_vals) > 0:
+                self.ax.scatter(
+                    param_vals,
+                    event_vals,
+                    color=color,
+                    s=1.8,
+                    marker='.',
+                    linewidths=0,
+                    rasterized=True,
+                    label=lbl
+                )
+                all_param.append(param_vals)
+                all_event.append(event_vals)
+        
+        if len(all_param) > 0:
+            concat_p = np.concatenate(all_param)
+            concat_e = np.concatenate(all_event)
+            xmin = float(np.min(concat_p))
+            xmax = float(np.max(concat_p))
+            ymin = float(np.min(concat_e))
+            ymax = float(np.max(concat_e))
+            padx = max(0.5, 0.015 * max(abs(xmin), abs(xmax), 1.0))
+            pady = max(0.5, 0.03 * max(abs(ymin), abs(ymax), 1.0))
+            self.ax.set_xlim(xmin - padx, xmax + padx)
+            self.ax.set_ylim(ymin - pady, ymax + pady)
+            self.ax.legend(markerscale=5)
+        else:
+            self.ax.text(0.5, 0.5, 'No hubo cruces registrados.', ha='center', va='center', transform=self.ax.transAxes)
+            
         self.ax.set_title(title)
         self.ax.set_xlabel(xlabel)
         self.ax.set_ylabel(ylabel)

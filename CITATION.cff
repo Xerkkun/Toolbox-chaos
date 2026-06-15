@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use Chaos Toolbox in academic work, cite the software and the specific release."
+title: "Chaos Toolbox"
+version: "0.1.0"
+date-released: "2026-06-14"
+authors:
+  - family-names: "Moreno"
+    given-names: "Fer"
+license: "MIT"
+abstract: "Desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration."

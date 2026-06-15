@@ -20,6 +20,23 @@ SYSTEM_REGISTRY = {
         'param_labels': ('sigma', 'rho', 'beta'),
         'defaults': (10.0, 28.0, 8.0 / 3.0), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': 1, 'bifurcation_range': (0.0, 80.0), 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
+        'coexisting_attractors': [
+            {
+                'id': 'lorenz_pos',
+                'label': 'punto fijo estable +',
+                'parameters': {'sigma': 10.0, 'rho': 24.4, 'beta': 2.666667},
+                'initial_condition': [5.0, 5.0, 20.0],
+                'notes': 'punto fijo estable +'
+            },
+            {
+                'id': 'lorenz_neg',
+                'label': 'punto fijo estable -',
+                'parameters': {'sigma': 10.0, 'rho': 24.4, 'beta': 2.666667},
+                'initial_condition': [-5.0, -5.0, 20.0],
+                'notes': 'punto fijo estable -'
+            }
+        ]
     },
     'rossler': {
         'label': 'Rossler', 'implemented': True, 'kind': 'flow',
@@ -27,6 +44,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('a', 'b', 'c'), 'defaults': (0.2, 0.2, 5.7),
         'initial': (0.1, 0.0, 0.0), 'bifurcation_param': 2, 'bifurcation_range': (2.5, 8.0),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'chua': {
         'label': 'Chua / doble scroll', 'implemented': True, 'kind': 'flow',
@@ -34,6 +52,23 @@ SYSTEM_REGISTRY = {
         'param_labels': ('alpha', 'beta', 'm0', 'm1'),
         'defaults': (15.6, 28.0, -1.143, -0.714), 'initial': (0.1, 0.0, 0.0),
         'bifurcation_param': 0, 'bifurcation_range': (8.0, 18.0), 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
+        'coexisting_attractors': [
+            {
+                'id': 'chua_pos',
+                'label': 'scroll positivo',
+                'parameters': {'alpha': 15.6, 'beta': 28.0, 'm0': -1.143, 'm1': -0.714},
+                'initial_condition': [1.5, 0.0, -1.5],
+                'notes': 'scroll positivo'
+            },
+            {
+                'id': 'chua_neg',
+                'label': 'scroll negativo',
+                'parameters': {'alpha': 15.6, 'beta': 28.0, 'm0': -1.143, 'm1': -0.714},
+                'initial_condition': [-1.5, 0.0, 1.5],
+                'notes': 'scroll negativo'
+            }
+        ]
     },
     'chen': {
         'label': 'Chen', 'implemented': True, 'kind': 'flow',
@@ -41,6 +76,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('a', 'b', 'c'), 'defaults': (35.0, 3.0, 28.0),
         'initial': (0.1, 0.1, 0.1), 'bifurcation_param': 2, 'bifurcation_range': (15.0, 35.0),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'lu': {
         'label': 'Lu', 'implemented': True, 'kind': 'flow',
@@ -48,6 +84,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('a', 'b', 'c'), 'defaults': (36.0, 3.0, 20.0),
         'initial': (0.1, 0.1, 0.1), 'bifurcation_param': 2, 'bifurcation_range': (10.0, 30.0),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'henon': {
         'label': 'Henon', 'implemented': True, 'kind': 'map',
@@ -55,6 +92,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('a', 'b'), 'defaults': (1.4, 0.3),
         'initial': (0.1, 0.1, 0.0), 'bifurcation_param': 0, 'bifurcation_range': (0.8, 1.4),
         'initial_labels': ('x(0)', 'y(0)', '-'),
+        'dimension': 2,
     },
     'logistic': {
         'label': 'Logistico', 'implemented': True, 'kind': 'map',
@@ -62,6 +100,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('r',), 'defaults': (3.9,),
         'initial': (0.2, 0.0, 0.0), 'bifurcation_param': 0, 'bifurcation_range': (2.5, 4.0),
         'initial_labels': ('x(0)', '-', '-'),
+        'dimension': 1,
     },
     'ikeda': {
         'label': 'Ikeda', 'implemented': True, 'kind': 'map',
@@ -69,6 +108,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('u',), 'defaults': (0.918,),
         'initial': (0.1, 0.1, 0.0), 'bifurcation_param': 0, 'bifurcation_range': (0.6, 1.0),
         'initial_labels': ('x(0)', 'y(0)', '-'),
+        'dimension': 2,
     },
     'mackey_glass': {
         'label': 'Mackey-Glass', 'implemented': True, 'kind': 'dde',
@@ -76,6 +116,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('beta', 'gamma', 'n', 'tau'),
         'defaults': (0.2, 0.1, 10.0, 17.0), 'initial': (1.2, 0.0, 0.0),
         'bifurcation_param': 3, 'bifurcation_range': (10.0, 30.0), 'initial_labels': ('x(0)', '-', '-'),
+        'dimension': 3,
     },
     'duffing_ueda': {
         'label': 'Duffing-Ueda', 'implemented': True, 'kind': 'flow',
@@ -83,6 +124,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('delta', 'alpha', 'beta', 'gamma', 'omega'),
         'defaults': (0.2, -1.0, 1.0, 0.3, 1.2), 'initial': (0.1, 0.0, 0.0),
         'bifurcation_param': 3, 'bifurcation_range': (0.1, 0.6), 'initial_labels': ('x(0)', 'y(0)', 'theta(0)'),
+        'dimension': 3,
     },
     'rabinovich_fabrikant': {
         'label': 'Rabinovich-Fabrikant', 'implemented': True, 'kind': 'flow',
@@ -90,6 +132,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('alpha', 'gamma'), 'defaults': (1.1, 0.87),
         'initial': (-1.0, 0.0, 0.5), 'bifurcation_param': 1, 'bifurcation_range': (0.5, 1.2),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'rikitake': {
         'label': 'Rikitake', 'implemented': True, 'kind': 'flow',
@@ -97,126 +140,147 @@ SYSTEM_REGISTRY = {
         'param_labels': ('mu', 'a'), 'defaults': (2.0, 5.0),
         'initial': (0.1, 0.1, 0.1), 'bifurcation_param': 1, 'bifurcation_range': (1.0, 8.0),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_a': {
         'label': 'Sprott A', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott A.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'unified_lorenz_chen': {
         'label': 'Unified Lorenz-Chen', 'implemented': True, 'kind': 'flow',
         'description': 'Sistema unificado de Lorenz-Chen parametrizado por alpha.',
         'param_labels': ('alpha',), 'defaults': (0.0,), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': 0, 'bifurcation_range': (0.0, 1.0), 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_b': {
         'label': 'Sprott B', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott B.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_c': {
         'label': 'Sprott C', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott C.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_d': {
         'label': 'Sprott D', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott D.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_e': {
         'label': 'Sprott E', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott E.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_f': {
         'label': 'Sprott F', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott F.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_g': {
         'label': 'Sprott G', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott G.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_h': {
         'label': 'Sprott H', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott H.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_i': {
         'label': 'Sprott I', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott I.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_j': {
         'label': 'Sprott J', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott J.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_k': {
         'label': 'Sprott K', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott K.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_l': {
         'label': 'Sprott L', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott L.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_m': {
         'label': 'Sprott M', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott M.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_n': {
         'label': 'Sprott N', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott N.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_o': {
         'label': 'Sprott O', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott O.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_p': {
         'label': 'Sprott P', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott P.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_q': {
         'label': 'Sprott Q', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott Q.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_r': {
         'label': 'Sprott R', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott R.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'sprott_s': {
         'label': 'Sprott S', 'implemented': True, 'kind': 'flow',
         'description': 'Flujo cuadrático simple Sprott S.',
         'param_labels': (), 'defaults': (), 'initial': (0.1, 0.1, 0.1),
         'bifurcation_param': None, 'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'thomas': {
         'label': 'Thomas / labyrinth', 'implemented': True, 'kind': 'flow',
@@ -224,6 +288,7 @@ SYSTEM_REGISTRY = {
         'param_labels': ('b',), 'defaults': (0.18,),
         'initial': (0.1, 0.0, 0.0), 'bifurcation_param': 0, 'bifurcation_range': (0.05, 0.3),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'hindmarsh_rose': {
         'label': 'Hindmarsh-Rose', 'implemented': True, 'kind': 'flow',
@@ -232,6 +297,7 @@ SYSTEM_REGISTRY = {
         'defaults': (1.0, 3.0, 1.0, 5.0, 0.006, 4.0, 3.25),
         'initial': (0.1, 0.0, 0.0), 'bifurcation_param': 6, 'bifurcation_range': (2.0, 4.0),
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
     },
     'lorenz96': {
         'label': 'Lorenz-96', 'implemented': True, 'kind': 'flow_high_dim',
@@ -239,6 +305,15 @@ SYSTEM_REGISTRY = {
         'param_labels': ('F', 'J'), 'defaults': (8.0, 8.0),
         'initial': (8.01, 8.0, 8.0), 'bifurcation_param': 0, 'bifurcation_range': (4.0, 12.0),
         'initial_labels': ('X1(0)', 'X2(0)', 'X3(0)'),
+        'dimension': 3,
+    },
+    'hyper_lorenz': {
+        'label': 'Lorenz Hipercaótico (4D)', 'implemented': True, 'kind': 'flow',
+        'description': 'Sistema hipercaótico de Lorenz de 4 dimensiones.',
+        'param_labels': ('a', 'b', 'c', 'r'),
+        'defaults': (10.0, 8.0 / 3.0, 28.0, 1.0), 'initial': (0.1, 0.1, 0.1, 0.1),
+        'bifurcation_param': 2, 'bifurcation_range': (15.0, 40.0), 'initial_labels': ('x(0)', 'y(0)', 'z(0)', 'w(0)'),
+        'dimension': 4,
     },
 }
 
@@ -471,6 +546,14 @@ def vector_field(system_key: str, state, params):
         dim = max(4, int(round(p[1])))
         xx = np.resize(x, dim).astype(float)
         return np.array([(xx[(j + 1) % dim] - xx[j - 2]) * xx[j - 1] - xx[j] + forcing for j in range(dim)])
+    if system_key == 'hyper_lorenz':
+        a, b, c, r = p[:4]
+        return np.array([
+            a * (x[1] - x[0]) + x[3],
+            c * x[0] - x[1] - x[0] * x[2],
+            x[0] * x[1] - b * x[2],
+            -x[1] * x[2] + r * x[3]
+        ])
     raise UnsupportedSystemError(f'Sistema no implementado: {system_key}')
 
 
@@ -505,7 +588,96 @@ def _rk_step(system_key: str, state, params, dt, method_key):
     return y + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
 
 
+def simulate_system_python(system_key, initial, params, dt, T, method_key='rk4'):
+    n = int(T / dt) + 1
+    if n < 2:
+        n = 2
+    dim = len(initial)
+    t = np.linspace(0, T, n)
+    X = np.empty((n, dim), dtype=np.float64)
+    X[0] = np.asarray(initial, dtype=float)
+    
+    state = X[0].copy()
+    p = _as_params(system_key, params)
+    
+    is_map = SYSTEM_REGISTRY[system_key].get('kind') == 'map'
+    
+    for i in range(1, n):
+        if is_map:
+            state = map_step(system_key, state, p)
+        else:
+            state = _rk_step(system_key, state, p, dt, method_key)
+        X[i] = state
+    return t, X
+
+
+def bifurcation_generic_python(system_key, initial, params, param_idx, param_min, param_max, n_param, dt, T_trans, T_keep, max_points, continuation=False, method_key='rk4', observed_var_idx=0):
+    steps_trans = int(T_trans / dt)
+    steps_keep = int(T_keep / dt)
+    if steps_keep < 2:
+        steps_keep = 2
+    
+    param_vals = np.linspace(param_min, param_max, n_param)
+    out_param = []
+    out_value = []
+    
+    state = np.asarray(initial, dtype=float).copy()
+    p = _as_params(system_key, params)
+    
+    is_map = SYSTEM_REGISTRY[system_key].get('kind') == 'map'
+    
+    for val in param_vals:
+        p[param_idx] = val
+        if not continuation:
+            state = np.asarray(initial, dtype=float).copy()
+            
+        # Transitorio
+        if is_map:
+            for _ in range(steps_trans):
+                state = map_step(system_key, state, p)
+        else:
+            for _ in range(steps_trans):
+                state = _rk_step(system_key, state, p, dt, method_key)
+                
+        # Simulación útil
+        history = []
+        if is_map:
+            for _ in range(steps_keep):
+                state = map_step(system_key, state, p)
+                history.append(state[observed_var_idx])
+            pts = history[-max_points:]
+            for pt in pts:
+                out_param.append(val)
+                out_value.append(pt)
+        else:
+            history_pts = []
+            for _ in range(steps_keep):
+                state = _rk_step(system_key, state, p, dt, method_key)
+                history_pts.append(state[observed_var_idx])
+            
+            history_pts = np.array(history_pts)
+            maxima = []
+            if len(history_pts) >= 3:
+                mask = (history_pts[1:-1] > history_pts[:-2]) & (history_pts[1:-1] >= history_pts[2:])
+                maxima = history_pts[1:-1][mask]
+            
+            if len(maxima) == 0:
+                maxima = history_pts[-min(max_points, len(history_pts)):]
+            else:
+                maxima = maxima[-max_points:]
+                
+            for m in maxima:
+                out_param.append(val)
+                out_value.append(m)
+                
+    return np.array(out_param), np.array(out_value)
+
+
 def simulate_system(system_key, initial, params, dt, T, method_key='rk4'):
+    meta = SYSTEM_REGISTRY[system_key]
+    dim = meta.get('dimension', len(initial))
+    if dim > 3:
+        return simulate_system_python(system_key, initial, params, dt, T, method_key)
     return simulate_system_native(system_key, initial, _as_params(system_key, params), dt, T, method_key)
 
 
@@ -520,12 +692,14 @@ def _local_maxima_values(values, max_points):
     return out[-max_points:]
 
 
-def bifurcation_generic(system_key, initial, params, param_min, param_max, n_param, dt, T_trans, T_keep, max_points, continuation=False, method_key='rk4'):
+def bifurcation_generic(system_key, initial, params, param_idx, param_min, param_max, n_param, dt, T_trans, T_keep, max_points, continuation=False, method_key='rk4', observed_var_idx=2):
     meta = SYSTEM_REGISTRY[system_key]
-    param_idx = meta.get('bifurcation_param')
-    if param_idx is None:
-        raise UnsupportedSystemError('Este sistema no tiene parametro de bifurcacion configurable.')
-
+    dim = meta.get('dimension', len(initial))
+    if dim > 3:
+        return bifurcation_generic_python(
+            system_key, initial, params, param_idx, param_min, param_max, n_param,
+            dt, T_trans, T_keep, max_points, continuation, method_key, observed_var_idx
+        )
     return bifurcation_generic_native(
         system_key,
         initial,
@@ -540,6 +714,7 @@ def bifurcation_generic(system_key, initial, params, param_min, param_max, n_par
         max_points,
         continuation=continuation,
         method_key=method_key,
+        observed_var_idx=observed_var_idx,
     )
 
 

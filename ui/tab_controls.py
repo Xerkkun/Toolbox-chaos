@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
+    QGridLayout,
     QScrollArea,
     QSplitter,
     QPushButton,
@@ -25,6 +26,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QMessageBox,
     QFileDialog,
+    QStackedWidget,
 )
 
 from core.lorenz import (
@@ -86,6 +88,21 @@ BASIN_DEFAULTS = {
     'thomas': (-8.0, 8.0, -8.0, 8.0, 0.0, 0.02, 80.0),
     'hindmarsh_rose': (-4.0, 4.0, -8.0, 8.0, 0.0, 0.01, 80.0),
 }
+
+
+def get_system_variables(system_key: str) -> list[str]:
+    meta = SYSTEM_REGISTRY[system_key]
+    labels = meta.get('initial_labels', ('x(0)', 'y(0)', 'z(0)'))
+    variables = []
+    for label in labels:
+        var = label.split('(0)')[0].strip()
+        if var == '-':
+            var = f"v{len(variables)+1}"
+        variables.append(var)
+    dim = meta.get('dimension', len(variables))
+    while len(variables) < dim:
+        variables.append(f"v{len(variables)+1}")
+    return variables[:dim]
 
 
 def suggested_path(default_name: str, extension: str) -> str:
@@ -221,6 +238,7 @@ class Tab3DWidget(BaseTabWidget):
         self.param_panel = SystemParameterPanel(
             show_method=True, show_ic=True, show_time=True, parent=self
         )
+        self.param_panel.system_changed.connect(self._on_system_changed)
         self.scroll_layout.addWidget(self.param_panel)
 
         # Visual Options Group
@@ -256,9 +274,38 @@ class Tab3DWidget(BaseTabWidget):
 
         self.scroll_layout.addStretch()
 
-        # Right Panel Display
-        self.canvas = Mpl3DCanvas(self.right_widget)
-        self.right_layout.addWidget(self.canvas)
+        # Right Panel Display with Stacked Widget
+        self.stacked_widget = QStackedWidget(self.right_widget)
+        self.canvas = Mpl3DCanvas(self.stacked_widget)
+        self.stacked_widget.addWidget(self.canvas)
+
+        # Placeholder label for non-3D systems
+        self.placeholder_label = QLabel(
+            "El atractor 3D no está disponible para sistemas con dimensión distinta de 3.\n"
+            "Use las pestañas de 'Retratos 2D' o 'Series temporales' para visualizarlo."
+        )
+        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.placeholder_label.setStyleSheet(
+            "font-size: 14px; font-weight: bold; color: #4b5563; padding: 20px;"
+        )
+        self.stacked_widget.addWidget(self.placeholder_label)
+
+        self.right_layout.addWidget(self.stacked_widget)
+
+        # Trigger initial dimension check
+        self._on_system_changed(self.param_panel.current_system_key())
+
+    def _on_system_changed(self, system_key: str):
+        meta = SYSTEM_REGISTRY.get(system_key, {})
+        dim = meta.get('dimension', 3)
+        if dim == 3:
+            self.stacked_widget.setCurrentIndex(0)
+            self.btn_run.setEnabled(True)
+            self.btn_save.setEnabled(True)
+        else:
+            self.stacked_widget.setCurrentIndex(1)
+            self.btn_run.setEnabled(False)
+            self.btn_save.setEnabled(False)
 
     def run_simulation(self):
         sys_key = self.param_panel.current_system_key()
@@ -320,6 +367,7 @@ class Tab2DWidget(BaseTabWidget):
         self.param_panel = SystemParameterPanel(
             show_method=True, show_ic=True, show_time=True, parent=self
         )
+        self.param_panel.system_changed.connect(self._on_system_changed)
         self.scroll_layout.addWidget(self.param_panel)
 
         # Visual options
@@ -334,6 +382,11 @@ class Tab2DWidget(BaseTabWidget):
         )
         vis_layout.addRow(QLabel('Color'), self.color_combo)
         self.scroll_layout.addWidget(self.visual_box)
+
+        # Projections checklist box
+        self.projections_box = QGroupBox('Proyecciones 2D')
+        self.projections_layout = QVBoxLayout(self.projections_box)
+        self.scroll_layout.addWidget(self.projections_box)
 
         # Buttons
         self.btn_run = QPushButton('Generar retratos 2D')
@@ -357,38 +410,110 @@ class Tab2DWidget(BaseTabWidget):
 
         # Right Panel Display
         self.plots_2d_widget = QWidget()
-        portraits_layout = QVBoxLayout(self.plots_2d_widget)
-        portraits_layout.setContentsMargins(0, 0, 0, 0)
+        self.plots_grid_layout = QGridLayout(self.plots_2d_widget)
+        self.plots_grid_layout.setContentsMargins(0, 0, 0, 0)
+        self.plots_grid_layout.setSpacing(10)
 
-        self.xy_plot = pg.PlotWidget(title='Plano XY')
-        self.xz_plot = pg.PlotWidget(title='Plano XZ')
-        self.yz_plot = pg.PlotWidget(title='Plano YZ')
+        self.right_layout.addWidget(self.plots_2d_widget)
 
-        for plot in (self.xy_plot, self.xz_plot, self.yz_plot):
+        # Initialize checklist and grid
+        self._on_system_changed(self.param_panel.current_system_key())
+
+    def _on_system_changed(self, system_key: str):
+        meta = SYSTEM_REGISTRY.get(system_key, {})
+        dim = meta.get('dimension', 3)
+        initial_labels = meta.get('initial_labels', ('x(0)', 'y(0)', 'z(0)'))
+        self.var_names = [lbl.replace('(0)', '').strip() for lbl in initial_labels]
+        if len(self.var_names) < dim:
+            self.var_names += [f'x{i+1}' for i in range(len(self.var_names), dim)]
+        elif len(self.var_names) > dim:
+            self.var_names = self.var_names[:dim]
+
+        # Generate combinations
+        import itertools
+        self.combo_pairs = list(itertools.combinations(range(dim), 2))
+
+        # Clear old checkboxes
+        while self.projections_layout.count():
+            item = self.projections_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        self.checkboxes = []
+        for i, j in self.combo_pairs:
+            lbl_text = f"Plano {self.var_names[i]}-{self.var_names[j]}"
+            chk = QCheckBox(lbl_text)
+            chk.setChecked(True)  # Check all by default
+            chk.toggled.connect(self._update_plots_grid)
+            self.projections_layout.addWidget(chk)
+            self.checkboxes.append(chk)
+
+        self.current_trajectory = None
+        self._update_plots_grid()
+
+    def _update_plots_grid(self):
+        # Clear old plots from grid
+        while self.plots_grid_layout.count():
+            item = self.plots_grid_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        self.plot_widgets = []
+        self.plot_curves = []
+        self.plot_pairs = []
+
+        # Find checked projections
+        checked_pairs = []
+        for chk, pair in zip(self.checkboxes, self.combo_pairs):
+            if chk.isChecked():
+                checked_pairs.append(pair)
+
+        if not checked_pairs:
+            lbl = QLabel("Seleccione al menos una proyección 2D de la barra lateral.")
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl.setStyleSheet("font-size: 13px; color: #777777;")
+            self.plots_grid_layout.addWidget(lbl, 0, 0)
+            return
+
+        n_plots = len(checked_pairs)
+        cols = int(np.ceil(np.sqrt(n_plots)))
+        rows = int(np.ceil(n_plots / cols))
+
+        for idx, (i, j) in enumerate(checked_pairs):
+            row = idx // cols
+            col = idx % cols
+
+            plot = pg.PlotWidget(title=f"Plano {self.var_names[i]}-{self.var_names[j]}")
             plot.setBackground('w')
             plot.showGrid(x=True, y=True, alpha=0.22)
             plot.setAspectLocked(True, ratio=1.0)
+            
             for axis_name in ('left', 'bottom'):
                 axis = plot.getAxis(axis_name)
                 axis.setPen(pg.mkPen('#111827'))
                 axis.setTextPen(pg.mkPen('#111827'))
 
-        self.xy_plot.setLabel('bottom', 'x')
-        self.xy_plot.setLabel('left', 'y')
-        self.xz_plot.setLabel('bottom', 'x')
-        self.xz_plot.setLabel('left', 'z')
-        self.yz_plot.setLabel('bottom', 'y')
-        self.yz_plot.setLabel('left', 'z')
+            plot.setLabel('bottom', self.var_names[i])
+            plot.setLabel('left', self.var_names[j])
 
-        self.xy_curve = self.xy_plot.plot([], [], pen=pg.mkPen(width=1.5))
-        self.xz_curve = self.xz_plot.plot([], [], pen=pg.mkPen(width=1.5))
-        self.yz_curve = self.yz_plot.plot([], [], pen=pg.mkPen(width=1.5))
+            curve = plot.plot([], [], pen=pg.mkPen(width=1.5))
 
-        portraits_layout.addWidget(self.xy_plot)
-        portraits_layout.addWidget(self.xz_plot)
-        portraits_layout.addWidget(self.yz_plot)
+            self.plots_grid_layout.addWidget(plot, row, col)
+            self.plot_widgets.append(plot)
+            self.plot_curves.append(curve)
+            self.plot_pairs.append((i, j))
 
-        self.right_layout.addWidget(self.plots_2d_widget)
+        self._plot_current_data()
+
+    def _plot_current_data(self):
+        if not hasattr(self, 'current_trajectory') or self.current_trajectory is None or len(self.current_trajectory) == 0:
+            return
+        color = self.color_combo.currentData() or '#111827'
+        pen = pg.mkPen(color, width=1.5)
+        for curve, (i, j) in zip(self.plot_curves, self.plot_pairs):
+            if i < self.current_trajectory.shape[1] and j < self.current_trajectory.shape[1]:
+                curve.setData(self.current_trajectory[:, i], self.current_trajectory[:, j])
+                curve.setPen(pen)
 
     def run_simulation(self):
         sys_key = self.param_panel.current_system_key()
@@ -408,11 +533,12 @@ class Tab2DWidget(BaseTabWidget):
 
         if self.main_window:
             self.main_window.last_t = t
-            self.main_window.last_X = X[:, :3]
+            self.main_window.last_X = X
             self.main_window.last_system_key = sys_key
             self.main_window.last_params = params
 
-        self._plot_data(X[:, 0], X[:, 1], X[:, 2])
+        self.current_trajectory = X
+        self._plot_current_data()
 
     def use_last_trajectory(self):
         if (
@@ -426,18 +552,19 @@ class Tab2DWidget(BaseTabWidget):
                 'No hay trayectoria compartida previa. Simula primero en Atractor 3D o ejecuta una simulación local.',
             )
             return
-        X = self.main_window.last_X
-        self._plot_data(X[:, 0], X[:, 1], X[:, 2])
 
-    def _plot_data(self, x, y, z):
-        color = self.color_combo.currentData() or '#111827'
-        pen = pg.mkPen(color, width=1.5)
-        self.xy_curve.setData(x, y)
-        self.xy_curve.setPen(pen)
-        self.xz_curve.setData(x, z)
-        self.xz_curve.setPen(pen)
-        self.yz_curve.setData(y, z)
-        self.yz_curve.setPen(pen)
+        sys_key = self.param_panel.current_system_key()
+        last_sys = getattr(self.main_window, 'last_system_key', None)
+        if last_sys != sys_key:
+            QMessageBox.warning(
+                self,
+                'Incompatibilidad',
+                f'La trayectoria guardada pertenece a {last_sys}, pero el sistema seleccionado es {sys_key}. Por favor ejecute una simulación local.',
+            )
+            return
+
+        self.current_trajectory = self.main_window.last_X
+        self._plot_current_data()
 
 
 class TabTimeSeriesWidget(BaseTabWidget):
@@ -452,27 +579,12 @@ class TabTimeSeriesWidget(BaseTabWidget):
         self.param_panel = SystemParameterPanel(
             show_method=True, show_ic=True, show_time=True, parent=self
         )
+        self.param_panel.system_changed.connect(self._on_system_changed)
         self.scroll_layout.addWidget(self.param_panel)
 
         # Style box
         self.style_box = QGroupBox('Estilo')
-        st_layout = QFormLayout(self.style_box)
-
-        self.color_x = QComboBox()
-        self.color_y = QComboBox()
-        self.color_z = QComboBox()
-        for c in (self.color_x, self.color_y, self.color_z):
-            for l, v in COLOR_OPTIONS.items():
-                c.addItem(l, userData=v)
-
-        self.color_x.setCurrentIndex(max(0, self.color_x.findText('Azul')))
-        self.color_y.setCurrentIndex(max(0, self.color_y.findText('Rojo')))
-        self.color_z.setCurrentIndex(max(0, self.color_z.findText('Verde')))
-
-        st_layout.addRow(QLabel('Color x(t)'), self.color_x)
-        st_layout.addRow(QLabel('Color y(t)'), self.color_y)
-        st_layout.addRow(QLabel('Color z(t)'), self.color_z)
-
+        self.st_layout = QFormLayout(self.style_box)
         self.scroll_layout.addWidget(self.style_box)
 
         # Buttons
@@ -495,37 +607,87 @@ class TabTimeSeriesWidget(BaseTabWidget):
         self.scroll_layout.addStretch()
 
         # Right Panel Display
+        self.right_scroll = QScrollArea(self.right_widget)
+        self.right_scroll.setWidgetResizable(True)
         self.plots_time_widget = QWidget()
-        time_layout = QVBoxLayout(self.plots_time_widget)
+        self.time_layout = QVBoxLayout(self.plots_time_widget)
+        self.right_scroll.setWidget(self.plots_time_widget)
+        self.right_layout.addWidget(self.right_scroll)
 
-        self.xt_plot = pg.PlotWidget(title='x(t)')
-        self.yt_plot = pg.PlotWidget(title='y(t)')
-        self.zt_plot = pg.PlotWidget(title='z(t)')
+        # Initialize checklist and plots
+        self._on_system_changed(self.param_panel.current_system_key())
 
-        for plot in (self.xt_plot, self.yt_plot, self.zt_plot):
+    def _on_system_changed(self, system_key: str):
+        meta = SYSTEM_REGISTRY.get(system_key, {})
+        dim = meta.get('dimension', 3)
+        initial_labels = meta.get('initial_labels', ('x(0)', 'y(0)', 'z(0)'))
+        self.var_names = [lbl.replace('(0)', '').strip() for lbl in initial_labels]
+        if len(self.var_names) < dim:
+            self.var_names += [f'x{i+1}' for i in range(len(self.var_names), dim)]
+        elif len(self.var_names) > dim:
+            self.var_names = self.var_names[:dim]
+
+        # 1. Update style control comboboxes
+        while self.st_layout.count():
+            item = self.st_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        self.color_combos = []
+        for i in range(dim):
+            lbl_text = f"Color {self.var_names[i]}(t)"
+            combo = QComboBox()
+            for label, val in COLOR_OPTIONS.items():
+                combo.addItem(label, userData=val)
+            default_colors = ['Azul', 'Rojo', 'Verde', 'Naranja', 'Morado', 'Negro', 'Gris']
+            color_idx = i % len(default_colors)
+            combo.setCurrentIndex(max(0, combo.findText(default_colors[color_idx])))
+            combo.currentIndexChanged.connect(self._plot_current_data)
+            self.st_layout.addRow(QLabel(lbl_text), combo)
+            self.color_combos.append(combo)
+
+        # 2. Update plot widgets
+        while self.time_layout.count():
+            item = self.time_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        self.plot_widgets = []
+        self.plot_curves = []
+        for i in range(dim):
+            var_name = self.var_names[i]
+            plot = pg.PlotWidget(title=f"{var_name}(t)")
             plot.setBackground('w')
             plot.showGrid(x=True, y=True, alpha=0.22)
+            plot.setMinimumHeight(200)
+
             for axis_name in ('left', 'bottom'):
                 axis = plot.getAxis(axis_name)
                 axis.setPen(pg.mkPen('#111827'))
                 axis.setTextPen(pg.mkPen('#111827'))
 
-        self.xt_plot.setLabel('bottom', 't')
-        self.xt_plot.setLabel('left', 'x')
-        self.yt_plot.setLabel('bottom', 't')
-        self.yt_plot.setLabel('left', 'y')
-        self.zt_plot.setLabel('bottom', 't')
-        self.zt_plot.setLabel('left', 'z')
+            plot.setLabel('bottom', 't')
+            plot.setLabel('left', var_name)
 
-        self.xt_curve = self.xt_plot.plot([], [], pen=pg.mkPen(width=1.5))
-        self.yt_curve = self.yt_plot.plot([], [], pen=pg.mkPen(width=1.5))
-        self.zt_curve = self.zt_plot.plot([], [], pen=pg.mkPen(width=1.5))
+            curve = plot.plot([], [], pen=pg.mkPen(width=1.5))
+            self.time_layout.addWidget(plot)
+            self.plot_widgets.append(plot)
+            self.plot_curves.append(curve)
 
-        time_layout.addWidget(self.xt_plot)
-        time_layout.addWidget(self.yt_plot)
-        time_layout.addWidget(self.zt_plot)
+        self.current_t = None
+        self.current_X = None
 
-        self.right_layout.addWidget(self.plots_time_widget)
+    def _plot_current_data(self):
+        if not hasattr(self, 'current_t') or self.current_t is None or len(self.current_t) == 0:
+            return
+        if not hasattr(self, 'current_X') or self.current_X is None or len(self.current_X) == 0:
+            return
+
+        for idx, curve in enumerate(self.plot_curves):
+            if idx < self.current_X.shape[1]:
+                color = self.color_combos[idx].currentData() or '#111827'
+                curve.setData(self.current_t, self.current_X[:, idx])
+                curve.setPen(pg.mkPen(color, width=1.5))
 
     def run_simulation(self):
         sys_key = self.param_panel.current_system_key()
@@ -545,11 +707,13 @@ class TabTimeSeriesWidget(BaseTabWidget):
 
         if self.main_window:
             self.main_window.last_t = t
-            self.main_window.last_X = X[:, :3]
+            self.main_window.last_X = X
             self.main_window.last_system_key = sys_key
             self.main_window.last_params = params
 
-        self._plot_data(t, X[:, 0], X[:, 1], X[:, 2])
+        self.current_t = t
+        self.current_X = X
+        self._plot_current_data()
 
     def use_last_trajectory(self):
         if (
@@ -564,24 +728,20 @@ class TabTimeSeriesWidget(BaseTabWidget):
                 'No hay trayectoria compartida previa.',
             )
             return
-        self._plot_data(
-            self.main_window.last_t,
-            self.main_window.last_X[:, 0],
-            self.main_window.last_X[:, 1],
-            self.main_window.last_X[:, 2],
-        )
 
-    def _plot_data(self, t, x, y, z):
-        cx = self.color_x.currentData() or '#2563eb'
-        cy = self.color_y.currentData() or '#dc2626'
-        cz = self.color_z.currentData() or '#16a34a'
+        sys_key = self.param_panel.current_system_key()
+        last_sys = getattr(self.main_window, 'last_system_key', None)
+        if last_sys != sys_key:
+            QMessageBox.warning(
+                self,
+                'Incompatibilidad',
+                f'La trayectoria guardada pertenece a {last_sys}, pero el sistema seleccionado es {sys_key}. Por favor ejecute una simulación local.',
+            )
+            return
 
-        self.xt_curve.setData(t, x)
-        self.xt_curve.setPen(pg.mkPen(cx, width=1.5))
-        self.yt_curve.setData(t, y)
-        self.yt_curve.setPen(pg.mkPen(cy, width=1.5))
-        self.zt_curve.setData(t, z)
-        self.zt_curve.setPen(pg.mkPen(cz, width=1.5))
+        self.current_t = self.main_window.last_t
+        self.current_X = self.main_window.last_X
+        self._plot_current_data()
 
 
 class TabFFTWidget(BaseTabWidget):
@@ -727,6 +887,7 @@ class TabBifurcationWidget(BaseTabWidget):
 
     def __init__(self, main_window=None, parent=None):
         super().__init__(main_window, parent)
+        self.coex_cases = load_coexisting_attractors()
         self.init_ui()
 
     def init_ui(self):
@@ -739,12 +900,20 @@ class TabBifurcationWidget(BaseTabWidget):
         )
         self.scroll_layout.addWidget(self.param_panel)
 
+        # Dimension Display
+        self.lbl_dimension = QLabel('Dimensión detectada: 3')
+        self.lbl_dimension.setStyleSheet('font-weight: bold; color: #2563eb; padding: 2px;')
+        self.scroll_layout.addWidget(self.lbl_dimension)
+
         # Bifurcation Parameters Group
         self.bif_box = QGroupBox('Barrido de bifurcación')
         bif_layout = QFormLayout(self.bif_box)
 
         self.sweep_param_combo = QComboBox()
         bif_layout.addRow(QLabel('Parámetro de bifurcación'), self.sweep_param_combo)
+
+        self.obs_var_combo = QComboBox()
+        bif_layout.addRow(QLabel('Variable observada'), self.obs_var_combo)
 
         self.bif_min = make_double_spin(0.0, -500.0, 500.0, 3)
         self.bif_max = make_double_spin(80.0, -500.0, 500.0, 3)
@@ -765,6 +934,56 @@ class TabBifurcationWidget(BaseTabWidget):
         bif_layout.addRow(self.use_cont)
 
         self.scroll_layout.addWidget(self.bif_box)
+
+        # Coexisting Attractors Group
+        self.coex_box = QGroupBox('Atractores coexistentes')
+        coex_layout = QFormLayout(self.coex_box)
+
+        self.chk_compare = QCheckBox('Comparar atractores coexistentes')
+        self.chk_compare.toggled.connect(self._toggle_coexistence_ui)
+        coex_layout.addRow(self.chk_compare)
+
+        self.combo_attr_a = QComboBox()
+        self.combo_attr_b = QComboBox()
+        self.combo_attr_a.currentIndexChanged.connect(self._on_attr_a_changed)
+        self.combo_attr_b.currentIndexChanged.connect(self._on_attr_b_changed)
+        coex_layout.addRow(QLabel('Atractor A'), self.combo_attr_a)
+        coex_layout.addRow(QLabel('Atractor B'), self.combo_attr_b)
+
+        # Initial Conditions for A and B
+        self.ic_a_x = make_double_spin(0.1, -500.0, 500.0, 4)
+        self.ic_a_y = make_double_spin(0.1, -500.0, 500.0, 4)
+        self.ic_a_z = make_double_spin(0.1, -500.0, 500.0, 4)
+        self.ic_b_x = make_double_spin(0.1, -500.0, 500.0, 4)
+        self.ic_b_y = make_double_spin(0.1, -500.0, 500.0, 4)
+        self.ic_b_z = make_double_spin(0.1, -500.0, 500.0, 4)
+
+        coex_layout.addRow(QLabel('CI A [x, y, z]'), self.ic_a_x)
+        coex_layout.addRow(self.ic_a_y)
+        coex_layout.addRow(self.ic_a_z)
+        coex_layout.addRow(QLabel('CI B [x, y, z]'), self.ic_b_x)
+        coex_layout.addRow(self.ic_b_y)
+        coex_layout.addRow(self.ic_b_z)
+
+        # Color combos for A and B
+        self.color_attr_a = QComboBox()
+        self.color_attr_b = QComboBox()
+        for label, val in COLOR_OPTIONS.items():
+            self.color_attr_a.addItem(label, userData=val)
+            self.color_attr_b.addItem(label, userData=val)
+        self.color_attr_a.setCurrentIndex(self.color_attr_a.findText('Rojo'))
+        self.color_attr_b.setCurrentIndex(self.color_attr_b.findText('Azul'))
+
+        coex_layout.addRow(QLabel('Color A'), self.color_attr_a)
+        coex_layout.addRow(QLabel('Color B'), self.color_attr_b)
+
+        self.scroll_layout.addWidget(self.coex_box)
+
+        # Warning/Error display area
+        self.lbl_warning = QLabel()
+        self.lbl_warning.setWordWrap(True)
+        self.lbl_warning.setStyleSheet('color: #dc2626; font-size: 11px; font-weight: bold; margin: 4px;')
+        self.scroll_layout.addWidget(self.lbl_warning)
 
         # Action Buttons
         self.btn_run = QPushButton('Calcular bifurcación')
@@ -789,6 +1008,12 @@ class TabBifurcationWidget(BaseTabWidget):
 
     def _update_bifurcation_defaults(self, system_key: str):
         meta = SYSTEM_REGISTRY[system_key]
+        dim = meta.get('dimension', 3)
+        self.lbl_dimension.setText(f'Dimensión detectada: {dim}')
+        self.lbl_warning.setText('')
+
+        # Sweep parameter combo
+        self.sweep_param_combo.blockSignals(True)
         self.sweep_param_combo.clear()
         labels = meta.get('param_labels', ())
         for label in labels:
@@ -797,6 +1022,17 @@ class TabBifurcationWidget(BaseTabWidget):
         bif_idx = meta.get('bifurcation_param')
         if bif_idx is not None and bif_idx < self.sweep_param_combo.count():
             self.sweep_param_combo.setCurrentIndex(bif_idx)
+        self.sweep_param_combo.blockSignals(False)
+
+        # Observed variable combo
+        self.obs_var_combo.blockSignals(True)
+        self.obs_var_combo.clear()
+        variables = get_system_variables(system_key)
+        for var in variables:
+            self.obs_var_combo.addItem(var)
+        # Default observed variable is z (idx 2) or last variable
+        self.obs_var_combo.setCurrentIndex(min(2, len(variables) - 1))
+        self.obs_var_combo.blockSignals(False)
 
         low, high = meta.get('bifurcation_range', (0.0, 1.0))
         self.bif_min.setValue(float(low))
@@ -809,19 +1045,88 @@ class TabBifurcationWidget(BaseTabWidget):
         self.bif_n.setValue(350)
         self.max_points.setValue(250)
 
+        # Update coexisting attractors combo
+        self.combo_attr_a.blockSignals(True)
+        self.combo_attr_b.blockSignals(True)
+        self.combo_attr_a.clear()
+        self.combo_attr_b.clear()
+
+        # Find coexistence case in metadata or yaml
+        coex_attractors = meta.get('coexisting_attractors', [])
+        if not coex_attractors:
+            # Check if exists in yaml cases
+            yaml_case = next((c for c in self.coex_cases if c.get('system_key') == system_key), None)
+            if yaml_case:
+                coex_attractors = yaml_case.get('attractors', [])
+
+        if coex_attractors:
+            self.coex_box.setEnabled(True)
+            self.coex_box.setTitle('Atractores coexistentes')
+            self.chk_compare.setEnabled(True)
+            for attr in coex_attractors:
+                lbl = attr.get('label', 'Atractor')
+                ic = attr.get('initial_condition', [0.1, 0.1, 0.1])
+                self.combo_attr_a.addItem(f"{lbl} {ic}", userData=attr)
+                self.combo_attr_b.addItem(f"{lbl} {ic}", userData=attr)
+            
+            if self.combo_attr_a.count() >= 2:
+                self.combo_attr_a.setCurrentIndex(0)
+                self.combo_attr_b.setCurrentIndex(1)
+        else:
+            self.coex_box.setEnabled(False)
+            self.coex_box.setTitle('Atractores coexistentes [No registrado]')
+            self.chk_compare.setChecked(False)
+            self.chk_compare.setEnabled(False)
+            self.lbl_warning.setText('Este sistema no tiene atractores coexistentes registrados.')
+
+        self.combo_attr_a.blockSignals(False)
+        self.combo_attr_b.blockSignals(False)
+        self._toggle_coexistence_ui()
+
+    def _toggle_coexistence_ui(self):
+        enabled = self.chk_compare.isChecked()
+        self.combo_attr_a.setEnabled(enabled)
+        self.combo_attr_b.setEnabled(enabled)
+        self.color_attr_a.setEnabled(enabled)
+        self.color_attr_b.setEnabled(enabled)
+        self.ic_a_x.setEnabled(enabled)
+        self.ic_a_y.setEnabled(enabled)
+        self.ic_a_z.setEnabled(enabled)
+        self.ic_b_x.setEnabled(enabled)
+        self.ic_b_y.setEnabled(enabled)
+        self.ic_b_z.setEnabled(enabled)
+        
+        if enabled:
+            self._on_attr_a_changed()
+            self._on_attr_b_changed()
+
+    def _on_attr_a_changed(self):
+        idx = self.combo_attr_a.currentIndex()
+        if idx >= 0:
+            attr = self.combo_attr_a.currentData()
+            ic = attr.get('initial_condition', [0.1, 0.1, 0.1])
+            self.ic_a_x.setValue(ic[0])
+            self.ic_a_y.setValue(ic[1])
+            self.ic_a_z.setValue(ic[2])
+
+    def _on_attr_b_changed(self):
+        idx = self.combo_attr_b.currentIndex()
+        if idx >= 0:
+            attr = self.combo_attr_b.currentData()
+            ic = attr.get('initial_condition', [0.1, 0.1, 0.1])
+            self.ic_b_x.setValue(ic[0])
+            self.ic_b_y.setValue(ic[1])
+            self.ic_b_z.setValue(ic[2])
+
     def run_bifurcation(self):
         sys_key = self.param_panel.current_system_key()
         meta = SYSTEM_REGISTRY[sys_key]
         params = self.param_panel.current_params()
-        initial = self.param_panel.current_initial()
         method = self.param_panel.current_method_key()
+        dim = meta.get('dimension', 3)
 
         bif_idx = self.sweep_param_combo.currentIndex()
-        if bif_idx < 0:
-            QMessageBox.critical(
-                self, 'Error', 'El sistema seleccionado no tiene parámetros.'
-            )
-            return
+        obs_idx = self.obs_var_combo.currentIndex()
 
         p_min = self.bif_min.value()
         p_max = self.bif_max.value()
@@ -832,52 +1137,138 @@ class TabBifurcationWidget(BaseTabWidget):
         max_pts = self.max_points.value()
         cont = self.use_cont.isChecked()
 
+        self.lbl_warning.setText('')
+
+        # Validation Checks
+        if bif_idx < 0:
+            err = f"El sistema {meta['label']} no tiene parámetros para barrido."
+            self.lbl_warning.setText(err)
+            QMessageBox.critical(self, 'Parámetro faltante', err)
+            return
+
+        if obs_idx < 0:
+            err = f"Selecciona una variable observada válida para el sistema."
+            self.lbl_warning.setText(err)
+            QMessageBox.critical(self, 'Variable observada inválida', err)
+            return
+
+        if p_min >= p_max:
+            err = f"El rango de bifurcación es inválido: el valor mínimo ({p_min}) debe ser menor que el máximo ({p_max})."
+            self.lbl_warning.setText(err)
+            QMessageBox.critical(self, 'Rango inválido', err)
+            return
+
+        if dt <= 0:
+            err = f"El paso temporal dt ({dt}) debe ser positivo."
+            self.lbl_warning.setText(err)
+            QMessageBox.critical(self, 'Paso dt inválido', err)
+            return
+
+        if n_p <= 0:
+            err = f"El número de muestras N ({n_p}) debe ser un entero positivo."
+            self.lbl_warning.setText(err)
+            QMessageBox.critical(self, 'Número de muestras inválido', err)
+            return
+
+        if transient < 0 or keep <= 0:
+            err = f"El tiempo transitorio ({transient}) y útil ({keep}) deben ser positivos."
+            self.lbl_warning.setText(err)
+            QMessageBox.critical(self, 'Tiempos de simulación inválidos', err)
+            return
+
         if hasattr(self.main_window, 'info_label'):
             self.main_window.info_label.setText('Calculando bifurcación...')
-
-        try:
-            if sys_key == 'lorenz' and bif_idx == 1:
-                # Optimized native lorenz
-                rho_vals, z_vals = bifurcation_poincare_lorenz(
-                    params[0],
-                    params[2],
-                    initial,
-                    p_min,
-                    p_max,
-                    n_p,
-                    dt,
-                    transient,
-                    keep,
-                    max_pts,
-                    cont,
-                    method_key=method,
-                )
-            else:
-                rho_vals, z_vals = bifurcation_generic(
-                    sys_key,
-                    params,
-                    initial,
-                    bif_idx,
-                    p_min,
-                    p_max,
-                    n_p,
-                    dt,
-                    transient,
-                    keep,
-                    max_pts,
-                    cont,
-                    method_key=method,
-                )
-        except Exception as exc:
-            QMessageBox.critical(self, 'Error de bifurcación', str(exc))
-            return
 
         labels = meta.get('param_labels', ())
         x_label = labels[bif_idx] if bif_idx < len(labels) else 'parámetro'
         title = f"Diagrama de bifurcación - {meta['label']}"
-        self.canvas.plot_bifurcation(
-            rho_vals, z_vals, title, x_label, 'Variable en evento', color='#111827'
-        )
+        y_label = f"Eventos ({self.obs_var_combo.currentText()})"
+
+        try:
+            if self.chk_compare.isChecked():
+                # Compare coexisting attractors
+                initial_a = [self.ic_a_x.value(), self.ic_a_y.value(), self.ic_a_z.value()]
+                initial_b = [self.ic_b_x.value(), self.ic_b_y.value(), self.ic_b_z.value()]
+                
+                # Fetch specific parameter set if loaded from cases
+                case = next((c for c in self.coex_cases if c.get('system_key') == sys_key), None)
+                if case and 'parameter_set' in case:
+                    # Update parameters to match the coexisting parameter set
+                    p_set = case['parameter_set']
+                    params = []
+                    for name in labels:
+                        if name in p_set:
+                            params.append(p_set[name])
+                
+                # Attractor A Sweep
+                if sys_key == 'lorenz' and bif_idx == 1 and obs_idx == 2:
+                    rho_vals_a, z_vals_a = bifurcation_poincare_lorenz(
+                        initial_a[0], initial_a[1], initial_a[2],
+                        params[0], params[2],
+                        p_min, p_max, n_p, dt, transient, keep, max_pts, cont,
+                        method_key=method
+                    )
+                else:
+                    rho_vals_a, z_vals_a = bifurcation_generic(
+                        sys_key, initial_a, params, bif_idx,
+                        p_min, p_max, n_p, dt, transient, keep, max_pts, cont,
+                        method_key=method, observed_var_idx=obs_idx
+                    )
+                
+                # Attractor B Sweep
+                if sys_key == 'lorenz' and bif_idx == 1 and obs_idx == 2:
+                    rho_vals_b, z_vals_b = bifurcation_poincare_lorenz(
+                        initial_b[0], initial_b[1], initial_b[2],
+                        params[0], params[2],
+                        p_min, p_max, n_p, dt, transient, keep, max_pts, cont,
+                        method_key=method
+                    )
+                else:
+                    rho_vals_b, z_vals_b = bifurcation_generic(
+                        sys_key, initial_b, params, bif_idx,
+                        p_min, p_max, n_p, dt, transient, keep, max_pts, cont,
+                        method_key=method, observed_var_idx=obs_idx
+                    )
+                
+                datasets = [
+                    {
+                        'param_values': rho_vals_a,
+                        'event_values': z_vals_a,
+                        'label': self.combo_attr_a.currentText().split('[')[0].strip(),
+                        'color': self.color_attr_a.currentData()
+                    },
+                    {
+                        'param_values': rho_vals_b,
+                        'event_values': z_vals_b,
+                        'label': self.combo_attr_b.currentText().split('[')[0].strip(),
+                        'color': self.color_attr_b.currentData()
+                    }
+                ]
+                self.canvas.plot_bifurcation_multi(datasets, title, x_label, y_label)
+            else:
+                # Single sweep
+                initial = self.param_panel.current_initial()
+                
+                if sys_key == 'lorenz' and bif_idx == 1 and obs_idx == 2:
+                    rho_vals, z_vals = bifurcation_poincare_lorenz(
+                        initial[0], initial[1], initial[2],
+                        params[0], params[2],
+                        p_min, p_max, n_p, dt, transient, keep, max_pts, cont,
+                        method_key=method
+                    )
+                else:
+                    rho_vals, z_vals = bifurcation_generic(
+                        sys_key, initial, params, bif_idx,
+                        p_min, p_max, n_p, dt, transient, keep, max_pts, cont,
+                        method_key=method, observed_var_idx=obs_idx
+                    )
+                self.canvas.plot_bifurcation(
+                    rho_vals, z_vals, title, x_label, y_label, color='#111827'
+                )
+        except Exception as exc:
+            self.lbl_warning.setText(f"Error: {exc}")
+            QMessageBox.critical(self, 'Error de cálculo', str(exc))
+            return
 
         if hasattr(self.main_window, 'info_label'):
             self.main_window.info_label.setText('Bifurcación calculada.')
