@@ -12,6 +12,23 @@ Supported families include Lorenz, Rossler, Chua, Chen, Lu, Duffing-Ueda, Rabino
 
 This version uses a closed catalog of systems supported by the toolbox and numerical backend. Users can modify parameters, initial conditions, and visualization options for available systems, but cannot register arbitrary new dynamical systems from the main UI. Future custom-system support is documented in `docs/custom_systems_future.md`.
 
+## Research Use
+
+Fyskode Chaotic Systems Toolbox is used as a numerical and visual aid in research and education workflows for chaotic dynamical systems. The platform supports:
+- **Phase Portraits & Trajectories**: 2D and 3D visualization of trajectories under customizable initial conditions and integration parameters.
+- **Time Series & FFT**: Extraction of dynamics and spectral density analysis via Fast Fourier Transform.
+- **Lyapunov Diagnostics**: Numerical estimation of the spectrum of Lyapunov exponents to evaluate dynamic complexity and sensitivity to initial conditions.
+- **Bifurcation Sweeps**: Sweep-screening of one-dimensional parameter spaces to reveal routes to chaos.
+- **Attraction Basins**: Visual identification of coexisting attractors and multistability basins where supported.
+
+All numerical outputs serve as computational evidence and do not represent formal mathematical certification.
+
+## Sprott Explorer Scope
+
+The Sprott Explorer is an educational module designed to modernize the exploration of chaotic equations and historical dictionaries published by J. C. Sprott. It operates under a strict distribution policy:
+- **No Redistribution**: The software does not package or distribute original copyrighted disk files, dictionary databases (`.DIC`), book figures, or proprietary code.
+- **Local Exploration**: Users can import local `.DIC` files at runtime for personal study. These files are processed locally and are never copied or persisted in the toolbox catalog.
+
 ## Public Release Policy
 
 Public releases do not redistribute original Sprott book disk files, dictionaries, executables, source code, figures, or long book text. User-owned `.DIC` files can be selected locally at runtime and remain outside the repository and installer. See `docs/distribution_policy.md`.
@@ -78,7 +95,7 @@ Expected artifact names and directories:
 - `chaos-toolbox-v0.1.0-macos-arm64.dmg`
 - `chaos-toolbox-v0.1.0-linux-x64.AppImage`
 
-Windows packaging uses PyInstaller plus Inno Setup. Previous or stale installers with older names (like `ChaosToolboxSetup-0.1.0.exe`) are obsolete unless their modification date proves otherwise. macOS and Linux PyInstaller builds are prepared, while `.dmg`, AppImage, `.deb`, and `.rpm` publication require platform tools documented in `docs/packaging.md`.
+Windows packaging uses PyInstaller plus Inno Setup. Stale or older installers are archived to prevent confusion. The primary executable distribution is currently compiled for Windows as an installer (`.exe`). macOS and Linux build/packaging scripts are prepared in `scripts/`, but the final distribution packages (such as `.dmg` or AppImage) must be generated on their respective host platforms before publication. Details are in `docs/packaging.md`.
 
 ## Updates
 
@@ -94,7 +111,7 @@ The app never installs updates silently. It shows installed version, available v
 
 ## Citation And JOSS Preparation
 
-Citation metadata is available in `CITATION.cff` (with OSF archive DOI [10.17605/OSF.IO/GQMJR](https://doi.org/10.17605/OSF.IO/GQMJR)). A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. GitHub is the active repository for review, issues, source code, tests, and development; OSF is the persistent archive for the frozen release snapshot and DOI. See `docs/project_identity.md` for a summary of author identity, brand, and pseudonym conventions.
+The Fyskode Chaotic Systems Toolbox version 0.1.0 is archived on the Open Science Framework (OSF) with persistent DOI [10.17605/OSF.IO/GQMJR](https://doi.org/10.17605/OSF.IO/GQMJR). Citation metadata is available in `CITATION.cff`. A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. GitHub is the active repository for review, issues, source code, tests, and development; OSF is the persistent archive for the frozen release snapshot. See `docs/project_identity.md` for a summary of author identity, brand, and pseudonym conventions.
 
 ## Documentation
 
