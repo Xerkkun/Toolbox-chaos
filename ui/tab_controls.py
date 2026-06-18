@@ -1068,7 +1068,7 @@ class TabBifurcationWidget(BaseTabWidget):
                 ic = attr.get('initial_condition', [0.1, 0.1, 0.1])
                 self.combo_attr_a.addItem(f"{lbl} {ic}", userData=attr)
                 self.combo_attr_b.addItem(f"{lbl} {ic}", userData=attr)
-            
+
             if self.combo_attr_a.count() >= 2:
                 self.combo_attr_a.setCurrentIndex(0)
                 self.combo_attr_b.setCurrentIndex(1)
@@ -1077,7 +1077,14 @@ class TabBifurcationWidget(BaseTabWidget):
             self.coex_box.setTitle('Atractores coexistentes [No registrado]')
             self.chk_compare.setChecked(False)
             self.chk_compare.setEnabled(False)
-            self.lbl_warning.setText('Este sistema no tiene atractores coexistentes registrados.')
+            # Use a neutral info style — NOT lbl_warning, so it doesn't
+            # bleed into run_bifurcation and confuse the user.
+            self.lbl_warning.setStyleSheet(
+                'color: #6b7280; font-size: 11px; margin: 4px;'
+            )
+            self.lbl_warning.setText(
+                'Info: este sistema no tiene atractores coexistentes registrados.'
+            )
 
         self.combo_attr_a.blockSignals(False)
         self.combo_attr_b.blockSignals(False)
@@ -1137,11 +1144,19 @@ class TabBifurcationWidget(BaseTabWidget):
         max_pts = self.max_points.value()
         cont = self.use_cont.isChecked()
 
+        # Reset warning style to error style at the start of each run
+        self.lbl_warning.setStyleSheet(
+            'color: #dc2626; font-size: 11px; font-weight: bold; margin: 4px;'
+        )
         self.lbl_warning.setText('')
 
         # Validation Checks
-        if bif_idx < 0:
-            err = f"El sistema {meta['label']} no tiene parámetros para barrido."
+        if self.sweep_param_combo.count() == 0 or bif_idx < 0:
+            err = (
+                f"El sistema {meta['label']} no tiene parámetros disponibles "
+                "para el barrido de bifurcación. "
+                "Selecciona un sistema con parámetros definidos."
+            )
             self.lbl_warning.setText(err)
             QMessageBox.critical(self, 'Parámetro faltante', err)
             return
@@ -1190,16 +1205,20 @@ class TabBifurcationWidget(BaseTabWidget):
                 initial_a = [self.ic_a_x.value(), self.ic_a_y.value(), self.ic_a_z.value()]
                 initial_b = [self.ic_b_x.value(), self.ic_b_y.value(), self.ic_b_z.value()]
                 
-                # Fetch specific parameter set if loaded from cases
-                case = next((c for c in self.coex_cases if c.get('system_key') == sys_key), None)
+                # Fetch specific parameter set if loaded from cases.
+                # Guard: only replace params if ALL labels are present in
+                # the YAML parameter_set; otherwise fall back to panel params
+                # to avoid truncated param lists causing IndexError.
+                case = next(
+                    (c for c in self.coex_cases if c.get('system_key') == sys_key), None
+                )
                 if case and 'parameter_set' in case:
-                    # Update parameters to match the coexisting parameter set
                     p_set = case['parameter_set']
-                    params = []
-                    for name in labels:
-                        if name in p_set:
-                            params.append(p_set[name])
-                
+                    rebuilt = [p_set[name] for name in labels if name in p_set]
+                    if len(rebuilt) == len(params):
+                        params = rebuilt
+                    # else: partial match — keep original panel params
+
                 # Attractor A Sweep
                 if sys_key == 'lorenz' and bif_idx == 1 and obs_idx == 2:
                     rho_vals_a, z_vals_a = bifurcation_poincare_lorenz(

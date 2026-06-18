@@ -1,0 +1,227 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "chore/**"
+      - "feat/**"
+      - "fix/**"
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Job 1: Verify that dependencies install cleanly on all platforms
+  # ──────────────────────────────────────────────────────────────
+  deps-check:
+    name: Deps / ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # Linux: PyQt6 needs a virtual display driver and system Qt libs
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 \
+            libgl1 \
+            libegl1 \
+            libdbus-1-3 \
+            libxkbcommon-x11-0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-xinerama0 \
+            libxcb-xfixes0 \
+            xvfb
+
+      - name: Install Python runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+
+      - name: Verify installed package versions
+        shell: python
+        run: |
+          import importlib.metadata as meta, sys
+
+          required = {
+              "PyQt6":       (6, 7),
+              "numpy":       (1, 26),
+              "matplotlib":  (3, 8),
+              "pyqtgraph":   (0, 13),
+          }
+
+          failed = []
+          for pkg, min_ver in required.items():
+              try:
+                  raw = meta.version(pkg)
+                  parts = tuple(int(x) for x in raw.split(".")[:len(min_ver)])
+                  ok = parts >= min_ver
+                  status = "OK" if ok else "TOO OLD"
+                  print(f"  {status:7s} {pkg}=={raw}  (required >={'.'.join(str(v) for v in min_ver)})")
+                  if not ok:
+                      failed.append(pkg)
+              except meta.PackageNotFoundError:
+                  print(f"  MISSING {pkg}")
+                  failed.append(pkg)
+
+          if failed:
+              print(f"\n[FAIL] Version check failed for: {failed}", file=sys.stderr)
+              sys.exit(1)
+          print("\n[OK] All runtime dependencies satisfy minimum version requirements.")
+
+      - name: Verify Python interpreter meets minimum version
+        shell: python
+        run: |
+          import sys
+          required = (3, 10)
+          actual = sys.version_info[:2]
+          print(f"Python {sys.version}")
+          if actual < required:
+              print(f"[FAIL] Python >= {required[0]}.{required[1]} required, got {actual[0]}.{actual[1]}", file=sys.stderr)
+              sys.exit(1)
+          print(f"[OK] Python {actual[0]}.{actual[1]} satisfies >= {required[0]}.{required[1]}")
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 2: Full test suite (headless Qt, no binary build)
+  # ──────────────────────────────────────────────────────────────
+  test:
+    name: Tests / ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    needs: deps-check
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11"]   # Full suite on one stable version per platform
+
+    env:
+      QT_QPA_PLATFORM: offscreen   # headless Qt — no display server needed
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 \
+            libgl1 \
+            libegl1 \
+            libdbus-1-3 \
+            libxkbcommon-x11-0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-xinerama0 \
+            libxcb-xfixes0
+
+      - name: Install runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+
+      - name: Install test dependencies
+        run: python -m pip install pytest
+
+      - name: Build native C backend
+        id: build_c
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -e
+          mkdir -p core/bin
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            LIB_OUT="core/bin/chaos_core.dll"
+            if command -v gcc &>/dev/null; then
+              gcc -O2 -shared -std=c11 core/csrc/chaos_core.c -o "$LIB_OUT" -lm
+              echo "status=built" >> $GITHUB_OUTPUT
+              echo "[C backend] Built Windows DLL with gcc: $LIB_OUT"
+            else
+              echo "status=no_compiler" >> $GITHUB_OUTPUT
+              echo "[C backend] No gcc found on Windows — tests will run in Python fallback mode"
+            fi
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            LIB_OUT="core/bin/libchaos_core.dylib"
+            if command -v gcc &>/dev/null || command -v clang &>/dev/null; then
+              CC=$(command -v gcc || command -v clang)
+              $CC -O2 -shared -fPIC -std=c11 core/csrc/chaos_core.c -o "$LIB_OUT" -lm
+              echo "status=built" >> $GITHUB_OUTPUT
+              echo "[C backend] Built macOS dylib: $LIB_OUT"
+            else
+              echo "status=no_compiler" >> $GITHUB_OUTPUT
+              echo "[C backend] No compiler found on macOS"
+            fi
+          else
+            LIB_OUT="core/bin/libchaos_core.so"
+            if command -v gcc &>/dev/null || command -v clang &>/dev/null; then
+              CC=$(command -v gcc || command -v clang)
+              $CC -O2 -shared -fPIC -std=c11 core/csrc/chaos_core.c -o "$LIB_OUT" -lm
+              echo "status=built" >> $GITHUB_OUTPUT
+              echo "[C backend] Built Linux .so: $LIB_OUT"
+            else
+              echo "status=no_compiler" >> $GITHUB_OUTPUT
+              echo "[C backend] No compiler found on Linux"
+            fi
+          fi
+
+      - name: Report C backend build status
+        shell: bash
+        run: |
+          STATUS="${{ steps.build_c.outputs.status }}"
+          if [[ "$STATUS" == "built" ]]; then
+            echo "[C backend] Native library available -- C-path tests will run."
+          else
+            echo "[C backend] No compiler -- C-path tests will be SKIPPED (expected on some runners)."
+          fi
+
+      - name: Prepare runtime resources
+        run: python scripts/prepare_runtime_resources.py
+
+      - name: Verify packaging policy
+        run: python scripts/verify_packaging.py
+
+      - name: Verify public release cleanliness
+        run: python scripts/verify_public_release_clean.py
+
+      - name: Run full test suite
+        run: python -m pytest -q --tb=short
+
+      - name: Run native backend and multiprocessing tests (verbose)
+        run: python -m pytest tests/test_native_backend.py -v --tb=short
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-logs-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: |
+            .pytest_tmp/
+            *.log
+          retention-days: 7

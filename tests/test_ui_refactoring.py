@@ -200,3 +200,75 @@ def test_high_dimension_widgets():
 
     window.deleteLater()
 
+
+def test_bifurcation_widget_run_no_coex(monkeypatch):
+    """Verify TabBifurcationWidget runs bifurcation calculation correctly for system without coexistence."""
+    from PyQt6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
+
+    tab = TabBifurcationWidget()
+    # Switch system to Rossler (no coexistence)
+    tab.param_panel.system_combo.setCurrentIndex(tab.param_panel.system_combo.findData('rossler'))
+    
+    # Verify chk_compare is disabled and unchecked
+    assert not tab.chk_compare.isEnabled()
+    assert not tab.chk_compare.isChecked()
+    
+    # Run bifurcation sweep
+    tab.run_bifurcation()
+    
+    # Warning label should not indicate an error
+    assert not tab.lbl_warning.text().startswith("Error:")
+    tab.deleteLater()
+
+
+def test_bifurcation_widget_run_with_coex(monkeypatch):
+    """Verify TabBifurcationWidget runs bifurcation calculation correctly for system with coexistence."""
+    from PyQt6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
+
+    tab = TabBifurcationWidget()
+    # Switch system to Lorenz (has coexistence)
+    tab.param_panel.system_combo.setCurrentIndex(tab.param_panel.system_combo.findData('lorenz'))
+    
+    # Verify chk_compare is enabled
+    assert tab.chk_compare.isEnabled()
+    
+    # Case 1: single sweep (compare unchecked)
+    tab.chk_compare.setChecked(False)
+    tab.run_bifurcation()
+    assert not tab.lbl_warning.text().startswith("Error:")
+    
+    # Case 2: dual sweep (compare checked)
+    tab.chk_compare.setChecked(True)
+    tab.run_bifurcation()
+    assert not tab.lbl_warning.text().startswith("Error:")
+    
+    tab.deleteLater()
+
+
+def test_coexistence_widget_simulations(monkeypatch):
+    """Verify TabCoexistenceWidget loads cases and runs simulations correctly."""
+    from PyQt6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'warning', lambda *args, **kwargs: None)
+
+    tab = TabCoexistenceWidget()
+    # Ensure cases loaded successfully
+    assert len(tab.cases) > 0
+    assert tab.case_combo.count() > 0
+
+    # Test simulating one attractor
+    tab.case_combo.setCurrentIndex(0)
+    tab.simulate_one()
+
+    # Test simulating all attractors
+    tab.simulate_all()
+
+    tab.deleteLater()
+
+
+

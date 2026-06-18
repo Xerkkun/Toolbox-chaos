@@ -420,9 +420,13 @@ def _effective_workers(workers: int | None, jobs: int) -> int:
                 workers = int(configured)
             except ValueError as exc:
                 raise NativeChaosError('CHAOS_WORKERS debe ser un entero positivo.') from exc
+        elif getattr(sys, 'frozen', False):
+            # Disable multiprocessing by default when frozen to prevent recursive process bootstrapping crashes
+            workers = 1
         else:
             workers = max(1, (os.cpu_count() or 1) - 1)
     return min(max(1, int(workers)), max(1, int(jobs)))
+
 
 
 def _parameter_chunks(param_min: float, param_max: float, n_param: int, workers: int):
