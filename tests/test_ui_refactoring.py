@@ -200,3 +200,113 @@ def test_high_dimension_widgets():
 
     window.deleteLater()
 
+
+def test_bifurcation_widget_run_no_coex(monkeypatch):
+    """Verify TabBifurcationWidget runs bifurcation calculation correctly for system without coexistence."""
+    from PyQt6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
+
+    tab = TabBifurcationWidget()
+    # Switch system to Rossler (no coexistence)
+    tab.param_panel.system_combo.setCurrentIndex(tab.param_panel.system_combo.findData('rossler'))
+    
+    # Verify chk_compare is disabled and unchecked
+    assert not tab.chk_compare.isEnabled()
+    assert not tab.chk_compare.isChecked()
+    
+    # Run bifurcation sweep
+    tab.run_bifurcation()
+    
+    # Warning label should not indicate an error
+    assert not tab.lbl_warning.text().startswith("Error:")
+    tab.deleteLater()
+
+
+def test_bifurcation_widget_run_with_coex(monkeypatch):
+    """Verify TabBifurcationWidget runs bifurcation calculation correctly for system with coexistence."""
+    from PyQt6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
+
+    tab = TabBifurcationWidget()
+    # Switch system to Lorenz (has coexistence)
+    tab.param_panel.system_combo.setCurrentIndex(tab.param_panel.system_combo.findData('lorenz'))
+    
+    # Verify chk_compare is enabled
+    assert tab.chk_compare.isEnabled()
+    
+    # Case 1: single sweep (compare unchecked)
+    tab.chk_compare.setChecked(False)
+    tab.run_bifurcation()
+    assert not tab.lbl_warning.text().startswith("Error:")
+    
+    # Case 2: dual sweep (compare checked)
+    tab.chk_compare.setChecked(True)
+    tab.run_bifurcation()
+    assert not tab.lbl_warning.text().startswith("Error:")
+    
+    tab.deleteLater()
+
+
+def test_coexistence_widget_simulations(monkeypatch):
+    """Verify TabCoexistenceWidget loads cases and runs simulations correctly."""
+    from PyQt6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
+    monkeypatch.setattr(QMessageBox, 'warning', lambda *args, **kwargs: None)
+
+    tab = TabCoexistenceWidget()
+    # Ensure cases loaded successfully
+    assert len(tab.cases) > 0
+    assert tab.case_combo.count() > 0
+
+    # Test simulating one attractor
+    tab.case_combo.setCurrentIndex(0)
+    tab.simulate_one()
+
+    # Test simulating all attractors
+    tab.simulate_all()
+
+    tab.deleteLater()
+
+
+def test_mainwindow_menus():
+    """Verify that MainWindow has 'Archivo' and 'Ayuda' menus with standard actions."""
+    window = MainWindow()
+    menu_bar = window.menuBar()
+    actions = menu_bar.actions()
+    
+    # We should have Archivo and Ayuda
+    menu_titles = [act.text() for act in actions]
+    assert 'Archivo' in menu_titles
+    assert 'Ayuda' in menu_titles
+    
+    # Get Archivo menu actions
+    archivo_act = next(act for act in actions if act.text() == 'Archivo')
+    archivo_menu = archivo_act.menu()
+    archivo_actions = archivo_menu.actions()
+    
+    # Check "Abrir carpeta de resultados" and "Salir"
+    archivo_action_texts = [act.text() for act in archivo_actions]
+    assert 'Abrir carpeta de resultados' in archivo_action_texts
+    assert 'Salir' in archivo_action_texts
+    
+    # Check shortcut for exit
+    exit_action = next(act for act in archivo_actions if act.text() == 'Salir')
+    assert exit_action.shortcut().toString() == 'Ctrl+Q'
+    
+    # Get Ayuda menu actions
+    ayuda_act = next(act for act in actions if act.text() == 'Ayuda')
+    ayuda_menu = ayuda_act.menu()
+    ayuda_actions = ayuda_menu.actions()
+    ayuda_action_texts = [act.text() for act in ayuda_actions]
+    assert 'Documentacion' in ayuda_action_texts
+    assert 'Acerca de' in ayuda_action_texts
+    assert 'Buscar actualizaciones' in ayuda_action_texts
+    
+    window.deleteLater()
+
+
+
+

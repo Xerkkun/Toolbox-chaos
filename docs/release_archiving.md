@@ -2,7 +2,7 @@
 
 Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
-No DOI has been assigned yet. Do not add a DOI to `CITATION.cff`, `README.md`, or `paper/paper.md` until OSF emits the final DOI for the registered archive.
+The final archival DOI has been assigned as `10.17605/OSF.IO/GQMJR` and added to `CITATION.cff`, `README.md`, and `paper/paper.md`.
 
 ## Roles
 
@@ -46,12 +46,12 @@ python -m pytest tests\test_packaging_metadata.py tests\test_ui_refactoring.py -
 
 9. Submit the GitHub repository and OSF DOI to JOSS. Keep GitHub as the review location and OSF as the persistent frozen archive.
 
-## DOI Policy Before OSF Assignment
+## Active OSF Assignment
 
-Before OSF assignment:
+The OSF Registration has been completed and the stable release has been archived. The assigned persistent DOI is:
 
-- Omit `doi` from `CITATION.cff`.
-- Do not include fake DOI strings in `paper/paper.md`.
-- Use narrative text such as "OSF DOI pending" or "DOI to be assigned after OSF archival release" only in documentation.
+`10.17605/OSF.IO/GQMJR`
+
+This DOI has been added to `CITATION.cff`, `README.md`, and `paper/paper.md`. Prior to registration, no placeholder or pending DOI strings were allowed.
 
 Numerical results are computational evidence, not automatic mathematical proof.

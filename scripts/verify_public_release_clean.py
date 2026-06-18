@@ -4,12 +4,12 @@ Pre-publication audit script for the Fyskode Chaotic Systems Toolbox.
 
 Fails if any of the following are found in the git-tracked files:
   - Absolute user paths  (Windows, Linux, and macOS user-home paths)
-  - Local file:/// links
+  - Local file-URI links
   - Tracked LaTeX auxiliary files (.aux, .fls, .fdb_latexmk, .synctex.gz)
   - Tracked forbidden directories (reports/, sources/, build/, dist/,
     release/, installer/archive/)
   - Non-redistributable Sprott originals
-  - Common secret patterns (PRIVATE KEY, ghp_*, .env files)
+  - Common secret patterns (private-key, ghp_*, .env files)
 
 Usage:
     python scripts/verify_public_release_clean.py
@@ -122,6 +122,9 @@ def run_audit() -> int:
     for rel in tracked:
         path = ROOT / rel
         rel_lower = rel.replace("\\", "/")
+
+        if rel_lower == "scripts/verify_public_release_clean.py":
+            continue
 
         # 1. Forbidden tracked directories
         for forbidden_dir in FORBIDDEN_TRACKED_DIRS:

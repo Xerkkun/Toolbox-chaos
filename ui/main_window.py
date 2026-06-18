@@ -33,6 +33,8 @@ from core.app_metadata import (
     APP_ORGANIZATION,
     APP_VERSION,
     APP_YEAR,
+    APP_DOI,
+    APP_DOI_URL,
     DOCUMENTATION_ENTRY,
     RELEASE_API_ENV,
     UPDATE_CHECK_INTERVAL_DAYS,
@@ -124,15 +126,26 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(1500, self._maybe_check_updates_on_startup)
 
     def _create_menus(self):
+        # 1. Menú Archivo
+        file_menu = self.menuBar().addMenu('Archivo')
+
+        results_action = QAction('Abrir carpeta de resultados', self)
+        results_action.triggered.connect(self.open_results_folder)
+        file_menu.addAction(results_action)
+
+        file_menu.addSeparator()
+
+        exit_action = QAction('Salir', self)
+        exit_action.setShortcut('Ctrl+Q')
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        # 2. Menú Ayuda
         help_menu = self.menuBar().addMenu('Ayuda')
 
         docs_action = QAction('Documentacion', self)
         docs_action.triggered.connect(self.open_documentation)
         help_menu.addAction(docs_action)
-
-        results_action = QAction('Abrir carpeta de resultados', self)
-        results_action.triggered.connect(self.open_results_folder)
-        help_menu.addAction(results_action)
 
         help_menu.addSeparator()
 
@@ -154,6 +167,7 @@ class MainWindow(QMainWindow):
         about_action = QAction('Acerca de', self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
+
 
     def open_documentation(self):
         doc_path = resource_path(DOCUMENTATION_ENTRY)
@@ -179,8 +193,13 @@ class MainWindow(QMainWindow):
             f'<p><b>Version:</b> {APP_VERSION}<br>'
             f'<b>Desarrolladora:</b> {APP_DEVELOPER}<br>'
             f'<b>Licencia:</b> {APP_LICENSE}<br>'
-            f'<b>Anio:</b> {APP_YEAR}</p>'
+            f'<b>Anio:</b> {APP_YEAR}<br>'
+            f'<b>DOI de archivo:</b> <a href="{APP_DOI_URL}">{APP_DOI}</a></p>'
             f'<p>{APP_DESCRIPTION}</p>'
+            f'<p><b>Cómo citar / How to cite:</b><br>'
+            '<span style="font-family: Consolas, monospace; background-color: #f3f4f6; padding: 6px; display: block; border-left: 4px solid #3b82f6; font-size: 11px; color: #1f2937;">'
+            'Moreno Lopez, M. F. (2026). <i>Fyskode Chaotic Systems Toolbox</i> (Version 0.1.0). OSF. DOI: 10.17605/OSF.IO/GQMJR'
+            '</span></p>'
             f'<p><b>Creditos principales:</b> Python, PyQt6, NumPy, Matplotlib, pyqtgraph y PyInstaller.</p>'
             f'<p><b>Documentacion local:</b> {docs_path}</p>'
             f'<p><b>Fuente de actualizaciones:</b> {release_source}</p>'
@@ -194,7 +213,7 @@ class MainWindow(QMainWindow):
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok, parent=dialog)
         buttons.accepted.connect(dialog.accept)
         layout.addWidget(buttons)
-        dialog.resize(560, 430)
+        dialog.resize(580, 480)
         dialog.exec()
 
     def _release_api_url(self) -> str:

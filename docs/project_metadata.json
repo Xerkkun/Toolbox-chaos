@@ -1,0 +1,33 @@
+{
+  "slug": "toolbox_chaos",
+  "name": "Fyskode Chaotic Systems Toolbox",
+  "short_name": "Toolbox Chaos",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "Maria Fernanda Moreno Lopez",
+  "author_display": "Maria Fernanda Moreno Lopez (Fer Moreno)",
+  "brand": "Fyskode",
+  "github_user": "Xerkkun",
+  "repository": "https://github.com/Xerkkun/Toolbox-chaos",
+  "website_path": "https://search.fyskode.com/toolbox_chaos",
+  "osf_doi": "10.17605/OSF.IO/GQMJR",
+  "joss_status": "in preparation",
+  "description": "Desktop software for simulating, visualizing, and exploring chaotic dynamical systems.",
+  "academic_note": "Numerical outputs are computational evidence and should not be interpreted as automatic mathematical proof.",
+  "features": [
+    "Classical chaotic systems",
+    "Sprott Explorer",
+    "Coexisting attractors",
+    "Bifurcation diagrams",
+    "Time series and FFT",
+    "Lyapunov diagnostics",
+    "PDF dictionary",
+    "Exportable figures"
+  ],
+  "links": {
+    "github": "https://github.com/Xerkkun/Toolbox-chaos",
+    "releases": "https://github.com/Xerkkun/Toolbox-chaos/releases",
+    "osf": "https://osf.io/gqmjr",
+    "joss": null
+  }
+}

@@ -17,6 +17,8 @@ APP_BRAND = 'Fyskode'
 APP_AUTHOR_DISPLAY = 'Maria Fernanda Moreno Lopez (Fer Moreno)'
 APP_LICENSE = 'MIT'
 APP_YEAR = '2026'
+APP_DOI = '10.17605/OSF.IO/GQMJR'
+APP_DOI_URL = 'https://doi.org/10.17605/OSF.IO/GQMJR'
 ACADEMIC_NOTICE = (
     'Los resultados numericos deben interpretarse como evidencia computacional '
     'y no como prueba matematica automatica.'
