@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Chaos Toolbox are documented here. The project follows semantic versioning: `MAJOR.MINOR.PATCH`.
+All notable changes to Fyskode Chaotic Systems Toolbox are documented here. The project follows semantic versioning: `MAJOR.MINOR.PATCH`.
 
 ## [0.1.0] - 2026-06-14
 

@@ -1,6 +1,6 @@
 # Examples
 
-Chaos Toolbox 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 This directory is reserved for minimal reproducibility examples to include in an OSF archive and future JOSS review.
 

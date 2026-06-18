@@ -6,7 +6,7 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 
 from PyQt6.QtWidgets import QApplication
 
-from core.app_metadata import APP_DEVELOPER, APP_LICENSE, APP_VERSION
+from core.app_metadata import APP_AUTHOR_DISPLAY, APP_BRAND, APP_DEVELOPER, APP_LICENSE, APP_VERSION
 from core.update_checker import (
     ReleaseAsset,
     check_for_updates,
@@ -19,8 +19,11 @@ from ui.main_window import MainWindow
 
 def test_version_metadata_is_semver():
     assert parse_semver(APP_VERSION) == (0, 1, 0)
-    assert APP_DEVELOPER == 'Fer Moreno'
+    assert APP_DEVELOPER == 'Maria Fernanda Moreno Lopez'
     assert APP_LICENSE == 'MIT'
+    assert 'Maria Fernanda Moreno Lopez' in APP_AUTHOR_DISPLAY
+    assert 'Fer Moreno' in APP_AUTHOR_DISPLAY
+    assert APP_BRAND == 'Fyskode'
 
 
 def test_update_version_comparison():

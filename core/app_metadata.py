@@ -11,8 +11,10 @@ APP_DESCRIPTION = (
     'Toolbox de sistemas caoticos, analisis numerico, visualizacion y '
     'exploracion de atractores.'
 )
-APP_DEVELOPER = 'Fer Moreno'
-APP_ORGANIZATION = 'Fer Moreno'
+APP_DEVELOPER = 'Maria Fernanda Moreno Lopez'
+APP_ORGANIZATION = 'Maria Fernanda Moreno Lopez'
+APP_BRAND = 'Fyskode'
+APP_AUTHOR_DISPLAY = 'Maria Fernanda Moreno Lopez (Fer Moreno)'
 APP_LICENSE = 'MIT'
 APP_YEAR = '2026'
 ACADEMIC_NOTICE = (

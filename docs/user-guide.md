@@ -1,6 +1,6 @@
 # User Guide
 
-Chaos Toolbox 0.1.0 is a PyQt6 desktop toolbox by Fer Moreno under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is a PyQt6 desktop toolbox developed by Maria Fernanda Moreno Lopez (Fer Moreno) under the MIT License.
 
 Use the main tabs to simulate systems, visualize attractors, inspect time series, compare methods, calculate FFT/Lyapunov diagnostics, explore bifurcations, inspect basins where supported, and open the local PDF dictionary.
 

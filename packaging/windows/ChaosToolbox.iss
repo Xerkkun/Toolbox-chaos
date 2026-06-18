@@ -1,6 +1,6 @@
 #define MyAppName "Chaos Toolbox"
 #include "generated_version.iss"
-#define MyAppPublisher "Fer Moreno"
+#define MyAppPublisher "Maria Fernanda Moreno Lopez"
 #define MyAppExeName "Chaos Toolbox.exe"
 
 [Setup]

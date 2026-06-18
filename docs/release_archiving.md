@@ -1,6 +1,6 @@
 # Release Archiving With OSF
 
-Chaos Toolbox 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 No DOI has been assigned yet. Do not add a DOI to `CITATION.cff`, `README.md`, or `paper/paper.md` until OSF emits the final DOI for the registered archive.
 

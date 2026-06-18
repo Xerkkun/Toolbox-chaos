@@ -1,6 +1,6 @@
 # Release Process
 
-Chaos Toolbox 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 1. Update `pyproject.toml` using semantic versioning `MAJOR.MINOR.PATCH`.
 2. Update `CHANGELOG.md`, `RELEASE_NOTES.md`, `CITATION.cff`, and documentation references.
