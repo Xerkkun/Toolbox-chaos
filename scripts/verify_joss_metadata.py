@@ -50,7 +50,7 @@ def main() -> int:
     citation = _read(CITATION)
     _check('cff-version: 1.2.0' in citation, 'CITATION.cff must declare cff-version 1.2.0.')
     _check('repository-code: "https://github.com/Xerkkun/Toolbox-chaos"' in citation, 'CITATION.cff must include repository-code.')
-    _check('doi:' not in citation.lower(), 'CITATION.cff must not include a DOI before archival release.')
+    _check('doi: 10.17605/OSF.IO/GQMJR' in citation, 'CITATION.cff must include the correct OSF archive DOI.')
 
     paper = _read(PAPER)
     bib = _read(BIB)
@@ -58,9 +58,8 @@ def main() -> int:
     manifest = _read(MANIFEST)
     for section in REQUIRED_SECTIONS:
         _check(f'# {section}' in paper, f'paper.md missing required JOSS section: {section}')
-    _check('archive_doi' not in paper.lower(), 'paper.md must not include archive_doi before archival release.')
-    _check(not re.search(r'10\.\d{4,9}/\S+', paper), 'paper.md should not contain inline DOI strings.')
-    _check('OSF' in paper and 'DOI is pending' in paper, 'paper.md must state that the OSF archive DOI is pending.')
+    _check('10.17605/OSF.IO/GQMJR' in paper, 'paper.md must include the correct OSF archive DOI.')
+    _check('DOI is pending' not in paper, 'paper.md must not state that the OSF archive DOI is pending.')
     _check('Generative AI tools' in paper, 'AI usage disclosure must explicitly disclose generative AI assistance.')
     _check('author reviewed and edited' in paper, 'AI usage disclosure must state human review of AI-assisted outputs.')
     _check('Zenodo' not in archiving, 'release_archiving.md must describe OSF, not Zenodo, as the archival DOI path.')

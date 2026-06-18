@@ -2,7 +2,7 @@
 
 Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
-This manifest describes the source-release contents intended for a frozen OSF archive used for a JOSS submission. No DOI has been assigned yet; the OSF DOI is pending until the OSF Registration is created.
+This manifest describes the source-release contents intended for a frozen OSF archive used for a JOSS submission. The assigned OSF registration DOI is `10.17605/OSF.IO/GQMJR`.
 
 ## Include
 
@@ -100,7 +100,7 @@ Exclude heavy, generated, private, or non-reproducible files:
 
 GitHub is the active repository for JOSS review, source code, issues, tests, development history, and future releases.
 
-OSF is the persistent archive for the frozen version submitted to JOSS. The OSF archive DOI must be added only after OSF assigns it.
+OSF is the persistent archive for the frozen version submitted to JOSS. The OSF archive DOI has been assigned as `10.17605/OSF.IO/GQMJR`.
 
 Numerical results are computational evidence, not automatic mathematical proof.
 

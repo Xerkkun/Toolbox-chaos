@@ -94,7 +94,7 @@ The app never installs updates silently. It shows installed version, available v
 
 ## Citation And JOSS Preparation
 
-Citation metadata is available in `CITATION.cff`. A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. No DOI has been assigned to the software archive yet. GitHub is the active repository for review, issues, source code, tests, and development; OSF is planned as the persistent archive for the frozen release snapshot and DOI. See `docs/project_identity.md` for a summary of author identity, brand, and pseudonym conventions.
+Citation metadata is available in `CITATION.cff` (with OSF archive DOI [10.17605/OSF.IO/GQMJR](https://doi.org/10.17605/OSF.IO/GQMJR)). A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. GitHub is the active repository for review, issues, source code, tests, and development; OSF is the persistent archive for the frozen release snapshot and DOI. See `docs/project_identity.md` for a summary of author identity, brand, and pseudonym conventions.
 
 ## Documentation
 

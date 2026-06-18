@@ -100,9 +100,8 @@ behavior, package metadata, and Wang-system catalog extraction. It also includes
 Markdown documentation for installation, packaging, licensing, updates, runtime
 resources, distribution restrictions, and future custom-system support.
 GitHub is the active repository for JOSS review, issues, source code, tests, and
-development history. OSF is planned as the persistent archive for the frozen
-release snapshot; the archive DOI is pending and will be added only after OSF
-assigns it.
+development history. OSF is the persistent archive for the frozen release snapshot
+(archived at DOI [10.17605/OSF.IO/GQMJR](https://doi.org/10.17605/OSF.IO/GQMJR)).
 
 The expected impact is practical: instructors can demonstrate chaotic behavior
 with a GUI; researchers can inspect and reproduce numerical examples from the

@@ -8,8 +8,8 @@ This repository connects to the Fyskode public website to display up-to-date sof
 - When changes are made here (such as version bumps or new features), the website pulls updates using its synchronization script.
 
 ## Exposed Assets
-- **Metadata**: Exclusively defined in [project_metadata.json](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/docs/project_metadata.json). No local paths (like `C:/Users` or `file:///`) should ever be stored in this file.
-- **Screenshots**: Place official software screenshots in the [assets/screenshots/](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/assets/screenshots/) folder. Use the standard filenames suggested in its README.
+- **Metadata**: Exclusively defined in [project_metadata.json](project_metadata.json). No local paths (like `C:/Users` or file-URIs) should ever be stored in this file.
+- **Screenshots**: Place official software screenshots in the [assets/screenshots/](../assets/screenshots/) folder. Use the standard filenames suggested in its README.
 
 ## Excluded Files (Do Not Expose)
 - Do not reference local absolute file paths.

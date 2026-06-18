@@ -10,7 +10,7 @@
   "github_user": "Xerkkun",
   "repository": "https://github.com/Xerkkun/Toolbox-chaos",
   "website_path": "https://search.fyskode.com/toolbox_chaos",
-  "osf_doi": null,
+  "osf_doi": "10.17605/OSF.IO/GQMJR",
   "joss_status": "in preparation",
   "description": "Desktop software for simulating, visualizing, and exploring chaotic dynamical systems.",
   "academic_note": "Numerical outputs are computational evidence and should not be interpreted as automatic mathematical proof.",
@@ -27,7 +27,7 @@
   "links": {
     "github": "https://github.com/Xerkkun/Toolbox-chaos",
     "releases": "https://github.com/Xerkkun/Toolbox-chaos/releases",
-    "osf": null,
+    "osf": "https://osf.io/gqmjr",
     "joss": null
   }
 }

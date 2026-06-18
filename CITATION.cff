@@ -3,6 +3,7 @@ message: "If you use Fyskode Chaotic Systems Toolbox in academic work, cite the 
 title: "Fyskode Chaotic Systems Toolbox"
 version: "0.1.0"
 date-released: "2026-06-14"
+doi: 10.17605/OSF.IO/GQMJR
 authors:
   - family-names: "Moreno Lopez"
     given-names: "Maria Fernanda"
