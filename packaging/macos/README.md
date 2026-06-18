@@ -10,4 +10,4 @@ Create the `.app` on a macOS build host:
 
 Then create a `.dmg` using local release tooling. A complete public macOS release requires Apple Developer signing and notarization credentials.
 
-Developer: Fer Moreno. License: MIT.
+Developer: Maria Fernanda Moreno Lopez (Fer Moreno). License: MIT.

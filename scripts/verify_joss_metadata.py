@@ -49,7 +49,7 @@ def main() -> int:
 
     citation = _read(CITATION)
     _check('cff-version: 1.2.0' in citation, 'CITATION.cff must declare cff-version 1.2.0.')
-    _check('repository-code: "https://github.com/Xerkkun/toolbox-chaos"' in citation, 'CITATION.cff must include repository-code.')
+    _check('repository-code: "https://github.com/Xerkkun/Toolbox-chaos"' in citation, 'CITATION.cff must include repository-code.')
     _check('doi:' not in citation.lower(), 'CITATION.cff must not include a DOI before archival release.')
 
     paper = _read(PAPER)

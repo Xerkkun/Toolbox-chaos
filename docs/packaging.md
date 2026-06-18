@@ -1,6 +1,6 @@
 # Packaging
 
-Chaos Toolbox 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 ## Framework Choice
 
@@ -74,8 +74,8 @@ The installer build process requires Inno Setup 6 (`ISCC.exe`). It is automatica
 If not found, a detailed message is displayed, the PyInstaller executable remains intact, and the script exits with an error code.
 
 ### Installer Archiving & Artifacts
-- Main Executable: [Chaos Toolbox.exe](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/dist/Chaos%20Toolbox/Chaos%20Toolbox.exe)
-- Main Installer: [chaos-toolbox-v0.1.0-windows-x64-setup.exe](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/installer/chaos-toolbox-v0.1.0-windows-x64-setup.exe)
+- Main Executable: `dist/Chaos Toolbox/Chaos Toolbox.exe`
+- Main Installer: `installer/chaos-toolbox-v0.1.0-windows-x64-setup.exe`
 - Prior to compiling a new installer, all existing `*.exe` files in the `installer/` directory are moved to the `installer/archive/` folder.
 - Stale installers with the old name format (e.g., `ChaosToolboxSetup-0.1.0.exe`) are considered obsolete and are automatically archived to prevent user confusion.
 

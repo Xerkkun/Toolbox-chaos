@@ -1,6 +1,6 @@
 # Notice
 
-Chaos Toolbox version 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox version 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 Primary runtime dependencies include Python, PyQt6, NumPy, Matplotlib, pyqtgraph, and the local native backend built from `core/csrc/chaos_core.c`.
 

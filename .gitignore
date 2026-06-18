@@ -1,7 +1,17 @@
+# ============================================================
+# Python
+# ============================================================
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
+*.so
+*.egg-info/
 
+# ============================================================
+# Virtual environments
+# ============================================================
 .venv/
 .venv-webengine/
 .venv-build/
@@ -9,22 +19,40 @@ venv/
 env/
 ENV/
 
+# ============================================================
+# Test / type / lint caches
+# ============================================================
 .pytest_cache/
 .pytest_tmp/
 pytest-cache-files-*/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
 
+# ============================================================
+# Build and release artifacts
+# ============================================================
 build/
 dist/
+release/
 installer/*.exe
+installer/*.msi
+installer/*.zip
+installer/*.7z
 installer/archive/
 !installer/.gitkeep
-release/
-*.egg-info/
+
+# ============================================================
+# Local / private runtime resources
+# ============================================================
 resources/user/*
 !resources/user/.gitkeep
 
+# ============================================================
+# Private downloaded archives and non-redistributable Sprott material
+# ============================================================
+external/
 external/sprott_site*/
 external/sprott_originals/
 external/sprott_bookdisk/
@@ -41,24 +69,69 @@ references/sprott_originals/
 **/PROG28TC.CPP
 **/VBRUN200.DLL
 
+# ============================================================
+# LaTeX build intermediates
+# ============================================================
+*.aux
+*.fls
+*.fdb_latexmk
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+assets/**/*.aux
+assets/**/*.fls
+assets/**/*.fdb_latexmk
+assets/**/*.log
+assets/**/*.out
+assets/**/*.toc
+assets/**/*.synctex.gz
+
+# ============================================================
+# Local reports and rendered pages
+# ============================================================
+reports/
+reports/rendered_pages/
+
+# ============================================================
+# Internal prompts, seed files, and source-extraction scratch files
+# ============================================================
+prompt_codex_*.md
+*_prompt_codex_*.md
+registro_sistemas_wang2021_seed.md
+registro_*_seed.md
+sources/
+
+# ============================================================
+# Local developer docs (progress logs, private notes)
+# ============================================================
+docs/sources/
+
+# ============================================================
+# Secrets and local config
+# ============================================================
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.bak
+*.tmp
+
+# ============================================================
+# IDE and OS files
+# ============================================================
 .idea/
 .vscode/
-
-*.log
-assets/sprott/*.aux
-assets/sprott/*.fls
-assets/sprott/*.fdb_latexmk
-assets/sprott/*.log
-assets/sprott/*.out
-assets/sprott/*.toc
-assets/sprott/*.synctex.gz
-assets/*.aux
-assets/*.fls
-assets/*.fdb_latexmk
-assets/*.log
-assets/*.out
-assets/*.toc
-assets/*.synctex.gz
-reports/rendered_pages/
 Thumbs.db
 Desktop.ini
+.DS_Store
+.tmp.driveupload/
+.tmp.drivedownload/

@@ -6,7 +6,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-  { name = "Fer Moreno" }
+  { name = "Maria Fernanda Moreno Lopez" }
+]
+maintainers = [
+  { name = "Maria Fernanda Moreno Lopez" }
 ]
 keywords = ["chaos", "dynamical-systems", "pyqt", "numerical-analysis", "attractors"]
 dependencies = [
@@ -27,7 +30,7 @@ Homepage = "https://github.com/Xerkkun/toolbox-chaos"
 Repository = "https://github.com/Xerkkun/toolbox-chaos"
 
 [tool.chaos_toolbox]
-developer = "Fer Moreno"
+developer = "Maria Fernanda Moreno Lopez"
 license = "MIT"
 release_api_url_env = "CHAOS_TOOLBOX_RELEASES_API_URL"
 update_check_interval_days = 7

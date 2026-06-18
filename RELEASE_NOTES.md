@@ -1,10 +1,10 @@
-# Release Notes - Chaos Toolbox 0.1.0
+# Release Notes - Fyskode Chaotic Systems Toolbox 0.1.0
 
-Chaos Toolbox 0.1.0 prepares the PyQt6 desktop application for distributable builds.
+Fyskode Chaotic Systems Toolbox 0.1.0 prepares the PyQt6 desktop application for distributable builds.
 
 Highlights:
 
-- Developer: Fer Moreno.
+- Developer: Maria Fernanda Moreno Lopez (Fer Moreno).
 - License: MIT.
 - Version source of truth: `pyproject.toml`.
 - Packaging backend: PyInstaller for the Python/PyQt app; Inno Setup for the Windows installer.

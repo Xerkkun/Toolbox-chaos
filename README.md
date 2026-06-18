@@ -1,6 +1,6 @@
-# Chaos Toolbox
+# Fyskode Chaotic Systems Toolbox
 
-Chaos Toolbox 0.1.0 is a PyQt6 desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration. It is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is a PyQt6 desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration. It is developed and maintained by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 Numerical results produced by the application are computational evidence and not automatic mathematical proof.
 
@@ -94,7 +94,7 @@ The app never installs updates silently. It shows installed version, available v
 
 ## Citation And JOSS Preparation
 
-Citation metadata is available in `CITATION.cff`. A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. No DOI has been assigned to the software archive yet. GitHub is the active repository for review, issues, source code, tests, and development; OSF is planned as the persistent archive for the frozen release snapshot and DOI.
+Citation metadata is available in `CITATION.cff`. A draft JOSS software paper is prepared in `paper/paper.md` with references in `paper/paper.bib`. No DOI has been assigned to the software archive yet. GitHub is the active repository for review, issues, source code, tests, and development; OSF is planned as the persistent archive for the frozen release snapshot and DOI. See `docs/project_identity.md` for a summary of author identity, brand, and pseudonym conventions.
 
 ## Documentation
 
@@ -122,4 +122,4 @@ Citation metadata is available in `CITATION.cff`. A draft JOSS software paper is
 
 ## License
 
-Chaos Toolbox 0.1.0 is licensed under the MIT License. Developer: Fer Moreno.
+Fyskode Chaotic Systems Toolbox 0.1.0 is licensed under the MIT License. Developer and maintainer: Maria Fernanda Moreno Lopez (Fer Moreno). Project brand: Fyskode. GitHub username: Xerkkun.

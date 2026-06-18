@@ -1,5 +1,5 @@
 ---
-title: "Chaos Toolbox: a desktop environment for reproducible exploration of chaotic dynamical systems"
+title: "Fyskode Chaotic Systems Toolbox: a desktop environment for reproducible exploration of chaotic dynamical systems"
 tags:
   - Python
   - PyQt6
@@ -9,14 +9,14 @@ tags:
   - multistability
   - scientific visualization
 authors:
-  - name: Fer Moreno
+  - name: Maria Fernanda Moreno Lopez
     affiliation: 1
 affiliations:
   - name: Independent researcher
     index: 1
 date: 14 June 2026
 bibliography: paper.bib
-repository: https://github.com/Xerkkun/toolbox-chaos
+repository: https://github.com/Xerkkun/Toolbox-chaos
 ---
 
 # Summary

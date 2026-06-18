@@ -1,6 +1,6 @@
 # Custom Systems Future Scope
 
-Chaos Toolbox 0.1.0 is developed by Fer Moreno and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 This version does not implement complete creation or registration of new chaotic systems from the main UI. The main toolbox uses a closed catalog of systems supported by the application and by the numerical backend. Users can modify parameters, initial conditions, integration options, and visualization controls for the systems already available.
 

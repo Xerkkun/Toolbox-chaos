@@ -1,15 +1,16 @@
 cff-version: 1.2.0
-message: "If you use Chaos Toolbox in academic work, cite the software and the specific release."
-title: "Chaos Toolbox"
+message: "If you use Fyskode Chaotic Systems Toolbox in academic work, cite the software and the specific release."
+title: "Fyskode Chaotic Systems Toolbox"
 version: "0.1.0"
 date-released: "2026-06-14"
 authors:
-  - family-names: "Moreno"
-    given-names: "Fer"
+  - family-names: "Moreno Lopez"
+    given-names: "Maria Fernanda"
+    alias: "Fer Moreno"
 license: "MIT"
 abstract: "Desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration."
-repository-code: "https://github.com/Xerkkun/toolbox-chaos"
-url: "https://github.com/Xerkkun/toolbox-chaos"
+repository-code: "https://github.com/Xerkkun/Toolbox-chaos"
+url: "https://github.com/Xerkkun/Toolbox-chaos"
 keywords:
   - chaos
   - dynamical systems
