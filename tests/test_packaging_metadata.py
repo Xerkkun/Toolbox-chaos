@@ -77,9 +77,10 @@ def test_update_check_available_and_unavailable_with_mock_fetcher():
 def test_mainwindow_help_menu_contains_packaging_actions():
     app = QApplication.instance() or QApplication([])
     window = MainWindow()
+    help_act = next(act for act in window.menuBar().actions() if act.text() == 'Ayuda')
     actions = [
         action.text()
-        for action in window.menuBar().actions()[0].menu().actions()
+        for action in help_act.menu().actions()
         if action.text()
     ]
     assert 'Buscar actualizaciones' in actions

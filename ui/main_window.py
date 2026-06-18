@@ -124,15 +124,26 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(1500, self._maybe_check_updates_on_startup)
 
     def _create_menus(self):
+        # 1. Menú Archivo
+        file_menu = self.menuBar().addMenu('Archivo')
+
+        results_action = QAction('Abrir carpeta de resultados', self)
+        results_action.triggered.connect(self.open_results_folder)
+        file_menu.addAction(results_action)
+
+        file_menu.addSeparator()
+
+        exit_action = QAction('Salir', self)
+        exit_action.setShortcut('Ctrl+Q')
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+
+        # 2. Menú Ayuda
         help_menu = self.menuBar().addMenu('Ayuda')
 
         docs_action = QAction('Documentacion', self)
         docs_action.triggered.connect(self.open_documentation)
         help_menu.addAction(docs_action)
-
-        results_action = QAction('Abrir carpeta de resultados', self)
-        results_action.triggered.connect(self.open_results_folder)
-        help_menu.addAction(results_action)
 
         help_menu.addSeparator()
 
@@ -154,6 +165,7 @@ class MainWindow(QMainWindow):
         about_action = QAction('Acerca de', self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
+
 
     def open_documentation(self):
         doc_path = resource_path(DOCUMENTATION_ENTRY)

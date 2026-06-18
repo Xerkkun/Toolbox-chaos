@@ -271,4 +271,42 @@ def test_coexistence_widget_simulations(monkeypatch):
     tab.deleteLater()
 
 
+def test_mainwindow_menus():
+    """Verify that MainWindow has 'Archivo' and 'Ayuda' menus with standard actions."""
+    window = MainWindow()
+    menu_bar = window.menuBar()
+    actions = menu_bar.actions()
+    
+    # We should have Archivo and Ayuda
+    menu_titles = [act.text() for act in actions]
+    assert 'Archivo' in menu_titles
+    assert 'Ayuda' in menu_titles
+    
+    # Get Archivo menu actions
+    archivo_act = next(act for act in actions if act.text() == 'Archivo')
+    archivo_menu = archivo_act.menu()
+    archivo_actions = archivo_menu.actions()
+    
+    # Check "Abrir carpeta de resultados" and "Salir"
+    archivo_action_texts = [act.text() for act in archivo_actions]
+    assert 'Abrir carpeta de resultados' in archivo_action_texts
+    assert 'Salir' in archivo_action_texts
+    
+    # Check shortcut for exit
+    exit_action = next(act for act in archivo_actions if act.text() == 'Salir')
+    assert exit_action.shortcut().toString() == 'Ctrl+Q'
+    
+    # Get Ayuda menu actions
+    ayuda_act = next(act for act in actions if act.text() == 'Ayuda')
+    ayuda_menu = ayuda_act.menu()
+    ayuda_actions = ayuda_menu.actions()
+    ayuda_action_texts = [act.text() for act in ayuda_actions]
+    assert 'Documentacion' in ayuda_action_texts
+    assert 'Acerca de' in ayuda_action_texts
+    assert 'Buscar actualizaciones' in ayuda_action_texts
+    
+    window.deleteLater()
+
+
+
 
