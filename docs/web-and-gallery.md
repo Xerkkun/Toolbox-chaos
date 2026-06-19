@@ -6,7 +6,7 @@ This document outlines the public web presentation and screenshot guidelines for
 
 The project facts and release metadata are synchronized with the Fyskode public search platform:
 - **Public URL:** [https://search.fyskode.com/toolbox_chaos](https://search.fyskode.com/toolbox_chaos)
-- **Metadata Source:** The website reads project fields dynamically from [project_metadata.json](project_metadata.json). To prevent leakage, do not store absolute paths (e.g., `C:/Users/...`) in the metadata file.
+- **Metadata Source:** The website reads project fields dynamically from [project_metadata.json](project_metadata.json). To prevent leakage, do not store absolute paths (e.g., user home directory paths) in the metadata file.
 
 ## 2. Screenshot Gallery Guidelines
 
