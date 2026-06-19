@@ -11,9 +11,9 @@
   "repository": "https://github.com/Xerkkun/Toolbox-chaos",
   "website_path": "https://search.fyskode.com/toolbox_chaos",
   "osf_doi": "10.17605/OSF.IO/GQMJR",
-  "joss_status": "in preparation",
-  "description": "Desktop software for simulating, visualizing, and exploring chaotic dynamical systems.",
-  "academic_note": "Numerical outputs are computational evidence and should not be interpreted as automatic mathematical proof.",
+  "description": "Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for exploring chaotic dynamical systems through numerical simulation, visualization, and diagnostic analysis.",
+
+  "academic_note": "Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.",
   "features": [
     "Classical chaotic systems",
     "Sprott Explorer",
@@ -27,7 +27,8 @@
   "links": {
     "github": "https://github.com/Xerkkun/Toolbox-chaos",
     "releases": "https://github.com/Xerkkun/Toolbox-chaos/releases",
-    "osf": "https://osf.io/gqmjr",
-    "joss": null
+    "osf": "https://osf.io/gqmjr"
   }
 }
+
+

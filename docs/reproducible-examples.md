@@ -45,14 +45,11 @@ Because the toolbox is designed primarily as a desktop GUI application, there ar
 
 The repository contains automated scripts that act as developer-level reproducibility checks. They can be executed from a terminal to verify backend solver consistency and packaging states:
 
-1. **Verify metadata constraints:**
-   ```powershell
-   python scripts\verify_joss_metadata.py
-   ```
-2. **Verify public release purity (Sprott copyright compliance):**
+1. **Verify public release purity (Sprott copyright compliance):**
    ```powershell
    python scripts\verify_public_release_clean.py
    ```
+
 3. **Execute smoke test suite (validates PyQt6 window rendering and core math flow):**
    ```powershell
    python scripts\smoke_test.py

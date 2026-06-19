@@ -1,20 +1,20 @@
 # Release Notes - Fyskode Chaotic Systems Toolbox 0.1.0
 
-Fyskode Chaotic Systems Toolbox 0.1.0 prepares the PyQt6 desktop application for distributable builds.
+Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for simulating, analyzing, and exploring chaotic dynamical systems.
 
-Highlights:
+## Added
+- Closed, registry-backed catalog of classical chaotic systems.
+- 2D and 3D trajectory rendering.
+- Numerical diagnostics: Lyapunov exponent estimation, Fast Fourier Transform (FFT) spectra, bifurcation sweeps, and coexisting attractors basins where supported.
+- Sprott Explorer loader to parse and study local `.DIC` files.
+- Integrated PDF dictionary viewer and updater interface.
 
-- Developer: Maria Fernanda Moreno Lopez (Fer Moreno).
-- License: MIT.
-- Version source of truth: `pyproject.toml`.
-- Packaging backend: PyInstaller for the Python/PyQt app; Inno Setup for the Windows installer.
-- Runtime bundle: `resources/bundled`, with final PDFs and runtime data only.
-- Update flow: assisted checks from GitHub Releases or another configured release API using `CHAOS_TOOLBOX_RELEASES_API_URL`.
+## Changed
+- Optimized build script to assemble a compact runtime bundle under `resources/bundled`.
 
-Known manual steps:
+## Fixed
+- Path resolution for relative executables.
 
-- Windows code signing requires a signing certificate.
-- macOS signing and notarization require Apple Developer credentials.
-- Linux AppImage, `.deb`, and `.rpm` publication require platform-specific tooling and signing policy.
-
-Academic warning: numerical results are computational evidence and not automatic mathematical proof.
+## Notes
+- Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+- Sprott Explorer operates locally at runtime and does not bundle or redistribute any copyrighted dictionaries, book figures, or executables.

@@ -16,10 +16,11 @@ Packaging is whitelist-based. The executable bundle includes:
 - final PDFs in `resources/bundled/docs`;
 - minimal Sprott Markdown, examples, thumbnails, and generated educational images required by the UI;
 - default system data/configuration files;
-- local `.DIC` loading support for the Sprott Explorer, without bundling user `.DIC` files;
+- Sprott Explorer local-runtime loading: no original Sprott copyrighted disk files are bundled; no `.DIC` databases are redistributed; no book figures or proprietary executables are bundled; user-owned `.DIC` files can be loaded locally at runtime for personal exploration, and local files are not copied into the package or repository.
 - license, notice, authors, release notes, and minimal user docs.
 
 The bundle excludes `.tex`, LaTeX auxiliary files, source figure folders used only for document compilation, tests, caches, development outputs, previous installers, private resources, and original Sprott protected files.
+
 
 Version 0.1.0 does not package or expose a user-facing system-registration framework for the main toolbox. The supported-system catalog is closed for this release; custom systems are planned for a future version.
 
@@ -95,4 +96,5 @@ Linux:
 
 Build AppImage from the PyInstaller output with AppImage tooling. `.deb` and `.rpm` publication require distro packaging tools and signing policy.
 
-Numerical outputs are computational evidence, not automatic mathematical proof.
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+

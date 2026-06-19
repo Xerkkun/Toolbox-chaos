@@ -1,15 +1,16 @@
 # User Guide
 
-Fyskode Chaotic Systems Toolbox 0.1.0 is a PyQt6 desktop toolbox developed by Maria Fernanda Moreno Lopez (Fer Moreno) under the MIT License.
+Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application developed by Maria Fernanda Moreno Lopez (Fer Moreno) under the MIT License.
 
 Use the main tabs to simulate systems, visualize attractors, inspect time series, compare methods, calculate FFT/Lyapunov diagnostics, explore bifurcations, inspect basins where supported, and open the local PDF dictionary.
 
-The main toolbox uses a closed catalog of supported systems in version 0.1.0. You can edit parameters, initial conditions, method choices, colors, and visualization options for those systems, but you cannot register a completely new dynamical system from the main interface.
+Version 0.1.0 uses a closed catalog of supported systems. Users can modify parameters, initial conditions, method choices, colors, and visualization options for registered systems, but cannot register arbitrary new systems from the main interface.
 
 Generated plots and user-side Sprott gallery outputs are saved to user-selected locations or the local application data folder. Use `Ayuda > Abrir carpeta de resultados` to open the default results folder.
 
-The Sprott Explorer can load local `.DIC` files from your disk for personal exploration. This does not register a new complete system in the main toolbox. These files are not copied into the application and are not redistributed.
+The Sprott Explorer can load user-owned `.DIC` files locally at runtime for personal exploration. This does not register a new complete system in the main toolbox. Original Sprott disk files, `.DIC` databases, book figures, or proprietary executables are not bundled or redistributed with the software, and local files are not copied into the repository or package.
 
 Use `Ayuda > Documentacion` for local docs, `Ayuda > Buscar actualizaciones` for manual update checks, and `Ayuda > Acerca de` for version, license, developer, dependency credits, and academic-use notice.
 
-Numerical results should be interpreted as computational evidence and not as automatic mathematical proof.
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+

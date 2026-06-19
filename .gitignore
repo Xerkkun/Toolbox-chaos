@@ -135,3 +135,24 @@ Desktop.ini
 .DS_Store
 .tmp.driveupload/
 .tmp.drivedownload/
+
+# ============================================================
+# Local JOSS / submission preparation material
+# ============================================================
+paper/
+docs/joss-readiness.md
+docs/reviewer-guide.md
+docs/osf_archive_manifest.md
+docs/release_archiving.md
+scripts/verify_joss_metadata.py
+
+# Optional local submission drafts and reviewer notes
+joss/
+joss-*/
+submission/
+submission-*/
+reviewer-notes/
+reviewer_notes/
+*.joss.md
+*_joss_*.md
+

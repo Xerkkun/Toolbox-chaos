@@ -43,12 +43,12 @@ Before proposing any changes, verify that the existing tests and packaging metad
    python -m pytest -q
    ```
 
-2. **Verify JOSS metadata and release checks:**
+2. **Verify release and packaging checks:**
    ```powershell
-   python scripts\verify_joss_metadata.py
    python scripts\verify_packaging.py
    python scripts\verify_public_release_clean.py
    ```
+
 
 Note that on Linux CI/headless environments, PyQt6 requires a virtual display. Use the `QT_QPA_PLATFORM=offscreen` environment variable to run tests headlessly:
 ```bash
@@ -59,8 +59,8 @@ QT_QPA_PLATFORM=offscreen python -m pytest
 
 Pull Requests are proposed changes from a branch that can be reviewed before being merged into main. To ensure traceability, use the following branching structure when submitting your work:
 
-- **Documentation & JOSS readiness:** Prefix branches with `docs/`, for example:
-  - `docs/joss-readiness`
+- **Documentation and release prep:** Prefix branches with `docs/`, for example:
+  - `docs/release-prep`
 - **Packaging, builds, and installation fixes:** Prefix branches with `fix/`, for example:
   - `fix/packaging-docs`
 - **Catalog expansions and core features:** Prefix branches with `feature/`, for example:
@@ -76,6 +76,9 @@ Pull Requests are proposed changes from a branch that can be reviewed before bei
 - **Code Style:** Follow PEP 8 guidelines for Python code. Ensure PyQt6 widgets and signal-slot connections are clear and decoupled from the numerical simulation logic.
 - **Backend Optimization:** The computational engine uses a native C library under `core/csrc/chaos_core.c` for performance. If you propose modifications to the numerical integration methods, ensure the Python fallback implementations are kept in sync.
 - **System Catalog:** If you wish to propose adding a new chaotic system, it must be registered in the internal catalog under `core/systems/`. Arbitrary user-defined custom systems from the GUI are currently planned as future work, so catalog additions must be curried via the static registry.
+- **Documentation Policy:** All public-facing documentation must adhere to the [Public Documentation Policy](docs/public_documentation_policy.md). Ensure that user guides, release notes, and README files contain only neutral, current-state facts and omit internal histories, AI-generated traces, or submission strategies.
+
+
 
 ## Reporting Errors
 

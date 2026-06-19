@@ -86,7 +86,17 @@ FORBIDDEN_TRACKED_DIRS = {
     "dist/",
     "release/",
     "installer/archive/",
+    "paper/",
 }
+
+FORBIDDEN_TRACKED_PATHS = {
+    "docs/joss-readiness.md",
+    "docs/reviewer-guide.md",
+    "docs/osf_archive_manifest.md",
+    "docs/release_archiving.md",
+    "scripts/verify_joss_metadata.py",
+}
+
 
 SPROTT_ORIGINALS = {
     "BOOKFIGS.DIC", "SELECTED.DIC", "SPECIAL.DIC",
@@ -110,6 +120,30 @@ INTERNAL_PROMPT_RE = re.compile(
     re.IGNORECASE,
 )
 
+_DOC_POLICY_TERMS_RAW = [
+    "Chat" + "GPT",
+    "Co" + "dex",
+    "AI" + " conversation",
+    "internal" + " audit",
+    "freeze" + " audit",
+    "private" + " path",
+    "local" + "-only",
+    "paper" + " strategy",
+    "journal" + " strategy",
+    "submission" + " strategy",
+    "obsolete" + " folder",
+    "previously" + " reorganized",
+    "JO" + "SS",
+    "Journal" + " of Open Source Software",
+    "paper" + "/paper.md",
+    "paper" + "/paper.bib",
+    "verify" + "_joss_metadata.py",
+    "joss" + "-readiness",
+    "reviewer" + "-guide",
+]
+
+
+
 
 # ---------------------------------------------------------------------------
 # Runner
@@ -129,11 +163,23 @@ def run_audit() -> int:
         # 1. Forbidden tracked directories
         for forbidden_dir in FORBIDDEN_TRACKED_DIRS:
             if rel_lower.startswith(forbidden_dir):
-                violations.append(
-                    f"[FORBIDDEN_DIR] {rel}  — directory '{forbidden_dir}' "
-                    f"must not be tracked"
-                )
+                if forbidden_dir == "paper/":
+                    violations.append(
+                        f"[JOSS_PREP] {rel}  — JOSS/submission preparation material must remain local and ignored"
+                    )
+                else:
+                    violations.append(
+                        f"[FORBIDDEN_DIR] {rel}  — directory '{forbidden_dir}' "
+                        f"must not be tracked"
+                    )
                 break
+
+        # 1b. Forbidden tracked paths
+        if rel_lower in FORBIDDEN_TRACKED_PATHS:
+            violations.append(
+                f"[JOSS_PREP] {rel}  — JOSS/submission preparation material must remain local and ignored"
+            )
+
 
         # 2. LaTeX auxiliary files
         if path.suffix.lower() in LATEX_AUX_EXTENSIONS:
@@ -177,6 +223,22 @@ def run_audit() -> int:
                 f"{secret_match.start()}: '{secret_match.group()[:40]}'"
             )
 
+        # 7. Documentation policy check
+        is_doc = path.suffix.lower() in {".md", ".json"}
+        is_exempt = rel_lower in {
+            ".gitignore",
+            "docs/public_documentation_policy.md",
+        }
+
+
+        if is_doc and not is_exempt:
+            for term in _DOC_POLICY_TERMS_RAW:
+                if term.lower() in text.lower():
+                    violations.append(
+                        f"[DOC_POLICY] {rel} — contains forbidden term '{term}'"
+                    )
+
+
     # Report
     if violations:
         print("=" * 70)
@@ -185,7 +247,7 @@ def run_audit() -> int:
         for v in violations:
             print(f"  [FAIL] {v}")
         print(f"\nTotal violations: {len(violations)}")
-        print("Fix these issues before publishing to OSF/JOSS.")
+        print("Fix these issues before publishing.")
         return 1
 
     print("=" * 70)

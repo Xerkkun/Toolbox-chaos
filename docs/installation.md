@@ -1,6 +1,6 @@
 # Installation
 
-Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
+Fyskode Chaotic Systems Toolbox is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
 ## Supported Platforms
 
@@ -25,4 +25,5 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
-Academic warning: numerical outputs are computational evidence, not automatic mathematical proof.
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+

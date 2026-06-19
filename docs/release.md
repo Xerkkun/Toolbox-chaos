@@ -16,10 +16,12 @@ python -m pytest tests\test_packaging_metadata.py tests\test_ui_refactoring.py -
 4. Build platform artifacts on their native OS.
 5. Upload artifacts to a GitHub Release tagged `v0.1.0`.
 6. Configure `CHAOS_TOOLBOX_RELEASES_API_URL` to the GitHub latest-release API URL for update checks.
-7. For JOSS readiness, archive the stable release in OSF, create an OSF Registration for the frozen version, generate the OSF DOI, and add that DOI to `CITATION.cff`, `README.md`, and `paper/paper.md` only after it exists.
+7. For release archiving, archive the stable release in OSF, create an OSF Registration for the frozen version, generate the OSF DOI, and add that DOI to `CITATION.cff` and `README.md` only after it exists.
 
-GitHub remains the active development repository for JOSS review, issues, source code, tests, and pull-request history. OSF is the persistent archive for the frozen release snapshot and DOI. See `docs/release_archiving.md`.
+GitHub remains the active development repository for issues, source code, tests, and pull-request history. OSF is the persistent archive for the frozen release snapshot and DOI.
+
 
 Signing and notarization remain manual until certificates are configured.
 
-Academic warning: numerical results are computational evidence, not automatic mathematical proof.
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+
