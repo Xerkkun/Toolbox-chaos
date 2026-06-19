@@ -2,7 +2,8 @@
 
 Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License.
 
-This version does not implement complete creation or registration of new chaotic systems from the main UI. The main toolbox uses a closed catalog of systems supported by the application and by the numerical backend. Users can modify parameters, initial conditions, integration options, and visualization controls for the systems already available.
+Custom-system registration is not available from the main UI in version 0.1.0, and the application does not implement registration of arbitrary new systems. This document records possible future design directions. Users can modify parameters, initial conditions, integration options, and visualization controls for registered catalog systems, but cannot register arbitrary new systems.
+
 
 ## Existing Exception
 
@@ -29,4 +30,5 @@ Custom-system support is planned for a future version and should include:
 
 Future custom-system definitions should live in user configuration or user data folders, not in the installed application directory. Updates must preserve those definitions, generated results, external resource paths, and local Sprott files.
 
-Numerical results are computational evidence, not automatic mathematical proof.
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+

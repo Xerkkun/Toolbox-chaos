@@ -1,6 +1,9 @@
 # Project Identity
 
+Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for exploring chaotic dynamical systems through numerical simulation, visualization, and diagnostic analysis.
+
 This document records the author identity, project brand, and pseudonym conventions used across legal, academic, and technical contexts for Fyskode Chaotic Systems Toolbox.
+
 
 ## Author
 
@@ -30,8 +33,8 @@ It appears in repository URLs such as `https://github.com/Xerkkun/Toolbox-chaos`
 |---------|-------------|
 | `LICENSE` | Maria Fernanda Moreno Lopez |
 | `CITATION.cff` | Maria Fernanda Moreno Lopez (family-names: Moreno Lopez, given-names: Maria Fernanda) |
-| `paper/paper.md` (JOSS) | Maria Fernanda Moreno Lopez |
 | `AUTHORS.md` | Maria Fernanda Moreno Lopez (Fer Moreno) |
+
 | `NOTICE.md` | Maria Fernanda Moreno Lopez (Fer Moreno) |
 | `pyproject.toml` authors | Maria Fernanda Moreno Lopez |
 | README, docs, user-facing | Maria Fernanda Moreno Lopez (Fer Moreno) |

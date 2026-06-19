@@ -41,10 +41,9 @@ In multistable systems, different initial conditions converge to distinct coexis
 
 ## 7. Bibliographic References
 
-The Fyskode Chaotic Systems Toolbox has been used by the author and collaborators as a numerical and graphical utility in preparation for publications and dynamic systems manuscripts.
-
-`TODO: add bibliographic references to publications using the toolbox`
+The Fyskode Chaotic Systems Toolbox has been used as a numerical and graphical utility in preparation for dynamical systems research and manuscripts.
 
 ---
 
-*Academic Warning: Numerical integrations and exponent calculations represent computational approximations (evidence) and must not be used as automatic mathematical proofs of chaos or the formal existence of attractors.*
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+

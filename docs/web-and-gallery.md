@@ -1,36 +1,35 @@
-# Website and Gallery Integration
+# Web Portal and Screenshot Gallery
 
-This document outlines the public web presentation and screenshot guidelines for **Fyskode Chaotic Systems Toolbox**.
+This guide describes the public web presentation guidelines for **Fyskode Chaotic Systems Toolbox**.
 
-## 1. Web Portal Integration
+## About Fyskode Chaotic Systems Toolbox
 
-The project facts and release metadata are synchronized with the Fyskode public search platform:
-- **Public URL:** [https://search.fyskode.com/toolbox_chaos](https://search.fyskode.com/toolbox_chaos)
-- **Metadata Source:** The website reads project fields dynamically from [project_metadata.json](project_metadata.json). To prevent leakage, do not store absolute paths (e.g., user home directory paths) in the metadata file.
+Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application designed for students, educators, and researchers exploring chaotic dynamical systems. It provides interactive tools to simulate trajectories, visualize attractors, and perform diagnostic analyses.
 
-## 2. Screenshot Gallery Guidelines
+## Current Features
 
-When updating the web gallery or adding inline images to the documentation, compile screenshots of the following nine key views:
+- **Attractor Simulation**: 2D and 3D phase space trajectory plots under customizable initial conditions.
+- **Diagnostic Sweeps**: Lyapunov exponent estimation, Fast Fourier Transform (FFT) analysis, and bifurcation diagram sweeps.
+- **Attraction Basins**: Multi-scroll attraction destination mapping.
+- **Sprott Explorer**: An educational loader to examine historical Sprott equations locally.
+- **Help Resources**: Integrated PDF dictionary viewer and updater interface.
 
-1. **Inicio (Main Dashboard):** The application home screen showing initial greeting and layout.
-2. **Selector de sistemas (System Catalog Selector):** The catalog menu list showcasing classical, multistable, and no-equilibrium categories.
-3. **Visualizador 3D (3D Trajectory Canvas):** A rendering of a 3D chaotic attractor showing rotation and zoom capability.
-4. **Exponentes de Lyapunov (Lyapunov Tab):** The calculated spectrum showing convergence curves over iteration steps.
-5. **Diagrama de Bifurcaciones (Bifurcation View):** Sweeps displaying period-doubling cascades and chaotic regions.
-6. **Espectro FFT (FFT Analyzer):** Power spectral density graphs displaying frequency distribution.
-7. **Cuencas de Atracción (Basins of Attraction Grid):** Multistable attraction maps colored by attractor destination.
-8. **Sprott Explorer:** The custom loader interface displaying local `.DIC` parsing.
-9. **Diccionario PDF (PDF Document Viewer):** The integrated help document reader.
+## Public Website and Downloads
 
-## 3. Sprott Figure Safety Policy
+The official project metadata is published on the Fyskode platform:
+- **Public URL**: [https://search.fyskode.com/toolbox_chaos](https://search.fyskode.com/toolbox_chaos)
+- **Downloads & Source**: [GitHub Repository Releases](https://github.com/Xerkkun/Toolbox-chaos/releases)
 
-To comply with release and publication copyright guidelines, follow this rule strictly:
-- **Do Not Copy Book Assets:** Screenshots of the Sprott Explorer **must not** contain diagrams, charts, or images scanned or copied from Julien C. Sprott's books, publications, or historical websites.
-- **Toolbox Recreations Only:** All visual assets of Sprott systems displayed on the website or documentation must be **screenshots of local simulations generated in real-time by the Fyskode Chaotic Systems Toolbox itself**.
+## License and Distribution Boundaries
 
-## 4. Linking guidelines
+- **License**: MIT License.
+- **Sprott Explorer Policy**: No original Sprott copyrighted disk files, book figures, or historical dictionary databases are distributed. Users may load local files at runtime for personal study.
 
-When linking the web gallery from the repository readme or documentation files, use the relative path to screenshots under `assets/screenshots/` and external link pointers to the public Fyskode website:
-```markdown
-For interactive features and screenshots, see the [Fyskode Portal](https://search.fyskode.com/toolbox_chaos).
-```
+## Screenshot Gallery Policy
+
+All images in the documentation and website gallery must represent real-time renderings produced by the Fyskode Chaotic Systems Toolbox software. They must not use scans or copies of proprietary book figures. Keep screenshot files light (under 2 MB) and free of development environment paths.
+
+## Numerical Scope
+
+Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+
