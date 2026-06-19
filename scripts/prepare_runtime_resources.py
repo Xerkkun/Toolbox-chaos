@@ -56,14 +56,19 @@ def _safe_clear(path: Path) -> None:
     if root not in full.parents and full != root:
         raise RuntimeError(f'Refusing to clear path outside repository: {full}')
     if path.exists():
+        kwargs = {}
+        if sys.version_info >= (3, 12):
+            kwargs['onexc'] = _remove_readonly
+        else:
+            kwargs['onerror'] = _remove_readonly
         for i in range(5):
             try:
-                shutil.rmtree(path, onexc=_remove_readonly)
+                shutil.rmtree(path, **kwargs)
                 return
             except PermissionError:
                 time.sleep(0.2)
         # Final attempt
-        shutil.rmtree(path, onexc=_remove_readonly)
+        shutil.rmtree(path, **kwargs)
 
 
 def _copy_file(src: Path, dst: Path) -> None:
