@@ -95,7 +95,7 @@ To evaluate the capabilities of the toolbox, open the UI and follow these steps:
 ## 6. Verifying Non-Redistribution of Sprott Files
 
 A key release policy of Fyskode Toolbox is that **no copyrighted or proprietary assets from J. C. Sprott are distributed with the software**.
-1. To inspect this compliance, review the script: [verify_public_release_clean.py](file:///c:/Users/moren/Desktop/Codes/Toolbox%20chaos/scripts/verify_public_release_clean.py) or `docs/distribution_policy.md`.
+1. To inspect this compliance, review the script: [verify_public_release_clean.py](../scripts/verify_public_release_clean.py) or `docs/distribution_policy.md`.
 2. The `Sprott Explorer` tab is strictly a runtime parser. You can local-load a dictionary file (`.DIC`), which is parsed in memory and never copied into the application bundle.
 
 ## 7. Numerical Limitations
