@@ -3349,7 +3349,8 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False, asset_roo
                 parts.append(f'<li>{_inline_html(line[2:].strip())}</li>')
             elif re.match(r'^\d+\.\s+', line):
                 close_list()
-                parts.append(f'<p>{_inline_html(re.sub(r"^\d+\.\s+", "", line))}</p>')
+                clean_line = re.sub(r"^\d+\.\s+", "", line)
+                parts.append(f'<p>{_inline_html(clean_line)}</p>')
             else:
                 close_list()
                 parts.append(f'<p>{_inline_html(line)}</p>')
