@@ -186,7 +186,8 @@ def markdown_math_to_html(markdown: str, *, text_color: str = '#111827') -> str:
                 continue
             if re.match(r'^\d+\.\s+', stripped):
                 close_list()
-                html_parts.append(f'<p>{_inline_math(re.sub(r"^\d+\.\s+", "", stripped))}</p>')
+                clean_line = re.sub(r"^\d+\.\s+", "", stripped)
+                html_parts.append(f'<p>{_inline_math(clean_line)}</p>')
                 continue
             close_list()
             html_parts.append(f'<p>{_inline_math(stripped)}</p>')

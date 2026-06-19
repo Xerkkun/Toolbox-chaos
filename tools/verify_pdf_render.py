@@ -161,10 +161,11 @@ def analyze_pdf(pdf_path, profile):
             elif "Underfull \\hbox" in line:
                 log_summary["underfull_hboxes"] += 1
                 
+    rel_pdf_path = os.path.relpath(pdf_path, start=os.getcwd()).replace('\\', '/')
     # Build Markdown report using relative paths
     report_md = f"""# Reporte de Validación: Perfil `{profile}`
 
-- **PDF verificado**: `{os.path.relpath(pdf_path, start=os.getcwd()).replace('\\', '/')}`
+- **PDF verificado**: `{rel_pdf_path}`
 - **Número de páginas**: {num_pages}
 - **Estado de validación**: {"❌ FALLIDO" if failed_assertions else "✅ EXITOSO"}
 
