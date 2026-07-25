@@ -53,6 +53,8 @@ _SYSTEM_CODES = {
     'sprott_q': 32,
     'sprott_r': 33,
     'sprott_s': 34,
+    'wang_chen_no_equilibrium': 35,
+    'nazarimehr_line_equilibrium': 36,
 }
 
 
@@ -298,6 +300,8 @@ def lorenz_bifurcation_poincare_native(
 ):
     workers = _effective_workers(workers, int(n_rho))
     if workers > 1 and not int(continuation):
+        # Load/build once before spawning to avoid concurrent DLL replacement.
+        library()
         tasks = [
             (
                 x0, y0, z0, sigma, beta, lo, hi, count, dt, T_trans, T_keep,
@@ -496,6 +500,8 @@ def bifurcation_generic_native(
 
     workers = _effective_workers(workers, n_param)
     if workers > 1 and not continuation:
+        # Load/build once before spawning to avoid concurrent DLL replacement.
+        library()
         tasks = [
             (
                 system_key, tuple(initial), tuple(params), int(param_idx), lo, hi, count,
@@ -596,6 +602,10 @@ def basin_plane_generic_native(
 
     workers = _effective_workers(workers, row_count)
     if workers > 1:
+        # Build/load once in the parent.  Otherwise, after a C-source change,
+        # several fresh workers can try to replace the same DLL concurrently
+        # on Windows.
+        library()
         basin = np.empty((ny, nx), dtype=np.uint8)
         eq_flat = tuple(np.asarray(eq_points, dtype=np.float64).reshape(-1))
         tasks = [

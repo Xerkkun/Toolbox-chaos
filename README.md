@@ -15,11 +15,23 @@ Fyskode Chaotic Systems Toolbox version 0.1.0 is a PyQt6 desktop application for
 
 ## Supported Systems
 
-Supported families include Lorenz, Rossler, Chua, Chen, Lu, Duffing-Ueda, Rabinovich-Fabrikant, Rikitake, Sprott systems, Thomas, Hindmarsh-Rose, Henon, logistic, Ikeda, Mackey-Glass, Lorenz-96, and related registry-backed systems.
+Supported families include Lorenz, Rossler, Chua, Chen, Lu, Wang--Chen,
+Nazarimehr's line-equilibrium flow, Duffing-Ueda, Rabinovich-Fabrikant,
+Rikitake, Sprott systems, Thomas, Hindmarsh-Rose, Henon, logistic, Ikeda,
+Mackey-Glass, Lorenz-96, and related registry-backed systems.
+
+The Wang--Chen and Nazarimehr entries include published basin presets and
+coexisting-attractor initial conditions. They are available in the general
+system selector and in the coexistence workflow.
 
 ## Scientific Scope
 
 Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
+
+The source is modular but the GUI is not an arbitrary-equation editor. Adding
+a complete three-dimensional flow requires an explicit registry entry, a
+Python vector field, a native-C right-hand side, numerical tests, and any
+system-specific basin classification needed by the published model.
 
 ## Sprott Explorer Scope
 
@@ -74,4 +86,3 @@ Documentation style and public-facing wording follow `docs/public_documentation_
 Fyskode Chaotic Systems Toolbox is licensed under the MIT License.
 
 Citation DOI: [10.17605/OSF.IO/GQMJR](https://doi.org/10.17605/OSF.IO/GQMJR). Refer to `CITATION.cff` for detailed academic citation metadata.
-

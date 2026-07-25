@@ -26,9 +26,13 @@ Because the toolbox is designed primarily as a desktop GUI application, there ar
 4. Set the integration duration to a longer span (e.g., $N = 10000$ steps) to allow the QR orthonormalization method to converge.
 5. Click **Calcular Exponentes**.
 6. **Expected Output:** The calculated spectrum will converge to approximately:
-   - $\lambda_1 > 0$ (confirming chaotic expansion)
+   - $\lambda_1 > 0$ (finite-time evidence of expansion)
    - $\lambda_2 \approx 0$ (direction of the flow)
    - $\lambda_3 < 0$ (strong phase volume contraction)
+
+Repeat the calculation with a smaller step and a longer horizon before
+interpreting this sign pattern. It is a numerical diagnostic, not an automatic
+proof of asymptotic chaos.
 
 ### Example C: Bifurcation sweep of the Rössler Attractor
 1. Select **Rossler** from the system catalog.
@@ -38,6 +42,40 @@ Because the toolbox is designed primarily as a desktop GUI application, there ar
 5. Select coordinate $z$ or $x$ as the projection variable.
 6. Click **Iniciar Barrido** (Start Sweep).
 7. **Expected Output:** A bifurcation diagram plotting the local maxima/minima of the trajectory against the parameter $c$, revealing periodic windows and chaotic bands.
+
+### Example D: Wang--Chen multistable basin
+
+1. Select **Wang-Chen (equilibrios variables)**.
+2. Keep \(a=0.218\), RK4, \(h=0.01\), and open **Cuencas**.
+3. Use the reference preset:
+   \(z_0=0.4716\), \(x_0\in[-1,10]\), and
+   \(y_0\in[-25,10]\).
+4. Set \(T=200\). Increase the grid resolution only after a lower-resolution
+   exploratory run.
+5. **Expected topology:** an unbounded exterior region containing an
+   interleaved bounded-residual region with detected periodic bands. The published
+   periodic seed is \((3.022,1.196,1.643)\), and the chaotic seed is
+   \((1.276,-0.190,0.471)\).
+
+The implementation uses
+\(\dot z=-y+3y^2-x^2-xz+a\). Equation (1) in the cited book chapter prints
+\(-xy\), but its Jacobian, circuit, and the original system definition are
+consistent with \(-xz\). The toolbox follows the chapter's
+\(+a\) convention.
+
+### Example E: Nazarimehr basin with a line of equilibria
+
+1. Select **Nazarimehr (línea de equilibrios)**.
+2. Keep \(k=-0.2\), RK4, \(h=0.01\), and open **Cuencas**.
+3. Use \(z_0=0\), \(x_0\in[-2,4]\), \(y_0\in[-2,2]\), and \(T=200\).
+4. **Expected topology:** a narrow wedge converging to
+   \(E^*=\{(x,0,0):x\in\mathbb{R}\}\), surrounded by a bounded-residual
+   region. The source reports the following chaotic seed:
+   \((-1.53,0.33,0.39)\).
+
+For this preset, convergence requires that the maximum orthogonal distance
+to \(E^*\) over the second half of the integration be at most 0.05. This is a
+declared finite-time numerical contract, not an asymptotic proof.
 
 ---
 
@@ -50,13 +88,18 @@ The repository contains automated scripts that act as developer-level reproducib
    python scripts\verify_public_release_clean.py
    ```
 
-3. **Execute smoke test suite (validates PyQt6 window rendering and core math flow):**
+2. **Execute smoke test suite (validates PyQt6 window rendering and core math flow):**
    ```powershell
    python scripts\smoke_test.py
    ```
-4. **Run core unit tests:**
+3. **Run core unit tests:**
    ```powershell
    python -m pytest tests/test_native_backend.py -v
+   ```
+
+4. **Run the basin-system regression tests:**
+   ```powershell
+   python -m pytest tests/test_research_basin_systems.py -v
    ```
 
 *Note: Headless environments must execute command-line tests with the environment variable `QT_QPA_PLATFORM=offscreen` set.*

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "machine_id": "WINDOWS-ASUS-TUF",
+  "profile_label": "windows-asus-tuf",
+  "expected_system": "Windows",
+  "manufacturer": "ASUS",
+  "model": null,
+  "product_family": "ASUS TUF",
+  "identity_status": "profile_completion_required",
+  "system_type": "x64-based PC",
+  "processor": null,
+  "physical_cores": null,
+  "logical_processors": null,
+  "installed_memory_gib": null,
+  "bios": {
+    "version": null,
+    "date_as_reported": null,
+    "date_format_confirmed": false,
+    "mode": null
+  },
+  "security_context": {
+    "secure_boot": null,
+    "virtualization_based_security": null,
+    "hypervisor_detected": null
+  },
+  "operating_system_notes": {
+    "distribution": "Windows",
+    "edition": null,
+    "kernel_build": null,
+    "locale": null,
+    "time_zone": null
+  },
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "record_power_mode": true,
+    "do_not_use_machine_during_batch": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true
+  },
+  "profile_notes": [
+    "Fill model, CPU, memory, BIOS and Windows build from the ASUS TUF itself before accepting its measurements.",
+    "The benchmark runtime manifest records detected values but does not replace the declared machine profile."
+  ]
+}

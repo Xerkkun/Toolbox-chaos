@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "machine_id": "WINDOWS-THINKPAD-T14S-GEN3",
+  "profile_label": "windows-thinkpad-t14s-gen3",
+  "expected_system": "Windows",
+  "manufacturer": "LENOVO",
+  "model": "21CF003TUS",
+  "product_family": "ThinkPad T14 Gen 3",
+  "confirmed_family_label": "ThinkPad T14s Gen 3",
+  "identity_status": "author_confirmed_with_system_label_difference",
+  "system_type": "x64-based PC",
+  "processor": "AMD Ryzen 7 PRO 6850U with Radeon Graphics",
+  "physical_cores": 8,
+  "logical_processors": 16,
+  "installed_memory_gib": 16.0,
+  "bios": {
+    "version": "LENOVO R23ET87W (1.63)",
+    "date_as_reported": "09/04/2026",
+    "date_format_confirmed": false,
+    "mode": "UEFI"
+  },
+  "security_context": {
+    "secure_boot": "Off",
+    "virtualization_based_security": "Running",
+    "hypervisor_detected": true
+  },
+  "operating_system_notes": {
+    "distribution": "Windows 11",
+    "kernel_build": null,
+    "hardware_abstraction_layer_version": "10.0.26100.1",
+    "locale": "United States",
+    "time_zone": "Central Standard Time (Mexico)"
+  },
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "record_power_mode": true,
+    "do_not_use_machine_during_batch": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true
+  },
+  "profile_notes": [
+    "The hardware values come from the Windows system information supplied for this computer.",
+    "The author confirmed ThinkPad T14s Gen 3 as the correct editorial model name.",
+    "Windows reports machine type 21CF003TUS and system family ThinkPad T14 Gen 3; both raw values are retained as provenance."
+  ]
+}

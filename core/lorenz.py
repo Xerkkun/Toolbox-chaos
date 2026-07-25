@@ -78,6 +78,87 @@ SYSTEM_REGISTRY = {
         'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
         'dimension': 3,
     },
+    'wang_chen_no_equilibrium': {
+        'label': 'Wang-Chen (equilibrios variables)',
+        'implemented': True,
+        'kind': 'flow',
+        'description': (
+            'Sistema de Wang-Chen con cero, uno o dos equilibrios según el '
+            'signo de a.'
+        ),
+        'param_labels': ('a',),
+        'defaults': (0.218,),
+        'initial': (1.276, -0.190, 0.471),
+        'bifurcation_param': 0,
+        'bifurcation_range': (-0.078, 5.0),
+        'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
+        'reference': {
+            'authors': 'Wang, X.; Chen, G.',
+            'year': 2013,
+            'doi': '10.1007/s11071-012-0669-7',
+        },
+        'coexisting_attractors': [
+            {
+                'id': 'wang_chen_periodic',
+                'label': 'ciclo límite',
+                'parameters': {'a': 0.218},
+                'initial_condition': [3.022, 1.196, 1.643],
+                'notes': 'Condición inicial publicada por Bayani et al. (2021).',
+            },
+            {
+                'id': 'wang_chen_chaotic',
+                'label': 'atractor caótico',
+                'parameters': {'a': 0.218},
+                'initial_condition': [1.276, -0.190, 0.471],
+                'notes': 'Condición inicial publicada por Bayani et al. (2021).',
+            },
+        ],
+    },
+    'nazarimehr_line_equilibrium': {
+        'label': 'Nazarimehr (línea de equilibrios)',
+        'implemented': True,
+        'kind': 'flow',
+        'description': (
+            'Sistema polinómico 3D con la línea de equilibrios '
+            'E*={(x,0,0): x real}.'
+        ),
+        'param_labels': ('k',),
+        'defaults': (-0.2,),
+        'initial': (-1.53, 0.33, 0.39),
+        'bifurcation_param': 0,
+        'bifurcation_range': (-1.0, 1.0),
+        'initial_labels': ('x(0)', 'y(0)', 'z(0)'),
+        'dimension': 3,
+        'equilibrium_manifold': {
+            'kind': 'x_axis',
+            'label': 'E*={(x,0,0): x real}',
+        },
+        'reference': {
+            'authors': (
+                'Nazarimehr, F.; Jafari, M.-A.; Jafari, S.; Pham, V.-T.; '
+                'Wang, X.; Chen, G.'
+            ),
+            'year': 2021,
+            'doi': '10.1007/978-3-030-75821-9_22',
+        },
+        'coexisting_attractors': [
+            {
+                'id': 'nazarimehr_line',
+                'label': 'línea de equilibrios',
+                'parameters': {'k': -0.2},
+                'initial_condition': [-1.0, 0.0, 0.0],
+                'notes': 'Punto representativo de E*.',
+            },
+            {
+                'id': 'nazarimehr_chaotic',
+                'label': 'atractor caótico oculto',
+                'parameters': {'k': -0.2},
+                'initial_condition': [-1.53, 0.33, 0.39],
+                'notes': 'Condición inicial publicada por Nazarimehr et al. (2021).',
+            },
+        ],
+    },
     'lu': {
         'label': 'Lu', 'implemented': True, 'kind': 'flow',
         'description': 'Sistema autonomo 3D de Lu-Chen.',
@@ -473,6 +554,21 @@ def vector_field(system_key: str, state, params):
     if system_key == 'chen':
         a, b, c = p[:3]
         return np.array([a * (x[1] - x[0]), (c - a) * x[0] - x[0] * x[2] + c * x[1], x[0] * x[1] - b * x[2]])
+    if system_key == 'wang_chen_no_equilibrium':
+        a = p[0]
+        return np.array([
+            x[1],
+            x[2],
+            -x[1] + 3.0 * x[1] ** 2 - x[0] ** 2 - x[0] * x[2] + a,
+        ])
+    if system_key == 'nazarimehr_line_equilibrium':
+        k = p[0]
+        return np.array([
+            x[1],
+            0.4 * x[0] * x[2],
+            0.3 * x[1] - 0.1 * x[2] - 1.4 * x[1] ** 2
+            + k * x[0] * x[1],
+        ])
     if system_key == 'lu':
         a, b, c = p[:3]
         return np.array([a * (x[1] - x[0]), -x[0] * x[2] + c * x[1], x[0] * x[1] - b * x[2]])
@@ -729,6 +825,33 @@ def numeric_jacobian(system_key, point, params, eps=1e-6):
     return J
 
 
+def jacobian_for_system(system_key, point, params, eps=1e-6):
+    """Return an analytic Jacobian when available, with numeric fallback."""
+    x = np.asarray(point, dtype=float)
+    p = _as_params(system_key, params)
+    if system_key == 'lorenz':
+        sigma, rho, beta = p[:3]
+        return np.array([
+            [-sigma, sigma, 0.0],
+            [rho - x[2], -1.0, -x[0]],
+            [x[1], x[0], -beta],
+        ])
+    if system_key == 'wang_chen_no_equilibrium':
+        return np.array([
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [-2.0 * x[0] - x[2], -1.0 + 6.0 * x[1], -x[0]],
+        ])
+    if system_key == 'nazarimehr_line_equilibrium':
+        k = p[0]
+        return np.array([
+            [0.0, 1.0, 0.0],
+            [0.4 * x[2], 0.0, 0.4 * x[0]],
+            [k * x[1], 0.3 - 2.8 * x[1] + k * x[0], -0.1],
+        ])
+    return numeric_jacobian(system_key, x, p, eps=eps)
+
+
 def numeric_equilibria(system_key, params):
     if SYSTEM_REGISTRY[system_key].get('kind') != 'flow':
         return []
@@ -764,6 +887,41 @@ def equilibria_for_system(system_key, params):
     if system_key == 'lorenz':
         p = _as_params(system_key, params)
         return lorenz_equilibria(p[0], p[1], p[2])
+    if system_key == 'wang_chen_no_equilibrium':
+        p = _as_params(system_key, params)
+        a = float(p[0])
+        if a < 0.0:
+            return []
+        roots = [0.0] if abs(a) <= 1.0e-14 else [np.sqrt(a), -np.sqrt(a)]
+        out = []
+        for idx, root in enumerate(roots, start=1):
+            point = np.array([root, 0.0, 0.0], dtype=float)
+            J = numeric_jacobian(system_key, point, p)
+            eigvals = np.linalg.eigvals(J)
+            out.append({
+                'name': f'E{idx}',
+                'point': point,
+                'jacobian': J,
+                'eigvals': eigvals,
+                'local_type': classify_equilibrium_type(eigvals),
+                'classification': classify_equilibrium_from_eigs(eigvals),
+            })
+        return out
+    if system_key == 'nazarimehr_line_equilibrium':
+        p = _as_params(system_key, params)
+        point = np.zeros(3, dtype=float)
+        J = numeric_jacobian(system_key, point, p)
+        eigvals = np.linalg.eigvals(J)
+        return [{
+            'name': 'E*',
+            'point': point,
+            'jacobian': J,
+            'eigvals': eigvals,
+            'local_type': classify_equilibrium_type(eigvals),
+            'classification': classify_equilibrium_from_eigs(eigvals),
+            'manifold': 'x_axis',
+            'manifold_description': 'E*={(x,0,0): x real}',
+        }]
     return numeric_equilibria(system_key, params)
 
 

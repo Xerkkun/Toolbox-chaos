@@ -374,7 +374,9 @@ enum {
     SYS_SPROTT_P = 31,
     SYS_SPROTT_Q = 32,
     SYS_SPROTT_R = 33,
-    SYS_SPROTT_S = 34
+    SYS_SPROTT_S = 34,
+    SYS_WANG_CHEN_NO_EQUILIBRIUM = 35,
+    SYS_NAZARIMEHR_LINE_EQUILIBRIUM = 36
 };
 
 static double param_at(const double *params, int n_params, int idx, double fallback) {
@@ -433,6 +435,20 @@ static void rhs3_generic(int system_id, double x, double y, double z,
         *dx = a * (y - x);
         *dy = (c - a) * x - x * z + c * y;
         *dz = x * y - b * z;
+        return;
+    }
+    if (system_id == SYS_WANG_CHEN_NO_EQUILIBRIUM) {
+        double a = param_at(p, n_params, 0, 0.218);
+        *dx = y;
+        *dy = z;
+        *dz = -y + 3.0 * y * y - x * x - x * z + a;
+        return;
+    }
+    if (system_id == SYS_NAZARIMEHR_LINE_EQUILIBRIUM) {
+        double k = param_at(p, n_params, 0, -0.2);
+        *dx = y;
+        *dy = 0.4 * x * z;
+        *dz = 0.3 * y - 0.1 * z - 1.4 * y * y + k * x * y;
         return;
     }
     if (system_id == SYS_LU) {
@@ -1023,6 +1039,7 @@ CHAOS_API int chaos_basin_plane_generic(
 
             for (int k = 0; k < steps_total; ++k) {
                 double x_prev = x;
+                double y_prev = y;
                 double z_prev = z;
                 step3_generic(system_id, &x, &y, &z, params, n_params, dt, method);
                 if (state_invalid(x, y, z, 1e4)) {
@@ -1038,14 +1055,26 @@ CHAOS_API int chaos_basin_plane_generic(
                     if (z < z_tail_min) z_tail_min = z;
                     if (z > z_tail_max) z_tail_max = z;
 
-                    if (x_prev > 0.0 && x <= 0.0) {
-                        double denom_cross = x_prev - x;
+                    int wang_chen_crossing =
+                        system_id == SYS_WANG_CHEN_NO_EQUILIBRIUM &&
+                        y_prev > 0.0 && y <= 0.0;
+                    int generic_crossing =
+                        system_id != SYS_WANG_CHEN_NO_EQUILIBRIUM &&
+                        x_prev > 0.0 && x <= 0.0;
+                    if (wang_chen_crossing || generic_crossing) {
+                        double left_value = wang_chen_crossing ? y_prev : x_prev;
+                        double right_value = wang_chen_crossing ? y : x;
+                        double denom_cross = left_value - right_value;
                         double alpha = 0.0;
-                        if (fabs(denom_cross) > 1e-15) alpha = x_prev / denom_cross;
+                        if (fabs(denom_cross) > 1e-15) {
+                            alpha = left_value / denom_cross;
+                        }
                         if (alpha < 0.0) alpha = 0.0;
                         if (alpha > 1.0) alpha = 1.0;
 
-                        double z_cross = z_prev + alpha * (z - z_prev);
+                        double z_cross = wang_chen_crossing
+                            ? x_prev + alpha * (x - x_prev)
+                            : z_prev + alpha * (z - z_prev);
                         double tol = 0.05 + 0.01 * fabs(z_cross);
                         int matched = 0;
                         if (z_cross < z_cross_min) z_cross_min = z_cross;
@@ -1069,7 +1098,32 @@ CHAOS_API int chaos_basin_plane_generic(
                 }
             }
 
-            if (basin_class == 1 && n_eq > 0 && eq_points != NULL) {
+            if (basin_class == 1 &&
+                system_id == SYS_NAZARIMEHR_LINE_EQUILIBRIUM) {
+                /*
+                 * E* is the complete x axis, not a finite collection of
+                 * points.  Classify convergence by the orthogonal distance
+                 * to that invariant line.
+                 */
+                double line_tail_radius = fmax(
+                    fmax(fabs(y_tail_min), fabs(y_tail_max)),
+                    fmax(fabs(z_tail_min), fabs(z_tail_max))
+                );
+                if (isfinite(line_tail_radius) &&
+                    line_tail_radius <= 0.05) {
+                    basin_class = 2;
+                }
+            }
+
+            /*
+             * The two equilibria of the Wang-Chen reference case a=0.218
+             * are repellers.  Passing close to either one at the terminal
+             * instant must not be reported as convergence.
+             */
+            if (basin_class == 1 &&
+                system_id != SYS_WANG_CHEN_NO_EQUILIBRIUM &&
+                system_id != SYS_NAZARIMEHR_LINE_EQUILIBRIUM &&
+                n_eq > 0 && eq_points != NULL) {
                 double best = HUGE_VAL;
                 int best_idx = 0;
                 for (int k = 0; k < n_eq; ++k) {
@@ -1092,7 +1146,21 @@ CHAOS_API int chaos_basin_plane_generic(
                 }
             }
 
-            if (basin_class == 1) {
+            if (basin_class == 1 &&
+                system_id == SYS_WANG_CHEN_NO_EQUILIBRIUM &&
+                crossing_count >= 6 && cluster_count <= 4) {
+                /*
+                 * For this jerk system, y=0 downward crossings are maxima of
+                 * x.  Its published limit cycle alternates between two
+                 * maxima separated by more than the generic amplitude
+                 * threshold, so the number of return-map clusters is the
+                 * relevant discriminator.
+                 */
+                basin_class = periodic_class;
+            }
+
+            if (basin_class == 1 &&
+                system_id != SYS_NAZARIMEHR_LINE_EQUILIBRIUM) {
                 basin_class = classify_residual_dynamics(
                     crossing_count, cluster_count, z_cross_min, z_cross_max,
                     x_tail_min, x_tail_max, y_tail_min, y_tail_max, z_tail_min, z_tail_max,
