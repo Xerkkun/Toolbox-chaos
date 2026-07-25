@@ -130,21 +130,36 @@ def _safe_slug(value: str) -> str:
     return normalized.lower() or "machine"
 
 
+def _decode_command_output(payload: bytes) -> str:
+    try:
+        return payload.decode("utf-8")
+    except UnicodeDecodeError:
+        if platform.system() == "Windows":
+            try:
+                import ctypes
+
+                encoding = f"cp{ctypes.windll.kernel32.GetOEMCP()}"
+            except (AttributeError, OSError):
+                encoding = "mbcs"
+            return payload.decode(encoding, errors="replace")
+        return payload.decode(errors="replace")
+
+
 def _json_command(command: list[str], timeout_seconds: float = 15.0) -> object | None:
     try:
         completed = subprocess.run(
             command,
             check=False,
             capture_output=True,
-            text=True,
             timeout=timeout_seconds,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
-    if completed.returncode != 0 or not completed.stdout.strip():
+    stdout = _decode_command_output(completed.stdout).strip()
+    if completed.returncode != 0 or not stdout:
         return None
     try:
-        return json.loads(completed.stdout)
+        return json.loads(stdout)
     except json.JSONDecodeError:
         return None
 
@@ -155,14 +170,14 @@ def _text_command(command: list[str], timeout_seconds: float = 15.0) -> str | No
             command,
             check=False,
             capture_output=True,
-            text=True,
             timeout=timeout_seconds,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
-    if completed.returncode != 0 or not completed.stdout.strip():
+    stdout = _decode_command_output(completed.stdout).strip()
+    if completed.returncode != 0 or not stdout:
         return None
-    return completed.stdout.strip()
+    return stdout
 
 
 def _power_mode_inventory() -> dict[str, object]:

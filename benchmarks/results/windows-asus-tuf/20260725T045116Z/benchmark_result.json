@@ -1,0 +1,1193 @@
+{
+  "calculation_records": [
+    {
+      "case": "trajectory_100k",
+      "cpu_seconds": 0.0,
+      "peak_rss_bytes": 42881024,
+      "repetition": 1,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 52351935.32247555,
+        "sha256": "75654080135e4cb29d382d4e2c6896d71dc42c8a2240d368682c2e2affde3dd9",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 36732928,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0089364
+    },
+    {
+      "case": "trajectory_100k",
+      "cpu_seconds": 0.015625,
+      "peak_rss_bytes": 42934272,
+      "repetition": 2,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 52351935.32247555,
+        "sha256": "75654080135e4cb29d382d4e2c6896d71dc42c8a2240d368682c2e2affde3dd9",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 36687872,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0197615
+    },
+    {
+      "case": "trajectory_100k",
+      "cpu_seconds": 0.015625,
+      "peak_rss_bytes": 41967616,
+      "repetition": 3,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 52351935.32247555,
+        "sha256": "75654080135e4cb29d382d4e2c6896d71dc42c8a2240d368682c2e2affde3dd9",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 36442112,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0143192
+    },
+    {
+      "case": "trajectory_100k",
+      "cpu_seconds": 0.015625,
+      "peak_rss_bytes": 43024384,
+      "repetition": 4,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 52351935.32247555,
+        "sha256": "75654080135e4cb29d382d4e2c6896d71dc42c8a2240d368682c2e2affde3dd9",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 36753408,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.012913
+    },
+    {
+      "case": "trajectory_100k",
+      "cpu_seconds": 0.015625,
+      "peak_rss_bytes": 42123264,
+      "repetition": 5,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 52351935.32247555,
+        "sha256": "75654080135e4cb29d382d4e2c6896d71dc42c8a2240d368682c2e2affde3dd9",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 36605952,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0100235
+    },
+    {
+      "case": "fft_100k",
+      "cpu_seconds": 0.109375,
+      "peak_rss_bytes": 77631488,
+      "repetition": 1,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 2236.168107884845,
+        "sha256": "015e24430d9fb50260a73f6dff57bcdad1aa5abf57578494ac6117002b4a40c8",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 42037248,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1114632
+    },
+    {
+      "case": "fft_100k",
+      "cpu_seconds": 0.09375,
+      "peak_rss_bytes": 78094336,
+      "repetition": 2,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 2236.168107884845,
+        "sha256": "015e24430d9fb50260a73f6dff57bcdad1aa5abf57578494ac6117002b4a40c8",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 42307584,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1167893
+    },
+    {
+      "case": "fft_100k",
+      "cpu_seconds": 0.109375,
+      "peak_rss_bytes": 77164544,
+      "repetition": 3,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 2236.168107884845,
+        "sha256": "015e24430d9fb50260a73f6dff57bcdad1aa5abf57578494ac6117002b4a40c8",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 41992192,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0987289
+    },
+    {
+      "case": "fft_100k",
+      "cpu_seconds": 0.09375,
+      "peak_rss_bytes": 77176832,
+      "repetition": 4,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 2236.168107884845,
+        "sha256": "015e24430d9fb50260a73f6dff57bcdad1aa5abf57578494ac6117002b4a40c8",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 42098688,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.095616
+    },
+    {
+      "case": "fft_100k",
+      "cpu_seconds": 0.078125,
+      "peak_rss_bytes": 77008896,
+      "repetition": 5,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 2236.168107884845,
+        "sha256": "015e24430d9fb50260a73f6dff57bcdad1aa5abf57578494ac6117002b4a40c8",
+        "shapes": [
+          [
+            100001
+          ],
+          [
+            100001,
+            3
+          ]
+        ],
+        "total_values": 400004
+      },
+      "rss_after_bytes": 42020864,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0915221
+    },
+    {
+      "case": "lyapunov_default",
+      "cpu_seconds": 0.9375,
+      "peak_rss_bytes": 37310464,
+      "repetition": 1,
+      "result": {
+        "all_finite": true,
+        "diagnostic_status": "ok",
+        "numeric_checksum": 2539.69910498001,
+        "sha256": "b9c6b61ef965646f51383e5d85c4f4dae82ab345f4efbdcc5adda2a2c99b4667",
+        "shapes": [
+          [
+            3
+          ],
+          [
+            400
+          ],
+          [
+            400,
+            3
+          ]
+        ],
+        "total_values": 1603
+      },
+      "rss_after_bytes": 37310464,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.9874784
+    },
+    {
+      "case": "lyapunov_default",
+      "cpu_seconds": 0.6875,
+      "peak_rss_bytes": 37580800,
+      "repetition": 2,
+      "result": {
+        "all_finite": true,
+        "diagnostic_status": "ok",
+        "numeric_checksum": 2539.69910498001,
+        "sha256": "b9c6b61ef965646f51383e5d85c4f4dae82ab345f4efbdcc5adda2a2c99b4667",
+        "shapes": [
+          [
+            3
+          ],
+          [
+            400
+          ],
+          [
+            400,
+            3
+          ]
+        ],
+        "total_values": 1603
+      },
+      "rss_after_bytes": 37580800,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.7003706
+    },
+    {
+      "case": "lyapunov_default",
+      "cpu_seconds": 0.71875,
+      "peak_rss_bytes": 37478400,
+      "repetition": 3,
+      "result": {
+        "all_finite": true,
+        "diagnostic_status": "ok",
+        "numeric_checksum": 2539.69910498001,
+        "sha256": "b9c6b61ef965646f51383e5d85c4f4dae82ab345f4efbdcc5adda2a2c99b4667",
+        "shapes": [
+          [
+            3
+          ],
+          [
+            400
+          ],
+          [
+            400,
+            3
+          ]
+        ],
+        "total_values": 1603
+      },
+      "rss_after_bytes": 37478400,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.7182598
+    },
+    {
+      "case": "lyapunov_default",
+      "cpu_seconds": 0.828125,
+      "peak_rss_bytes": 37380096,
+      "repetition": 4,
+      "result": {
+        "all_finite": true,
+        "diagnostic_status": "ok",
+        "numeric_checksum": 2539.69910498001,
+        "sha256": "b9c6b61ef965646f51383e5d85c4f4dae82ab345f4efbdcc5adda2a2c99b4667",
+        "shapes": [
+          [
+            3
+          ],
+          [
+            400
+          ],
+          [
+            400,
+            3
+          ]
+        ],
+        "total_values": 1603
+      },
+      "rss_after_bytes": 37380096,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.834213
+    },
+    {
+      "case": "lyapunov_default",
+      "cpu_seconds": 0.71875,
+      "peak_rss_bytes": 37523456,
+      "repetition": 5,
+      "result": {
+        "all_finite": true,
+        "diagnostic_status": "ok",
+        "numeric_checksum": 2539.69910498001,
+        "sha256": "b9c6b61ef965646f51383e5d85c4f4dae82ab345f4efbdcc5adda2a2c99b4667",
+        "shapes": [
+          [
+            3
+          ],
+          [
+            400
+          ],
+          [
+            400,
+            3
+          ]
+        ],
+        "total_values": 1603
+      },
+      "rss_after_bytes": 37523456,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.7231758
+    },
+    {
+      "case": "bifurcation_default",
+      "cpu_seconds": 0.140625,
+      "peak_rss_bytes": 37269504,
+      "repetition": 1,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 1484646.7074001767,
+        "sha256": "98d75025e42d85f98ef653b39ceb4beb9481f22daf6290049f0c754ccaf98edd",
+        "shapes": [
+          [
+            14048
+          ],
+          [
+            14048
+          ]
+        ],
+        "total_values": 28096
+      },
+      "rss_after_bytes": 37105664,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1417972
+    },
+    {
+      "case": "bifurcation_default",
+      "cpu_seconds": 0.1875,
+      "peak_rss_bytes": 37261312,
+      "repetition": 2,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 1484646.7074001767,
+        "sha256": "98d75025e42d85f98ef653b39ceb4beb9481f22daf6290049f0c754ccaf98edd",
+        "shapes": [
+          [
+            14048
+          ],
+          [
+            14048
+          ]
+        ],
+        "total_values": 28096
+      },
+      "rss_after_bytes": 37089280,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.179016
+    },
+    {
+      "case": "bifurcation_default",
+      "cpu_seconds": 0.140625,
+      "peak_rss_bytes": 37044224,
+      "repetition": 3,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 1484646.7074001767,
+        "sha256": "98d75025e42d85f98ef653b39ceb4beb9481f22daf6290049f0c754ccaf98edd",
+        "shapes": [
+          [
+            14048
+          ],
+          [
+            14048
+          ]
+        ],
+        "total_values": 28096
+      },
+      "rss_after_bytes": 36929536,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1398107
+    },
+    {
+      "case": "bifurcation_default",
+      "cpu_seconds": 0.15625,
+      "peak_rss_bytes": 37343232,
+      "repetition": 4,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 1484646.7074001767,
+        "sha256": "98d75025e42d85f98ef653b39ceb4beb9481f22daf6290049f0c754ccaf98edd",
+        "shapes": [
+          [
+            14048
+          ],
+          [
+            14048
+          ]
+        ],
+        "total_values": 28096
+      },
+      "rss_after_bytes": 37343232,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1556336
+    },
+    {
+      "case": "bifurcation_default",
+      "cpu_seconds": 0.15625,
+      "peak_rss_bytes": 37085184,
+      "repetition": 5,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 1484646.7074001767,
+        "sha256": "98d75025e42d85f98ef653b39ceb4beb9481f22daf6290049f0c754ccaf98edd",
+        "shapes": [
+          [
+            14048
+          ],
+          [
+            14048
+          ]
+        ],
+        "total_values": 28096
+      },
+      "rss_after_bytes": 37015552,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1510727
+    },
+    {
+      "case": "basin_60",
+      "cpu_seconds": 0.0625,
+      "peak_rss_bytes": 36777984,
+      "repetition": 1,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 4380.0,
+        "sha256": "085ce1195a134a153f3a581c5fce7b28e353f7a027fc73f190965d8c6dd3d21a",
+        "shapes": [
+          [
+            60,
+            60
+          ]
+        ],
+        "total_values": 3600
+      },
+      "rss_after_bytes": 36777984,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0668918
+    },
+    {
+      "case": "basin_60",
+      "cpu_seconds": 0.0625,
+      "peak_rss_bytes": 36741120,
+      "repetition": 2,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 4380.0,
+        "sha256": "085ce1195a134a153f3a581c5fce7b28e353f7a027fc73f190965d8c6dd3d21a",
+        "shapes": [
+          [
+            60,
+            60
+          ]
+        ],
+        "total_values": 3600
+      },
+      "rss_after_bytes": 36741120,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0697338
+    },
+    {
+      "case": "basin_60",
+      "cpu_seconds": 0.09375,
+      "peak_rss_bytes": 36732928,
+      "repetition": 3,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 4380.0,
+        "sha256": "085ce1195a134a153f3a581c5fce7b28e353f7a027fc73f190965d8c6dd3d21a",
+        "shapes": [
+          [
+            60,
+            60
+          ]
+        ],
+        "total_values": 3600
+      },
+      "rss_after_bytes": 36732928,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0952938
+    },
+    {
+      "case": "basin_60",
+      "cpu_seconds": 0.109375,
+      "peak_rss_bytes": 36679680,
+      "repetition": 4,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 4380.0,
+        "sha256": "085ce1195a134a153f3a581c5fce7b28e353f7a027fc73f190965d8c6dd3d21a",
+        "shapes": [
+          [
+            60,
+            60
+          ]
+        ],
+        "total_values": 3600
+      },
+      "rss_after_bytes": 36679680,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.1048044
+    },
+    {
+      "case": "basin_60",
+      "cpu_seconds": 0.09375,
+      "peak_rss_bytes": 36573184,
+      "repetition": 5,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 4380.0,
+        "sha256": "085ce1195a134a153f3a581c5fce7b28e353f7a027fc73f190965d8c6dd3d21a",
+        "shapes": [
+          [
+            60,
+            60
+          ]
+        ],
+        "total_values": 3600
+      },
+      "rss_after_bytes": 36573184,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.0930153
+    },
+    {
+      "case": "basin_200",
+      "cpu_seconds": 1.125,
+      "peak_rss_bytes": 36552704,
+      "repetition": 1,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 48686.0,
+        "sha256": "861d0ad0329bc4ed76223e7fbc0508d8fd5bd43494d8e4d1142c292d338362e8",
+        "shapes": [
+          [
+            200,
+            200
+          ]
+        ],
+        "total_values": 40000
+      },
+      "rss_after_bytes": 36552704,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 1.1601831
+    },
+    {
+      "case": "basin_200",
+      "cpu_seconds": 1.015625,
+      "peak_rss_bytes": 36663296,
+      "repetition": 2,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 48686.0,
+        "sha256": "861d0ad0329bc4ed76223e7fbc0508d8fd5bd43494d8e4d1142c292d338362e8",
+        "shapes": [
+          [
+            200,
+            200
+          ]
+        ],
+        "total_values": 40000
+      },
+      "rss_after_bytes": 36663296,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 1.0696886
+    },
+    {
+      "case": "basin_200",
+      "cpu_seconds": 0.78125,
+      "peak_rss_bytes": 36827136,
+      "repetition": 3,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 48686.0,
+        "sha256": "861d0ad0329bc4ed76223e7fbc0508d8fd5bd43494d8e4d1142c292d338362e8",
+        "shapes": [
+          [
+            200,
+            200
+          ]
+        ],
+        "total_values": 40000
+      },
+      "rss_after_bytes": 36827136,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.7995664
+    },
+    {
+      "case": "basin_200",
+      "cpu_seconds": 0.796875,
+      "peak_rss_bytes": 36548608,
+      "repetition": 4,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 48686.0,
+        "sha256": "861d0ad0329bc4ed76223e7fbc0508d8fd5bd43494d8e4d1142c292d338362e8",
+        "shapes": [
+          [
+            200,
+            200
+          ]
+        ],
+        "total_values": 40000
+      },
+      "rss_after_bytes": 36548608,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.8191701
+    },
+    {
+      "case": "basin_200",
+      "cpu_seconds": 0.90625,
+      "peak_rss_bytes": 36839424,
+      "repetition": 5,
+      "result": {
+        "all_finite": true,
+        "numeric_checksum": 48686.0,
+        "sha256": "861d0ad0329bc4ed76223e7fbc0508d8fd5bd43494d8e4d1142c292d338362e8",
+        "shapes": [
+          [
+            200,
+            200
+          ]
+        ],
+        "total_values": 40000
+      },
+      "rss_after_bytes": 36839424,
+      "schema_version": 1,
+      "status": "ok",
+      "wall_seconds": 0.9110582
+    }
+  ],
+  "manifest": {
+    "bios": {
+      "date_as_reported": null,
+      "date_format_confirmed": false,
+      "mode": null,
+      "version": null
+    },
+    "declared_identity_status": "profile_completion_required",
+    "expected_system": "Windows",
+    "identity_status": "verified_at_runtime",
+    "identity_verification": {
+      "method": "windows-cim-or-bios-registry",
+      "status": "verified"
+    },
+    "installed_memory_gib": null,
+    "installer_artifact": {
+      "path": "chaos-toolbox-v0.1.0-windows-x64-setup.exe",
+      "sha256": "c958e74fe201baccb89426779eb501697c733553ed6163b2161e823fddbff6d2",
+      "size_bytes": 66033658
+    },
+    "logical_processors": null,
+    "machine_id": "WINDOWS-ASUS-TUF",
+    "manufacturer": "ASUS",
+    "measurement_requirements": {
+      "ac_power_required": true,
+      "close_unrelated_heavy_applications": true,
+      "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true,
+      "do_not_use_machine_during_batch": true,
+      "record_power_mode": true
+    },
+    "model": null,
+    "operating_system_notes": {
+      "distribution": "Windows",
+      "edition": null,
+      "kernel_build": null,
+      "locale": null,
+      "time_zone": null
+    },
+    "physical_cores": null,
+    "processor": null,
+    "product_family": "ASUS TUF",
+    "profile_label": "windows-asus-tuf",
+    "profile_notes": [
+      "Fill model, CPU, memory, BIOS and Windows build from the ASUS TUF itself before accepting its measurements.",
+      "The benchmark runtime manifest records detected values but does not replace the declared machine profile."
+    ],
+    "protocol": {
+      "benchmark_script_sha256": "2625ce819c4fae15796801a273424da6775a34ae0b1386527e85f6ba35df4538",
+      "calculation_execution": "source_python_worker_same_checkout",
+      "calculation_runs": 5,
+      "calculation_timeout_seconds": 300.0,
+      "calculation_warmups_per_worker": 1,
+      "calculations_enabled": true,
+      "cases": [
+        "trajectory_100k",
+        "fft_100k",
+        "lyapunov_default",
+        "bifurcation_default",
+        "basin_60",
+        "basin_200"
+      ],
+      "schema_version": 1,
+      "startup_definition": "process launch to first main-window paint event",
+      "startup_enabled": true,
+      "startup_execution": "packaged_native_artifact",
+      "startup_runs": 10,
+      "startup_timeout_seconds": 45.0,
+      "startup_warmups": 1,
+      "thread_environment": {
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1"
+      },
+      "workers": 1
+    },
+    "runtime": {
+      "captured_at_utc": "2026-07-25T04:51:17.153993+00:00",
+      "chaos_workers": 1,
+      "hardware_inventory": {
+        "collector_system": "Windows",
+        "windows_registry_bios": {
+          "BIOSReleaseDate": "01/28/2021",
+          "BIOSVersion": "FX505DT.316",
+          "SystemFamily": "TUF Gaming",
+          "SystemManufacturer": "ASUSTeK COMPUTER INC.",
+          "SystemProductName": "TUF Gaming FX505DT_FX505DT"
+        },
+        "windows_registry_cpu": {
+          "Identifier": "AMD64 Family 23 Model 24 Stepping 1",
+          "ProcessorNameString": "AMD Ryzen 7 3750H with Radeon Vega Mobile Gfx  "
+        },
+        "windows_registry_os": {
+          "CurrentBuildNumber": "26200",
+          "DisplayVersion": "25H2",
+          "ProductName": "Windows 10 Home",
+          "UBR": 8894
+        }
+      },
+      "logical_processors_detected": 8,
+      "machine": "AMD64",
+      "native_build": {
+        "compiler": "gcc.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 14.2.0",
+        "flags": "-O3 -shared -std=c11 -lm"
+      },
+      "packaged_self_test": "passed",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "power_mode_inventory": {
+        "active_scheme": "GUID de plan de energía: 64a64f24-65b9-4b56-befd-5ec1eaced9b3  (Silent)",
+        "collector_system": "Windows"
+      },
+      "power_status": {
+        "ac_line": "online",
+        "battery_percent": 80
+      },
+      "processor": "AMD64 Family 23 Model 24 Stepping 1, AuthenticAMD",
+      "python_executable": "python.exe",
+      "python_version": "3.13.1",
+      "release": "11",
+      "system": "Windows",
+      "total_physical_memory_bytes": 33756696576,
+      "version": "10.0.26200"
+    },
+    "schema_version": 1,
+    "security_context": {
+      "hypervisor_detected": null,
+      "secure_boot": null,
+      "virtualization_based_security": null
+    },
+    "software": {
+      "dependency_versions": {
+        "PyInstaller": "6.21.0",
+        "PyQt6": "6.11.0",
+        "PyYAML": "6.0.3",
+        "matplotlib": "3.11.1",
+        "numpy": "2.5.1",
+        "pyqtgraph": "0.14.0"
+      },
+      "source_commit_recorded": false,
+      "source_fingerprints": {
+        "core/csrc/chaos_core.c": "d4e12b1e9dfe9967c57490d23be2a518c72547ddc7b79079924d7d3fe957b656",
+        "core/diagnostics.py": "034c64f30533a29af3d6319a8a7e4f600f54a78c2afc359397794ef849b52205",
+        "core/lorenz.py": "a7a32a5a5b8261c9f3ab4ea6f2a0ccfacc755e921e2539e883045e7625758806",
+        "core/native.py": "1c9fc6b511e75dd5eef4f1e29662aff28ff2855225d1a1b980fc6a54911b041f",
+        "main.py": "0e59fd1982ea9e14db463b6de1e5e8ad9a849a36ad407574715369309ef76bd7",
+        "pyproject.toml": "7ef7c23ecda108c1bfc35d3725d7098dd6aa3df888dcd1e99c596fd41f94a242"
+      },
+      "toolbox_version": "0.1.0"
+    },
+    "startup_artifact": {
+      "path": "Chaos Toolbox/Chaos Toolbox.exe",
+      "sha256": "25a47c7e9cd4fa45133609ddea632545879d80ee77ba09ae977b444e08b0336a",
+      "size_bytes": 187223539
+    },
+    "system_type": "x64-based PC"
+  },
+  "schema_version": 1,
+  "startup_records": [
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247144448,
+        "rss_bytes": 243757056
+      },
+      "pid": 11912,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37951519745300,
+      "repetition": 1,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37946218109700,
+      "startup_seconds": 5.3016356,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247595008,
+        "rss_bytes": 244486144
+      },
+      "pid": 21828,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37956999364400,
+      "repetition": 2,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37951752119000,
+      "startup_seconds": 5.2472454,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247828480,
+        "rss_bytes": 244666368
+      },
+      "pid": 15348,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37962489784700,
+      "repetition": 3,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37957237409000,
+      "startup_seconds": 5.2523757,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247709696,
+        "rss_bytes": 244322304
+      },
+      "pid": 17088,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37968262553200,
+      "repetition": 4,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37962724403600,
+      "startup_seconds": 5.5381496,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247382016,
+        "rss_bytes": 244277248
+      },
+      "pid": 5896,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37974396076300,
+      "repetition": 5,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37968498854200,
+      "startup_seconds": 5.8972221,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 248004608,
+        "rss_bytes": 244613120
+      },
+      "pid": 10832,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37979849833600,
+      "repetition": 6,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37974641412200,
+      "startup_seconds": 5.2084214,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247242752,
+        "rss_bytes": 243888128
+      },
+      "pid": 17640,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37985548151300,
+      "repetition": 7,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37980083364500,
+      "startup_seconds": 5.4647868,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247709696,
+        "rss_bytes": 244350976
+      },
+      "pid": 15112,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37991002407900,
+      "repetition": 8,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37985774816500,
+      "startup_seconds": 5.2275914,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247980032,
+        "rss_bytes": 244822016
+      },
+      "pid": 13776,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 37996518060700,
+      "repetition": 9,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37991243620100,
+      "startup_seconds": 5.2744406,
+      "status": "ready"
+    },
+    {
+      "application": "Chaos Toolbox",
+      "application_version": "0.1.0",
+      "command": [
+        "Chaos Toolbox.exe"
+      ],
+      "memory_at_ready": {
+        "peak_rss_bytes": 247734272,
+        "rss_bytes": 244322304
+      },
+      "pid": 21660,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "process_returncode": 1,
+      "ready_perf_counter_ns": 38002615080200,
+      "repetition": 10,
+      "schema_version": 1,
+      "start_perf_counter_ns": 37996746020000,
+      "startup_seconds": 5.8690602,
+      "status": "ready"
+    }
+  ],
+  "status": "ok",
+  "summary": [
+    {
+      "case": "startup_to_first_paint",
+      "max_wall_seconds": 5.8972221,
+      "median_cpu_seconds": null,
+      "median_cpu_utilization_percent": null,
+      "median_peak_rss_mib": 236.234375,
+      "median_rss_mib": 233.017578125,
+      "median_wall_seconds": 5.2880381,
+      "min_wall_seconds": 5.2084214,
+      "q1_wall_seconds": 5.248527975,
+      "q3_wall_seconds": 5.519808899999999,
+      "successful_runs": 10
+    },
+    {
+      "case": "trajectory_100k",
+      "max_wall_seconds": 0.0197615,
+      "median_cpu_seconds": 0.015625,
+      "median_cpu_utilization_percent": 109.11922453768366,
+      "median_peak_rss_mib": 40.89453125,
+      "median_rss_mib": 34.98828125,
+      "median_wall_seconds": 0.012913,
+      "min_wall_seconds": 0.0089364,
+      "q1_wall_seconds": 0.0100235,
+      "q3_wall_seconds": 0.0143192,
+      "successful_runs": 5
+    },
+    {
+      "case": "fft_100k",
+      "max_wall_seconds": 0.1167893,
+      "median_cpu_seconds": 0.09375,
+      "median_cpu_utilization_percent": 98.0484437751004,
+      "median_peak_rss_mib": 73.6015625,
+      "median_rss_mib": 40.08984375,
+      "median_wall_seconds": 0.0987289,
+      "min_wall_seconds": 0.0915221,
+      "q1_wall_seconds": 0.095616,
+      "q3_wall_seconds": 0.1114632,
+      "successful_runs": 5
+    },
+    {
+      "case": "lyapunov_default",
+      "max_wall_seconds": 0.9874784,
+      "median_cpu_seconds": 0.71875,
+      "median_cpu_utilization_percent": 99.27021036593771,
+      "median_peak_rss_mib": 35.7421875,
+      "median_rss_mib": 35.7421875,
+      "median_wall_seconds": 0.7231758,
+      "min_wall_seconds": 0.7003706,
+      "q1_wall_seconds": 0.7182598,
+      "q3_wall_seconds": 0.834213,
+      "successful_runs": 5
+    },
+    {
+      "case": "bifurcation_default",
+      "max_wall_seconds": 0.179016,
+      "median_cpu_seconds": 0.15625,
+      "median_cpu_utilization_percent": 100.58243038622938,
+      "median_peak_rss_mib": 35.53515625,
+      "median_rss_mib": 35.37109375,
+      "median_wall_seconds": 0.1510727,
+      "min_wall_seconds": 0.1398107,
+      "q1_wall_seconds": 0.1417972,
+      "q3_wall_seconds": 0.1556336,
+      "successful_runs": 5
+    },
+    {
+      "case": "basin_60",
+      "max_wall_seconds": 0.1048044,
+      "median_cpu_seconds": 0.09375,
+      "median_cpu_utilization_percent": 98.3799575628215,
+      "median_peak_rss_mib": 35.03125,
+      "median_rss_mib": 35.03125,
+      "median_wall_seconds": 0.0930153,
+      "min_wall_seconds": 0.0668918,
+      "q1_wall_seconds": 0.0697338,
+      "q3_wall_seconds": 0.0952938,
+      "successful_runs": 5
+    },
+    {
+      "case": "basin_200",
+      "max_wall_seconds": 1.1601831,
+      "median_cpu_seconds": 0.90625,
+      "median_cpu_utilization_percent": 97.2783308375147,
+      "median_peak_rss_mib": 34.96484375,
+      "median_rss_mib": 34.96484375,
+      "median_wall_seconds": 0.9110582,
+      "min_wall_seconds": 0.7995664,
+      "q1_wall_seconds": 0.8191701,
+      "q3_wall_seconds": 1.0696886,
+      "successful_runs": 5
+    }
+  ]
+}

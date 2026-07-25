@@ -1,0 +1,157 @@
+{
+  "bios": {
+    "date_as_reported": null,
+    "date_format_confirmed": false,
+    "mode": null,
+    "version": null
+  },
+  "declared_identity_status": "profile_completion_required",
+  "expected_system": "Windows",
+  "identity_status": "verified_at_runtime",
+  "identity_verification": {
+    "method": "windows-cim-or-bios-registry",
+    "status": "verified"
+  },
+  "installed_memory_gib": null,
+  "installer_artifact": {
+    "path": "chaos-toolbox-v0.1.0-windows-x64-setup.exe",
+    "sha256": "c958e74fe201baccb89426779eb501697c733553ed6163b2161e823fddbff6d2",
+    "size_bytes": 66033658
+  },
+  "logical_processors": null,
+  "machine_id": "WINDOWS-ASUS-TUF",
+  "manufacturer": "ASUS",
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true,
+    "do_not_use_machine_during_batch": true,
+    "record_power_mode": true
+  },
+  "model": null,
+  "operating_system_notes": {
+    "distribution": "Windows",
+    "edition": null,
+    "kernel_build": null,
+    "locale": null,
+    "time_zone": null
+  },
+  "physical_cores": null,
+  "processor": null,
+  "product_family": "ASUS TUF",
+  "profile_label": "windows-asus-tuf",
+  "profile_notes": [
+    "Fill model, CPU, memory, BIOS and Windows build from the ASUS TUF itself before accepting its measurements.",
+    "The benchmark runtime manifest records detected values but does not replace the declared machine profile."
+  ],
+  "protocol": {
+    "benchmark_script_sha256": "2625ce819c4fae15796801a273424da6775a34ae0b1386527e85f6ba35df4538",
+    "calculation_execution": "source_python_worker_same_checkout",
+    "calculation_runs": 5,
+    "calculation_timeout_seconds": 300.0,
+    "calculation_warmups_per_worker": 1,
+    "calculations_enabled": true,
+    "cases": [
+      "trajectory_100k",
+      "fft_100k",
+      "lyapunov_default",
+      "bifurcation_default",
+      "basin_60",
+      "basin_200"
+    ],
+    "schema_version": 1,
+    "startup_definition": "process launch to first main-window paint event",
+    "startup_enabled": true,
+    "startup_execution": "packaged_native_artifact",
+    "startup_runs": 10,
+    "startup_timeout_seconds": 45.0,
+    "startup_warmups": 1,
+    "thread_environment": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "workers": 1
+  },
+  "runtime": {
+    "captured_at_utc": "2026-07-25T04:51:17.153993+00:00",
+    "chaos_workers": 1,
+    "hardware_inventory": {
+      "collector_system": "Windows",
+      "windows_registry_bios": {
+        "BIOSReleaseDate": "01/28/2021",
+        "BIOSVersion": "FX505DT.316",
+        "SystemFamily": "TUF Gaming",
+        "SystemManufacturer": "ASUSTeK COMPUTER INC.",
+        "SystemProductName": "TUF Gaming FX505DT_FX505DT"
+      },
+      "windows_registry_cpu": {
+        "Identifier": "AMD64 Family 23 Model 24 Stepping 1",
+        "ProcessorNameString": "AMD Ryzen 7 3750H with Radeon Vega Mobile Gfx  "
+      },
+      "windows_registry_os": {
+        "CurrentBuildNumber": "26200",
+        "DisplayVersion": "25H2",
+        "ProductName": "Windows 10 Home",
+        "UBR": 8894
+      }
+    },
+    "logical_processors_detected": 8,
+    "machine": "AMD64",
+    "native_build": {
+      "compiler": "gcc.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 14.2.0",
+      "flags": "-O3 -shared -std=c11 -lm"
+    },
+    "packaged_self_test": "passed",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "power_mode_inventory": {
+      "active_scheme": "GUID de plan de energ\u00eda: 64a64f24-65b9-4b56-befd-5ec1eaced9b3  (Silent)",
+      "collector_system": "Windows"
+    },
+    "power_status": {
+      "ac_line": "online",
+      "battery_percent": 80
+    },
+    "processor": "AMD64 Family 23 Model 24 Stepping 1, AuthenticAMD",
+    "python_executable": "python.exe",
+    "python_version": "3.13.1",
+    "release": "11",
+    "system": "Windows",
+    "total_physical_memory_bytes": 33756696576,
+    "version": "10.0.26200"
+  },
+  "schema_version": 1,
+  "security_context": {
+    "hypervisor_detected": null,
+    "secure_boot": null,
+    "virtualization_based_security": null
+  },
+  "software": {
+    "dependency_versions": {
+      "PyInstaller": "6.21.0",
+      "PyQt6": "6.11.0",
+      "PyYAML": "6.0.3",
+      "matplotlib": "3.11.1",
+      "numpy": "2.5.1",
+      "pyqtgraph": "0.14.0"
+    },
+    "source_commit_recorded": false,
+    "source_fingerprints": {
+      "core/csrc/chaos_core.c": "d4e12b1e9dfe9967c57490d23be2a518c72547ddc7b79079924d7d3fe957b656",
+      "core/diagnostics.py": "034c64f30533a29af3d6319a8a7e4f600f54a78c2afc359397794ef849b52205",
+      "core/lorenz.py": "a7a32a5a5b8261c9f3ab4ea6f2a0ccfacc755e921e2539e883045e7625758806",
+      "core/native.py": "1c9fc6b511e75dd5eef4f1e29662aff28ff2855225d1a1b980fc6a54911b041f",
+      "main.py": "0e59fd1982ea9e14db463b6de1e5e8ad9a849a36ad407574715369309ef76bd7",
+      "pyproject.toml": "7ef7c23ecda108c1bfc35d3725d7098dd6aa3df888dcd1e99c596fd41f94a242"
+    },
+    "toolbox_version": "0.1.0"
+  },
+  "startup_artifact": {
+    "path": "Chaos Toolbox/Chaos Toolbox.exe",
+    "sha256": "25a47c7e9cd4fa45133609ddea632545879d80ee77ba09ae977b444e08b0336a",
+    "size_bytes": 187223539
+  },
+  "system_type": "x64-based PC"
+}
