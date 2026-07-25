@@ -1,0 +1,202 @@
+[
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 297451520,
+      "rss_bytes": 297451520
+    },
+    "pid": 3595,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4505124842791,
+    "repetition": 1,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4494233336083,
+    "startup_seconds": 10.891506708,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 297091072,
+      "rss_bytes": 297091072
+    },
+    "pid": 3605,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4516349827958,
+    "repetition": 2,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4505163410333,
+    "startup_seconds": 11.186417625,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 296599552,
+      "rss_bytes": 296599552
+    },
+    "pid": 3615,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4527726362750,
+    "repetition": 3,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4516378252750,
+    "startup_seconds": 11.34811,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 297074688,
+      "rss_bytes": 297074688
+    },
+    "pid": 3625,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4539113499291,
+    "repetition": 4,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4527759961458,
+    "startup_seconds": 11.353537833,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 296894464,
+      "rss_bytes": 296894464
+    },
+    "pid": 3635,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4551249723250,
+    "repetition": 5,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4539147627083,
+    "startup_seconds": 12.102096167,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 295124992,
+      "rss_bytes": 295124992
+    },
+    "pid": 3651,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4563681115375,
+    "repetition": 6,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4551289338291,
+    "startup_seconds": 12.391777084,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 296976384,
+      "rss_bytes": 296976384
+    },
+    "pid": 3662,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4577485543583,
+    "repetition": 7,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4563720397708,
+    "startup_seconds": 13.765145875,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 300810240,
+      "rss_bytes": 300810240
+    },
+    "pid": 3695,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4592555579708,
+    "repetition": 8,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4577527213375,
+    "startup_seconds": 15.028366333,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 296779776,
+      "rss_bytes": 296779776
+    },
+    "pid": 3713,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4603959153500,
+    "repetition": 9,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4592585875500,
+    "startup_seconds": 11.373278,
+    "status": "ready"
+  },
+  {
+    "application": "Chaos Toolbox",
+    "application_version": "0.1.0",
+    "command": [
+      "Chaos Toolbox"
+    ],
+    "memory_at_ready": {
+      "peak_rss_bytes": 297025536,
+      "rss_bytes": 297025536
+    },
+    "pid": 3728,
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "process_returncode": -15,
+    "ready_perf_counter_ns": 4615403521083,
+    "repetition": 10,
+    "schema_version": 1,
+    "start_perf_counter_ns": 4603981959833,
+    "startup_seconds": 11.42156125,
+    "status": "ready"
+  }
+]

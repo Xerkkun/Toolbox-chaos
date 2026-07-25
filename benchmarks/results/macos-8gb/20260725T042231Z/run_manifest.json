@@ -1,0 +1,143 @@
+{
+  "declared_identity_status": "profile_complete",
+  "expected_system": "Darwin",
+  "firmware": {
+    "version": "18000.101.7"
+  },
+  "identity_status": "verified_at_runtime",
+  "identity_verification": {
+    "method": "macos-system-profile-runtime",
+    "status": "verified"
+  },
+  "installed_memory_gib": 8.0,
+  "installer_artifact": {
+    "path": "chaos-toolbox-v0.1.0-macos.dmg",
+    "sha256": "45c96ac9686f7737428f956b6921217646359b0c9d29eeaaf70d11c382496bae",
+    "size_bytes": 75852713
+  },
+  "logical_processors": 6,
+  "machine_id": "MAC17-5-8GB",
+  "manufacturer": "Apple",
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true,
+    "do_not_use_machine_during_batch": true,
+    "record_low_power_mode": true,
+    "run_from_logged_in_graphical_session": true
+  },
+  "model": "Mac17,5",
+  "operating_system_notes": {
+    "architecture": "arm64",
+    "build": "25E253",
+    "distribution": "macOS",
+    "locale": null,
+    "time_zone": "America/Mexico_City",
+    "version": "26.4.1"
+  },
+  "physical_cores": 6,
+  "processor": "Apple A18 Pro",
+  "product_family": "MacBook Neo",
+  "profile_label": "macos-8gb",
+  "profile_notes": [
+    "Temporary local profile created from runtime hardware inventory for this benchmark.",
+    "This profile is intentionally distinct from the repository's 16 GiB macOS profile."
+  ],
+  "protocol": {
+    "benchmark_script_sha256": "fd26fb630fdf13f936bfb38ea07c05cd6f2c6c9f5bfeb5635a199e7a84ea27e3",
+    "calculation_execution": "source_python_worker_same_checkout",
+    "calculation_runs": 5,
+    "calculation_timeout_seconds": 300.0,
+    "calculation_warmups_per_worker": 1,
+    "calculations_enabled": true,
+    "cases": [
+      "trajectory_100k",
+      "fft_100k",
+      "lyapunov_default",
+      "bifurcation_default",
+      "basin_60",
+      "basin_200"
+    ],
+    "schema_version": 1,
+    "startup_definition": "process launch to first main-window paint event",
+    "startup_enabled": true,
+    "startup_execution": "packaged_native_artifact",
+    "startup_runs": 10,
+    "startup_timeout_seconds": 45.0,
+    "startup_warmups": 1,
+    "thread_environment": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "workers": 1
+  },
+  "runtime": {
+    "captured_at_utc": "2026-07-25T04:23:19.800179+00:00",
+    "chaos_workers": 1,
+    "hardware_inventory": {
+      "collector_system": "Darwin",
+      "macos_system_profiler": {
+        "_name": "hardware_overview",
+        "chip_type": "Apple A18 Pro",
+        "machine_model": "Mac17,5",
+        "machine_name": "MacBook Neo",
+        "number_processors": "proc 6:2:4:0",
+        "physical_memory": "8 GB"
+      }
+    },
+    "logical_processors_detected": 6,
+    "machine": "arm64",
+    "native_build": {
+      "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+      "flags": "-O3 -dynamiclib -fPIC -std=c11 -lm"
+    },
+    "packaged_self_test": "passed",
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "power_mode_inventory": {
+      "battery_status": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=23134307)\t82%; charging; 1:43 remaining present: true",
+      "collector_system": "Darwin",
+      "power_settings": "Battery Power:\n Sleep On Power Button 1\n lowpowermode         1\n standby              1\n ttyskeepawake        1\n hibernatemode        3\n powernap             1\n hibernatefile        /var/vm/sleepimage\n displaysleep         10\n womp                 0\n networkoversleep     0\n sleep                1\n lessbright           0\n tcpkeepalive         1\n disksleep            10\nAC Power:\n Sleep On Power Button 1\n lowpowermode         0\n standby              1\n ttyskeepawake        1\n hibernatemode        3\n powernap             1\n hibernatefile        /var/vm/sleepimage\n displaysleep         20\n womp                 0\n networkoversleep     0\n sleep                0\n tcpkeepalive         1\n disksleep            10"
+    },
+    "power_status": {
+      "ac_line": "not_detected",
+      "battery_percent": null
+    },
+    "processor": "arm",
+    "python_executable": "python",
+    "python_version": "3.12.13",
+    "release": "25.4.0",
+    "system": "Darwin",
+    "total_physical_memory_bytes": 8589934592,
+    "version": "Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:33 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T8140"
+  },
+  "schema_version": 1,
+  "software": {
+    "dependency_versions": {
+      "PyInstaller": "6.21.0",
+      "PyQt6": "6.11.0",
+      "PyYAML": "6.0.3",
+      "matplotlib": "3.11.1",
+      "numpy": "2.5.1",
+      "pyqtgraph": "0.14.0"
+    },
+    "source_commit_recorded": false,
+    "source_fingerprints": {
+      "core/csrc/chaos_core.c": "7dc751c6a74500bfeeb7d2999bad47f247eccd56eec3a818a67610d8e7f6ef33",
+      "core/diagnostics.py": "a5c4c6bad20b6c29bd28f692ba6e81805a1fee90f13d3e7a16aab744224297a3",
+      "core/lorenz.py": "0ef67620fb04e862fa2c3ade7bc3cceba6a7e94b22f1b724d2ed752684908dda",
+      "core/native.py": "eea38c7c1050e2f60638f03450aaec449d670d4b8e3ffa7e59211be91cde4757",
+      "main.py": "89a1fe12df196c743b340c295278d33f6b58544fb7eaa4276cea4fcb5542717e",
+      "pyproject.toml": "12d11e084c7c47c29d80e5e2c5e44b6874ab09d7515dd1064e5479951e2d9c94"
+    },
+    "toolbox_version": "0.1.0"
+  },
+  "startup_artifact": {
+    "path": "Chaos Toolbox.app/Contents/MacOS/Chaos Toolbox",
+    "sha256": "d4a76b7fcc0a06d25f79454d2fc815593246d651b35884c6955ae12199572a6b",
+    "size_bytes": 294810605
+  },
+  "system_type": "arm64"
+}
