@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "machine_id": "MACOS-16GB",
+  "profile_label": "macos-16gb",
+  "expected_system": "Darwin",
+  "manufacturer": "Apple",
+  "model": null,
+  "product_family": null,
+  "identity_status": "profile_completion_required",
+  "system_type": null,
+  "processor": null,
+  "physical_cores": null,
+  "logical_processors": null,
+  "installed_memory_gib": 16.0,
+  "firmware": {
+    "version": null
+  },
+  "operating_system_notes": {
+    "distribution": "macOS",
+    "version": null,
+    "build": null,
+    "architecture": null,
+    "locale": null,
+    "time_zone": null
+  },
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "record_low_power_mode": true,
+    "do_not_use_machine_during_batch": true,
+    "run_from_logged_in_graphical_session": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true
+  },
+  "profile_notes": [
+    "Fill the Mac model identifier, processor, architecture and macOS build before accepting its measurements.",
+    "The 16 GiB memory value is the only hardware characteristic supplied in advance."
+  ]
+}

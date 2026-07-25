@@ -45,10 +45,19 @@ if not runtime_resources.exists():
     print("CRITICAL: resources/bundled does not exist. Run scripts/prepare_runtime_resources.py before PyInstaller.")
     sys.exit(1)
 
-binaries = []
-windows_dll = ROOT / 'core' / 'bin' / 'chaos_core.dll'
-if windows_dll.exists():
-    binaries.append((str(windows_dll), 'core/bin'))
+if sys.platform.startswith('win'):
+    native_library = ROOT / 'core' / 'bin' / 'chaos_core.dll'
+elif sys.platform == 'darwin':
+    native_library = ROOT / 'core' / 'bin' / 'libchaos_core.dylib'
+else:
+    native_library = ROOT / 'core' / 'bin' / 'libchaos_core.so'
+
+if not native_library.exists():
+    print(f"CRITICAL: Native backend is missing for {sys.platform}: {native_library}")
+    print("Compile the platform library before running PyInstaller.")
+    sys.exit(1)
+
+binaries = [(str(native_library), 'core/bin')]
 
 datas = [
     (str(runtime_resources), 'resources/bundled'),
@@ -115,3 +124,16 @@ coll = COLLECT(
     upx_exclude=[],
     name='Chaos Toolbox',
 )
+
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        coll,
+        name='Chaos Toolbox.app',
+        bundle_identifier='org.fyskode.chaostoolbox',
+        info_plist={
+            'CFBundleDisplayName': 'Chaos Toolbox',
+            'CFBundleShortVersionString': APP_VERSION,
+            'CFBundleVersion': APP_VERSION,
+            'NSHighResolutionCapable': True,
+        },
+    )

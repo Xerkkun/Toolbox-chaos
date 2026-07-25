@@ -80,6 +80,8 @@ BASIN_DEFAULTS = {
     'rossler': (-8.0, 8.0, -8.0, 8.0, 0.0, 0.02, 80.0),
     'chua': (-4.0, 4.0, -4.0, 4.0, 0.0, 0.01, 80.0),
     'chen': (-30.0, 30.0, -30.0, 30.0, 1.0, 0.01, 25.0),
+    'wang_chen_no_equilibrium': (-1.0, 10.0, -25.0, 10.0, 0.4716, 0.01, 200.0),
+    'nazarimehr_line_equilibrium': (-2.0, 4.0, -2.0, 2.0, 0.0, 0.01, 200.0),
     'lu': (-30.0, 30.0, -30.0, 30.0, 1.0, 0.01, 25.0),
     'duffing_ueda': (-3.0, 3.0, -3.0, 3.0, 0.0, 0.01, 80.0),
     'rabinovich_fabrikant': (-3.0, 3.0, -3.0, 3.0, 0.5, 0.005, 40.0),
@@ -1472,6 +1474,9 @@ class TabBasinWidget(BaseTabWidget):
         # Format equilibria text
         lines = []
         for eq in self.last_equilibria:
+            if eq.get('manifold_description'):
+                lines.append(eq['manifold_description'])
+                continue
             point = eq['point']
             lines.append(
                 f"{eq['name']} = ({point[0]:.6g}, {point[1]:.6g}, {point[2]:.6g})"
@@ -1612,7 +1617,10 @@ class TabLyapunovWidget(BaseTabWidget):
         lambdas = ', '.join(f"{v:.6g}" for v in result.exponents)
         self.lyap_info.setText(
             f"Espectro Lyapunov: [{lambdas}]\n"
-            f"Estado: {result.status} | método: {result.method_id} | reort: cada {result.q} pasos."
+            f"Estado: {result.status} | método: {result.method_id} | "
+            f"h={result.step_size:g} | burn-in={result.burn_time:g} | "
+            f"medición={result.measurement_time:g} | "
+            f"QR cada {result.reorthonormalize_every} pasos."
         )
 
         if hasattr(self.main_window, 'info_label'):

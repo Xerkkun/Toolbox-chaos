@@ -1,0 +1,99 @@
+{
+  "captured_at_utc": "2026-07-25T03:46:12.045100+00:00",
+  "machine_id": "WINDOWS-THINKPAD-T14S-GEN3",
+  "results": [
+    {
+      "case": "startup_to_first_paint",
+      "max_wall_seconds": 2.9673527,
+      "median_cpu_seconds": null,
+      "median_cpu_utilization_percent": null,
+      "median_peak_rss_mib": 241.912109375,
+      "median_rss_mib": 238.408203125,
+      "median_wall_seconds": 2.92096885,
+      "min_wall_seconds": 2.8737224,
+      "q1_wall_seconds": 2.915169425,
+      "q3_wall_seconds": 2.9338712,
+      "successful_runs": 10
+    },
+    {
+      "case": "trajectory_100k",
+      "max_wall_seconds": 0.0068293,
+      "median_cpu_seconds": 0.0,
+      "median_cpu_utilization_percent": 0.0,
+      "median_peak_rss_mib": 42.12109375,
+      "median_rss_mib": 36.7890625,
+      "median_wall_seconds": 0.0067779,
+      "min_wall_seconds": 0.0066184,
+      "q1_wall_seconds": 0.0066958,
+      "q3_wall_seconds": 0.006813,
+      "successful_runs": 5
+    },
+    {
+      "case": "fft_100k",
+      "max_wall_seconds": 0.055232,
+      "median_cpu_seconds": 0.046875,
+      "median_cpu_utilization_percent": 103.96866412188344,
+      "median_peak_rss_mib": 77.2734375,
+      "median_rss_mib": 41.765625,
+      "median_wall_seconds": 0.0461758,
+      "min_wall_seconds": 0.0447301,
+      "q1_wall_seconds": 0.0450857,
+      "q3_wall_seconds": 0.0497596,
+      "successful_runs": 5
+    },
+    {
+      "case": "lyapunov_default",
+      "max_wall_seconds": 0.3979188,
+      "median_cpu_seconds": 0.390625,
+      "median_cpu_utilization_percent": 98.91000854076054,
+      "median_peak_rss_mib": 37.22265625,
+      "median_rss_mib": 37.22265625,
+      "median_wall_seconds": 0.3931159,
+      "min_wall_seconds": 0.3912695,
+      "q1_wall_seconds": 0.3925577,
+      "q3_wall_seconds": 0.3949297,
+      "successful_runs": 5
+    },
+    {
+      "case": "bifurcation_default",
+      "max_wall_seconds": 0.0992184,
+      "median_cpu_seconds": 0.09375,
+      "median_cpu_utilization_percent": 95.84233399341014,
+      "median_peak_rss_mib": 37.1640625,
+      "median_rss_mib": 36.9765625,
+      "median_wall_seconds": 0.0981855,
+      "min_wall_seconds": 0.0973056,
+      "q1_wall_seconds": 0.0978169,
+      "q3_wall_seconds": 0.0983048,
+      "successful_runs": 5
+    },
+    {
+      "case": "basin_60",
+      "max_wall_seconds": 0.0443049,
+      "median_cpu_seconds": 0.046875,
+      "median_cpu_utilization_percent": 107.0735958225879,
+      "median_peak_rss_mib": 36.8203125,
+      "median_rss_mib": 36.8203125,
+      "median_wall_seconds": 0.0436241,
+      "min_wall_seconds": 0.0430874,
+      "q1_wall_seconds": 0.0431037,
+      "q3_wall_seconds": 0.0437783,
+      "successful_runs": 5
+    },
+    {
+      "case": "basin_200",
+      "max_wall_seconds": 0.4830727,
+      "median_cpu_seconds": 0.46875,
+      "median_cpu_utilization_percent": 98.88564579130033,
+      "median_peak_rss_mib": 36.80078125,
+      "median_rss_mib": 36.80078125,
+      "median_wall_seconds": 0.4754005,
+      "min_wall_seconds": 0.4740324,
+      "q1_wall_seconds": 0.4743816,
+      "q3_wall_seconds": 0.4809966,
+      "successful_runs": 5
+    }
+  ],
+  "schema_version": 1,
+  "status": "ok"
+}

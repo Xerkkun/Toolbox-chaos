@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "machine_id": "POPOS-THINKPAD-T14-GEN2",
+  "profile_label": "popos-thinkpad-t14-gen2",
+  "expected_system": "Linux",
+  "manufacturer": "LENOVO",
+  "model": null,
+  "product_family": "ThinkPad T14 Gen 2",
+  "identity_status": "profile_completion_required",
+  "system_type": "x86_64",
+  "processor": null,
+  "physical_cores": null,
+  "logical_processors": null,
+  "installed_memory_gib": null,
+  "firmware": {
+    "version": null,
+    "mode": "UEFI"
+  },
+  "operating_system_notes": {
+    "distribution": "Pop!_OS",
+    "version": null,
+    "kernel": null,
+    "desktop_session": null,
+    "display_protocol": null,
+    "locale": null,
+    "time_zone": null
+  },
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "record_power_profile": true,
+    "do_not_use_machine_during_batch": true,
+    "run_from_logged_in_graphical_session": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true
+  },
+  "profile_notes": [
+    "Fill the Lenovo machine type, CPU, memory, Pop!_OS release, kernel and display protocol before accepting its measurements.",
+    "Run the startup trials in the normal logged-in desktop session, not through SSH without display forwarding."
+  ]
+}

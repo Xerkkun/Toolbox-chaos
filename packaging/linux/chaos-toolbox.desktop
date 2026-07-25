@@ -2,7 +2,7 @@
 Type=Application
 Name=Chaos Toolbox
 Comment=Chaotic systems, numerical analysis, visualization, and attractor exploration
-Exec=Chaos Toolbox
+Exec=chaos-toolbox
 Icon=chaos-toolbox
 Terminal=false
 Categories=Education;Science;Engineering;

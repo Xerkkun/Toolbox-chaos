@@ -1,0 +1,154 @@
+{
+  "bios": {
+    "date_as_reported": "09/04/2026",
+    "date_format_confirmed": false,
+    "mode": "UEFI",
+    "version": "LENOVO R23ET87W (1.63)"
+  },
+  "confirmed_family_label": "ThinkPad T14s Gen 3",
+  "declared_identity_status": "author_confirmed_with_system_label_difference",
+  "expected_system": "Windows",
+  "identity_status": "verified_at_runtime",
+  "identity_verification": {
+    "method": "windows-cim-or-bios-registry",
+    "status": "verified"
+  },
+  "installed_memory_gib": 16.0,
+  "installer_artifact": {
+    "path": "chaos-toolbox-v0.1.0-windows-x64-setup.exe",
+    "sha256": "81f3a52c2ed711f4ae5e9352b243b3b9d0f16318da236a237748a7e93ce8ddcf",
+    "size_bytes": 86813457
+  },
+  "logical_processors": 16,
+  "machine_id": "WINDOWS-THINKPAD-T14S-GEN3",
+  "manufacturer": "LENOVO",
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true,
+    "do_not_use_machine_during_batch": true,
+    "record_power_mode": true
+  },
+  "model": "21CF003TUS",
+  "operating_system_notes": {
+    "distribution": "Windows 11",
+    "hardware_abstraction_layer_version": "10.0.26100.1",
+    "kernel_build": null,
+    "locale": "United States",
+    "time_zone": "Central Standard Time (Mexico)"
+  },
+  "physical_cores": 8,
+  "processor": "AMD Ryzen 7 PRO 6850U with Radeon Graphics",
+  "product_family": "ThinkPad T14 Gen 3",
+  "profile_label": "windows-thinkpad-t14s-gen3",
+  "profile_notes": [
+    "The hardware values come from the Windows system information supplied for this computer.",
+    "The author confirmed ThinkPad T14s Gen 3 as the correct editorial model name.",
+    "Windows reports machine type 21CF003TUS and system family ThinkPad T14 Gen 3; both raw values are retained as provenance."
+  ],
+  "protocol": {
+    "benchmark_script_sha256": "fd26fb630fdf13f936bfb38ea07c05cd6f2c6c9f5bfeb5635a199e7a84ea27e3",
+    "calculation_execution": "source_python_worker_same_checkout",
+    "calculation_runs": 5,
+    "calculation_timeout_seconds": 300.0,
+    "calculation_warmups_per_worker": 1,
+    "calculations_enabled": true,
+    "cases": [
+      "trajectory_100k",
+      "fft_100k",
+      "lyapunov_default",
+      "bifurcation_default",
+      "basin_60",
+      "basin_200"
+    ],
+    "schema_version": 1,
+    "startup_definition": "process launch to first main-window paint event",
+    "startup_enabled": true,
+    "startup_execution": "packaged_native_artifact",
+    "startup_runs": 10,
+    "startup_timeout_seconds": 45.0,
+    "startup_warmups": 1,
+    "thread_environment": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "workers": 1
+  },
+  "runtime": {
+    "captured_at_utc": "2026-07-25T03:46:12.045100+00:00",
+    "chaos_workers": 1,
+    "hardware_inventory": {
+      "collector_system": "Windows",
+      "windows_cim": {
+        "logical_processors": 16,
+        "manufacturer": "LENOVO",
+        "memory_bytes": 15859003392,
+        "model": "21CF003TUS",
+        "os_build": "26200",
+        "os_caption": "Microsoft Windows 11 Pro",
+        "os_version": "10.0.26200",
+        "physical_cores": 8,
+        "processor": "AMD Ryzen 7 PRO 6850U with Radeon Graphics     ",
+        "system_family": "ThinkPad T14 Gen 3"
+      }
+    },
+    "logical_processors_detected": 16,
+    "machine": "AMD64",
+    "native_build": {
+      "compiler": "gcc.exe (Rev8, Built by MSYS2 project) 15.2.0",
+      "flags": "-O3 -shared -std=c11 -lm"
+    },
+    "packaged_self_test": "passed",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "power_mode_inventory": {
+      "active_scheme": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+      "collector_system": "Windows"
+    },
+    "power_status": {
+      "ac_line": "online",
+      "battery_percent": 97
+    },
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "python_executable": "python.exe",
+    "python_version": "3.12.12",
+    "release": "11",
+    "system": "Windows",
+    "total_physical_memory_bytes": 15859003392,
+    "version": "10.0.26200"
+  },
+  "schema_version": 1,
+  "security_context": {
+    "hypervisor_detected": true,
+    "secure_boot": "Off",
+    "virtualization_based_security": "Running"
+  },
+  "software": {
+    "dependency_versions": {
+      "PyInstaller": "6.17.0",
+      "PyQt6": "6.10.1",
+      "PyYAML": "6.0.3",
+      "matplotlib": "3.10.7",
+      "numpy": "2.3.5",
+      "pyqtgraph": "0.13.7"
+    },
+    "source_commit_recorded": false,
+    "source_fingerprints": {
+      "core/csrc/chaos_core.c": "7dc751c6a74500bfeeb7d2999bad47f247eccd56eec3a818a67610d8e7f6ef33",
+      "core/diagnostics.py": "a5c4c6bad20b6c29bd28f692ba6e81805a1fee90f13d3e7a16aab744224297a3",
+      "core/lorenz.py": "3a27947aa212c6a1b76c88abab8cf96894cbb8f513f98f0c029e40115241c9d1",
+      "core/native.py": "eea38c7c1050e2f60638f03450aaec449d670d4b8e3ffa7e59211be91cde4757",
+      "main.py": "89a1fe12df196c743b340c295278d33f6b58544fb7eaa4276cea4fcb5542717e",
+      "pyproject.toml": "12d11e084c7c47c29d80e5e2c5e44b6874ab09d7515dd1064e5479951e2d9c94"
+    },
+    "toolbox_version": "0.1.0"
+  },
+  "startup_artifact": {
+    "path": "Chaos Toolbox/Chaos Toolbox.exe",
+    "sha256": "8c7a29e6f23ff85ff634f6d3d5cc2bf0c404e74c269204ff10845deb9bf58951",
+    "size_bytes": 269409338
+  },
+  "system_type": "x64-based PC"
+}

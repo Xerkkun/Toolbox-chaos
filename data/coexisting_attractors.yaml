@@ -44,3 +44,45 @@
       reported_type: "fixed point"
       status: "reproduced"
   notes: "En rho = 24.4, coexisten dos puntos fijos estables con un conjunto límite caótico transitorio o un atractor caótico débilmente estable."
+
+- system_key: "wang_chen_no_equilibrium"
+  system_name: "Wang-Chen (equilibrios variables)"
+  reference:
+    authors: "Bayani, A., Jafari, M.-A., Jafari, S., & Pham, V.-T."
+    year: 2021
+    title: "A Comprehensive Analysis on the Wang-Chen System: A Challenging Case for the Šil’nikov Theory"
+    venue: "Chaotic Systems with Multistability and Hidden Attractors"
+    doi: "10.1007/978-3-030-75821-9_23"
+  parameter_set:
+    a: 0.218
+  attractors:
+    - label: "ciclo límite"
+      initial_condition: [3.022, 1.196, 1.643]
+      reported_type: "periodic"
+      status: "reproduced"
+    - label: "atractor caótico"
+      initial_condition: [1.276, -0.190, 0.471]
+      reported_type: "chaotic"
+      status: "reproduced"
+  notes: "El capítulo publica ambas condiciones iniciales y las cuencas para a=0.218; se implementa el término -xz coherente con el Jacobiano, el circuito y la fuente primaria."
+
+- system_key: "nazarimehr_line_equilibrium"
+  system_name: "Nazarimehr (línea de equilibrios)"
+  reference:
+    authors: "Nazarimehr, F., Jafari, M.-A., Jafari, S., Pham, V.-T., Wang, X., & Chen, G."
+    year: 2021
+    title: "A New Chaotic System with Equilibria Located on a Line and Its Circuit Implementation"
+    venue: "Chaotic Systems with Multistability and Hidden Attractors"
+    doi: "10.1007/978-3-030-75821-9_22"
+  parameter_set:
+    k: -0.2
+  attractors:
+    - label: "línea de equilibrios E*"
+      initial_condition: [-1.0, 0.0, 0.0]
+      reported_type: "equilibrium manifold"
+      status: "reproduced"
+    - label: "atractor caótico oculto"
+      initial_condition: [-1.53, 0.33, 0.39]
+      reported_type: "hidden chaotic attractor"
+      status: "reproduced"
+  notes: "La cuenca publicada usa z0=0, x0 en [-2,4] y y0 en [-2,2]. La clase regular converge a la variedad E*={(x,0,0): x real}."

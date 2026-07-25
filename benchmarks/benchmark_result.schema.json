@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmark_result.schema.json",
+  "$comment": "Acceptance schema for complete native-launcher runs. Exact repetition and per-case coverage is additionally checked by merge_benchmark_results.py.",
+  "title": "Complete Toolbox Chaos benchmark result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "manifest",
+    "startup_records",
+    "calculation_records",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "status": {
+      "const": "ok"
+    },
+    "manifest": {
+      "type": "object",
+      "required": [
+        "machine_id",
+        "identity_status",
+        "software",
+        "runtime",
+        "protocol",
+        "startup_artifact",
+        "installer_artifact"
+      ],
+      "properties": {
+        "machine_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "identity_status": {
+          "const": "verified_at_runtime"
+        },
+        "software": {
+          "type": "object",
+          "required": [
+            "toolbox_version",
+            "dependency_versions",
+            "source_fingerprints"
+          ]
+        },
+        "runtime": {
+          "type": "object",
+          "required": [
+            "captured_at_utc",
+            "system",
+            "power_status",
+            "power_mode_inventory",
+            "packaged_self_test",
+            "hardware_inventory"
+          ],
+          "properties": {
+            "packaged_self_test": {
+              "const": "passed"
+            }
+          }
+        },
+        "protocol": {
+          "type": "object",
+          "required": [
+            "benchmark_script_sha256",
+            "startup_definition",
+            "startup_execution",
+            "calculation_execution",
+            "startup_enabled",
+            "calculations_enabled",
+            "startup_warmups",
+            "startup_runs",
+            "calculation_runs",
+            "cases",
+            "workers",
+            "thread_environment"
+          ],
+          "properties": {
+            "startup_enabled": {
+              "const": true
+            },
+            "calculations_enabled": {
+              "const": true
+            },
+            "startup_warmups": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "startup_runs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "calculation_runs": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "cases": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "startup_artifact": {
+          "$ref": "#/$defs/artifact"
+        },
+        "installer_artifact": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "startup_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "repetition",
+          "status",
+          "startup_seconds",
+          "memory_at_ready"
+        ],
+        "properties": {
+          "repetition": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "const": "ready"
+          },
+          "startup_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "memory_at_ready": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "calculation_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "case",
+          "repetition",
+          "status",
+          "wall_seconds",
+          "cpu_seconds",
+          "result"
+        ],
+        "properties": {
+          "case": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repetition": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "const": "ok"
+          },
+          "wall_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cpu_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "result": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "case",
+          "successful_runs",
+          "median_wall_seconds",
+          "q1_wall_seconds",
+          "q3_wall_seconds"
+        ],
+        "properties": {
+          "case": {
+            "type": "string",
+            "minLength": 1
+          },
+          "successful_runs": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "median_wall_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "q1_wall_seconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "q3_wall_seconds": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

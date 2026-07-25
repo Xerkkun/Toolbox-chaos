@@ -4,7 +4,13 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .lorenz import METHOD_REGISTRY, SYSTEM_REGISTRY, numeric_jacobian, simulate_system, vector_field
+from .lorenz import (
+    METHOD_REGISTRY,
+    SYSTEM_REGISTRY,
+    jacobian_for_system,
+    simulate_system,
+    vector_field,
+)
 
 
 @dataclass(frozen=True)
@@ -13,10 +19,15 @@ class LyapunovDiagnosticResult:
     times: np.ndarray
     convergence: np.ndarray
     status: str
-    method_id: str = 'integer_qr_benettin'
-    derivative_model: str = 'integer'
+    method_id: str = 'integer_qr_benettin_rk4'
+    derivative_model: str = 'variational_system_jacobian'
     q: float = 1.0
     orthonormalization: str = 'qr'
+    integrator: str = 'rk4_fixed'
+    step_size: float = 0.0
+    burn_time: float = 0.0
+    measurement_time: float = 0.0
+    reorthonormalize_every: int = 1
 
 
 def comparable_methods() -> list[str]:
@@ -102,11 +113,54 @@ def integer_qr_benettin_lyapunov(
     def rhs(state):
         return np.asarray(vector_field(system_key, state, p)[:3], dtype=float)
 
+    def rk4_state_step(state):
+        k1 = rhs(state)
+        k2 = rhs(state + 0.5 * h * k1)
+        k3 = rhs(state + 0.5 * h * k2)
+        k4 = rhs(state + h * k3)
+        return state + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+
+    def rk4_variational_step(state, tangent):
+        def coupled_derivative(stage_state, stage_tangent):
+            field = rhs(stage_state)
+            jacobian = jacobian_for_system(
+                system_key, stage_state, p, eps=jacobian_eps
+            )[:n, :n]
+            return field, jacobian @ stage_tangent
+
+        k1_x, k1_v = coupled_derivative(state, tangent)
+        k2_x, k2_v = coupled_derivative(
+            state + 0.5 * h * k1_x,
+            tangent + 0.5 * h * k1_v,
+        )
+        k3_x, k3_v = coupled_derivative(
+            state + 0.5 * h * k2_x,
+            tangent + 0.5 * h * k2_v,
+        )
+        k4_x, k4_v = coupled_derivative(
+            state + h * k3_x,
+            tangent + h * k3_v,
+        )
+        next_state = state + (h / 6.0) * (
+            k1_x + 2.0 * k2_x + 2.0 * k3_x + k4_x
+        )
+        next_tangent = tangent + (h / 6.0) * (
+            k1_v + 2.0 * k2_v + 2.0 * k3_v + k4_v
+        )
+        return next_state, next_tangent
+
     for _ in range(burn_steps):
-        x = x + h * rhs(x)
+        x = rk4_state_step(x)
         if not np.all(np.isfinite(x)) or np.linalg.norm(x) >= float(div_threshold):
             return LyapunovDiagnosticResult(
-                np.full(n, np.nan), np.empty(0), np.empty((0, n)), 'burn_diverged'
+                np.full(n, np.nan),
+                np.empty(0),
+                np.empty((0, n)),
+                'burn_diverged',
+                step_size=h,
+                burn_time=burn_steps * h,
+                measurement_time=0.0,
+                reorthonormalize_every=interval,
             )
 
     basis = np.eye(n, dtype=float)
@@ -117,9 +171,7 @@ def integer_qr_benettin_lyapunov(
     status = 'ok'
 
     for step in range(1, total_steps + 1):
-        J = numeric_jacobian(system_key, x, p, eps=jacobian_eps)[:n, :n]
-        basis = basis + h * J @ basis
-        x = x + h * rhs(x)
+        x, basis = rk4_variational_step(x, basis)
         elapsed += h
 
         if not np.all(np.isfinite(x)) or not np.all(np.isfinite(basis)):
@@ -144,4 +196,8 @@ def integer_qr_benettin_lyapunov(
         np.asarray(times, dtype=float),
         np.asarray(convergence, dtype=float) if convergence else np.empty((0, n), dtype=float),
         status,
+        step_size=h,
+        burn_time=burn_steps * h,
+        measurement_time=elapsed,
+        reorthonormalize_every=interval,
     )

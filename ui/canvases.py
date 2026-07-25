@@ -380,6 +380,17 @@ class MplBasinCanvas(_BaseCanvas):
     def _draw_equilibria_projection(self, equilibrium_data, extent):
         x_min, x_max, y_min, y_max = extent
         for eq in equilibrium_data:
+            if eq.get('manifold') == 'x_axis':
+                self.ax.plot(
+                    [x_min, x_max],
+                    [0.0, 0.0],
+                    color='black',
+                    linewidth=1.2,
+                    linestyle='--',
+                    zorder=5,
+                    label=eq.get('name', 'E*'),
+                )
+                continue
             x, y, _z = eq['point']
             if not (x_min <= x <= x_max and y_min <= y <= y_max):
                 continue
@@ -387,7 +398,10 @@ class MplBasinCanvas(_BaseCanvas):
             label = eq['name']
             local_type = eq.get('local_type', 'indeterminado')
 
-            if 'estable' in local_type:
+            if 'inestable' in local_type:
+                marker = 'X'
+                size = 80
+            elif 'estable' in local_type:
                 marker = 'o'
                 size = 75
             elif 'silla' in local_type:
