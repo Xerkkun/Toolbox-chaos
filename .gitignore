@@ -15,6 +15,7 @@ __pycache__/
 .venv/
 .venv-webengine/
 .venv-build/
+.venv-benchmark-*/
 venv/
 env/
 ENV/

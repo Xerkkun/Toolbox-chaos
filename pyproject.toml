@@ -17,7 +17,8 @@ dependencies = [
   "numpy>=1.26",
   "matplotlib>=3.8",
   "pyqtgraph>=0.13",
-  "pyyaml>=6.0"
+  "pyyaml>=6.0",
+  "tomli>=2.0; python_version < '3.11'"
 ]
 
 [project.optional-dependencies]

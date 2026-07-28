@@ -1,0 +1,154 @@
+{
+  "declared_identity_status": "profile_completion_required",
+  "expected_system": "Linux",
+  "firmware": {
+    "mode": "UEFI",
+    "version": null
+  },
+  "identity_status": "verified_at_runtime",
+  "identity_verification": {
+    "method": "popos-os-release-and-linux-dmi",
+    "status": "verified"
+  },
+  "installed_memory_gib": null,
+  "installer_artifact": {
+    "path": "chaos-toolbox_0.1.0_amd64.deb",
+    "sha256": "198167d0ee86b3fcd5a58cf39d97866d0232af0367fbd4793326c5ec38dd44f8",
+    "size_bytes": 80789992
+  },
+  "logical_processors": null,
+  "machine_id": "POPOS-THINKPAD-T14-GEN2",
+  "manufacturer": "LENOVO",
+  "measurement_requirements": {
+    "ac_power_required": true,
+    "close_unrelated_heavy_applications": true,
+    "do_not_compare_as_an_os_effect_unless_hardware_is_identical": true,
+    "do_not_use_machine_during_batch": true,
+    "record_power_profile": true,
+    "run_from_logged_in_graphical_session": true
+  },
+  "model": null,
+  "operating_system_notes": {
+    "desktop_session": null,
+    "display_protocol": null,
+    "distribution": "Pop!_OS",
+    "kernel": null,
+    "locale": null,
+    "time_zone": null,
+    "version": null
+  },
+  "physical_cores": null,
+  "processor": null,
+  "product_family": "ThinkPad T14 Gen 2",
+  "profile_label": "popos-thinkpad-t14-gen2",
+  "profile_notes": [
+    "Fill the Lenovo machine type, CPU, memory, Pop!_OS release, kernel and display protocol before accepting its measurements.",
+    "Run the startup trials in the normal logged-in desktop session, not through SSH without display forwarding."
+  ],
+  "protocol": {
+    "benchmark_script_sha256": "fd26fb630fdf13f936bfb38ea07c05cd6f2c6c9f5bfeb5635a199e7a84ea27e3",
+    "calculation_execution": "source_python_worker_same_checkout",
+    "calculation_runs": 5,
+    "calculation_timeout_seconds": 300.0,
+    "calculation_warmups_per_worker": 1,
+    "calculations_enabled": true,
+    "cases": [
+      "trajectory_100k",
+      "fft_100k",
+      "lyapunov_default",
+      "bifurcation_default",
+      "basin_60",
+      "basin_200"
+    ],
+    "schema_version": 1,
+    "startup_definition": "process launch to first main-window paint event",
+    "startup_enabled": true,
+    "startup_execution": "packaged_native_artifact",
+    "startup_runs": 10,
+    "startup_timeout_seconds": 45.0,
+    "startup_warmups": 1,
+    "thread_environment": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    },
+    "workers": 1
+  },
+  "runtime": {
+    "captured_at_utc": "2026-07-25T04:44:01.779251+00:00",
+    "chaos_workers": 1,
+    "hardware_inventory": {
+      "collector_system": "Linux",
+      "linux_lscpu": {
+        "Architecture": "x86_64",
+        "CPU(s)": "16",
+        "Core(s) per socket": "8",
+        "Model name": "AMD Ryzen 7 PRO 5850U with Radeon Graphics",
+        "Socket(s)": "1",
+        "Thread(s) per core": "2"
+      },
+      "os_release": {
+        "ID": "pop",
+        "ID_LIKE": "ubuntu debian",
+        "NAME": "Pop!_OS",
+        "VERSION": "22.04 LTS",
+        "VERSION_ID": "22.04"
+      }
+    },
+    "logical_processors_detected": 16,
+    "machine": "x86_64",
+    "native_build": {
+      "compiler": "cc (Ubuntu 11.4.0-1ubuntu1~22.04.2) 11.4.0",
+      "flags": "-O3 -shared -fPIC -std=c11 -lm"
+    },
+    "packaged_self_test": "passed",
+    "platform": "Linux-7.0.11-76070011-generic-x86_64-with-glibc2.35",
+    "power_mode_inventory": {
+      "ac_supplies": {
+        "AC": "1"
+      },
+      "active_profile": null,
+      "collector_system": "Linux"
+    },
+    "power_status": {
+      "ac_line": "not_detected",
+      "battery_percent": null
+    },
+    "processor": "x86_64",
+    "python_executable": "python",
+    "python_version": "3.10.12",
+    "release": "7.0.11-76070011-generic",
+    "system": "Linux",
+    "total_physical_memory_bytes": 49266003968,
+    "version": "#202606011647~1780583630~22.04~70ad774 SMP PREEMPT_DYNAMIC Thu J"
+  },
+  "schema_version": 1,
+  "software": {
+    "dependency_versions": {
+      "PyInstaller": "6.21.0",
+      "PyQt6": "6.11.0",
+      "PyYAML": "6.0.3",
+      "matplotlib": "3.10.9",
+      "numpy": "2.2.6",
+      "pyqtgraph": "0.14.0"
+    },
+    "source_commit_recorded": false,
+    "source_fingerprints": {
+      "core/csrc/chaos_core.c": "7dc751c6a74500bfeeb7d2999bad47f247eccd56eec3a818a67610d8e7f6ef33",
+      "core/diagnostics.py": "a5c4c6bad20b6c29bd28f692ba6e81805a1fee90f13d3e7a16aab744224297a3",
+      "core/lorenz.py": "0ef67620fb04e862fa2c3ade7bc3cceba6a7e94b22f1b724d2ed752684908dda",
+      "core/native.py": "eea38c7c1050e2f60638f03450aaec449d670d4b8e3ffa7e59211be91cde4757",
+      "main.py": "89a1fe12df196c743b340c295278d33f6b58544fb7eaa4276cea4fcb5542717e",
+      "pyproject.toml": "12d11e084c7c47c29d80e5e2c5e44b6874ab09d7515dd1064e5479951e2d9c94"
+    },
+    "toolbox_version": "0.1.0"
+  },
+  "startup_artifact": {
+    "path": "Chaos Toolbox/Chaos Toolbox",
+    "sha256": "9b3f1f0f1cfc5fb88124919fd288b9476c621cd7488fdf912a8bd59219d5f274",
+    "size_bytes": 384788687
+  },
+  "system_type": "x86_64"
+}

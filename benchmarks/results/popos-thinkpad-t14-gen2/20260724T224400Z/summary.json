@@ -1,0 +1,99 @@
+{
+  "captured_at_utc": "2026-07-25T04:44:01.779251+00:00",
+  "machine_id": "POPOS-THINKPAD-T14-GEN2",
+  "results": [
+    {
+      "case": "startup_to_first_paint",
+      "max_wall_seconds": 2.733257891,
+      "median_cpu_seconds": null,
+      "median_cpu_utilization_percent": null,
+      "median_peak_rss_mib": 216.990234375,
+      "median_rss_mib": 214.197265625,
+      "median_wall_seconds": 2.648346869,
+      "min_wall_seconds": 2.546652276,
+      "q1_wall_seconds": 2.5790216545,
+      "q3_wall_seconds": 2.72504014675,
+      "successful_runs": 10
+    },
+    {
+      "case": "trajectory_100k",
+      "max_wall_seconds": 0.008035097,
+      "median_cpu_seconds": 0.00741682,
+      "median_cpu_utilization_percent": 100.04472361129072,
+      "median_peak_rss_mib": 48.5234375,
+      "median_rss_mib": 43.56640625,
+      "median_wall_seconds": 0.007413402,
+      "min_wall_seconds": 0.007168473,
+      "q1_wall_seconds": 0.007297414,
+      "q3_wall_seconds": 0.007485076,
+      "successful_runs": 5
+    },
+    {
+      "case": "fft_100k",
+      "max_wall_seconds": 0.053340804,
+      "median_cpu_seconds": 0.052244592,
+      "median_cpu_utilization_percent": 99.99502979097585,
+      "median_peak_rss_mib": 86.41015625,
+      "median_rss_mib": 50.08203125,
+      "median_wall_seconds": 0.05223927,
+      "min_wall_seconds": 0.051953494,
+      "q1_wall_seconds": 0.052040327,
+      "q3_wall_seconds": 0.052512882,
+      "successful_runs": 5
+    },
+    {
+      "case": "lyapunov_default",
+      "max_wall_seconds": 0.349742002,
+      "median_cpu_seconds": 0.327200296,
+      "median_cpu_utilization_percent": 99.99506378990762,
+      "median_peak_rss_mib": 46.7578125,
+      "median_rss_mib": 46.7578125,
+      "median_wall_seconds": 0.327227043,
+      "min_wall_seconds": 0.316238752,
+      "q1_wall_seconds": 0.322210822,
+      "q3_wall_seconds": 0.339516351,
+      "successful_runs": 5
+    },
+    {
+      "case": "bifurcation_default",
+      "max_wall_seconds": 0.112869603,
+      "median_cpu_seconds": 0.109341344,
+      "median_cpu_utilization_percent": 99.99790731965274,
+      "median_peak_rss_mib": 43.7421875,
+      "median_rss_mib": 43.453125,
+      "median_wall_seconds": 0.10935655,
+      "min_wall_seconds": 0.109166655,
+      "q1_wall_seconds": 0.109227649,
+      "q3_wall_seconds": 0.109405422,
+      "successful_runs": 5
+    },
+    {
+      "case": "basin_60",
+      "max_wall_seconds": 0.062127139,
+      "median_cpu_seconds": 0.052860059,
+      "median_cpu_utilization_percent": 100.00770355769964,
+      "median_peak_rss_mib": 43.375,
+      "median_rss_mib": 43.375,
+      "median_wall_seconds": 0.052854893,
+      "min_wall_seconds": 0.047310494,
+      "q1_wall_seconds": 0.048172849,
+      "q3_wall_seconds": 0.054860762,
+      "successful_runs": 5
+    },
+    {
+      "case": "basin_200",
+      "max_wall_seconds": 0.585899732,
+      "median_cpu_seconds": 0.536761279,
+      "median_cpu_utilization_percent": 99.99813385604784,
+      "median_peak_rss_mib": 43.4921875,
+      "median_rss_mib": 43.4921875,
+      "median_wall_seconds": 0.536776582,
+      "min_wall_seconds": 0.530031623,
+      "q1_wall_seconds": 0.533129808,
+      "q3_wall_seconds": 0.538275731,
+      "successful_runs": 5
+    }
+  ],
+  "schema_version": 1,
+  "status": "ok"
+}
