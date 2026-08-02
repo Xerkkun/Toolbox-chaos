@@ -199,6 +199,38 @@ class SprottExplorerTab(QWidget):
         )
         layout.addWidget(self._markdown_browser(text), stretch=1)
 
+        start_box = QGroupBox('Empieza aqui')
+        start_layout = QVBoxLayout(start_box)
+        start_note = QLabel(
+            'Elige una sola ruta. El explorador te llevara a la pestaña y los controles necesarios.'
+        )
+        start_note.setWordWrap(True)
+        start_layout.addWidget(start_note)
+
+        actions = QHBoxLayout()
+        self.home_example_button = QPushButton('1. Probar ejemplo')
+        self.home_example_button.setToolTip('Carga un ejemplo sintetico incluido y muestra como simularlo.')
+        self.home_example_button.clicked.connect(self.start_guided_example)
+        actions.addWidget(self.home_example_button)
+
+        self.home_code_button = QPushButton('2. Decodificar codigo')
+        self.home_code_button.setToolTip('Abre el decodificador educativo con un codigo listo para editar.')
+        self.home_code_button.clicked.connect(self.open_code_decoder)
+        actions.addWidget(self.home_code_button)
+
+        self.home_dic_button = QPushButton('3. Abrir archivo .DIC')
+        self.home_dic_button.setToolTip('Selecciona un diccionario local sin copiarlo dentro de la aplicacion.')
+        self.home_dic_button.clicked.connect(self.open_local_dictionary_dialog)
+        actions.addWidget(self.home_dic_button)
+        start_layout.addLayout(actions)
+
+        self.home_status_label = QLabel(
+            'Recomendacion para la primera vez: pulsa «1. Probar ejemplo».'
+        )
+        self.home_status_label.setWordWrap(True)
+        start_layout.addWidget(self.home_status_label)
+        layout.addWidget(start_box, stretch=0)
+
         # Styled panel: Modo público vs modo personal
         panel = QFrame()
         panel.setFrameShape(QFrame.Shape.StyledPanel)
@@ -230,6 +262,40 @@ class SprottExplorerTab(QWidget):
 
         layout.addWidget(panel, stretch=0)
         self.sections.addTab(widget, 'Inicio')
+
+    def start_guided_example(self):
+        """Run the smallest curated example and open its resulting plot."""
+
+        self._go_to_tab('Ejemplos')
+        if hasattr(self, 'examples_list') and self.examples_list.count() > 0:
+            self.examples_list.setCurrentRow(0)
+            self.simulate_selected_example()
+            self.home_status_label.setText(
+                'Ejemplo inicial simulado. Ya puedes cambiar estilo o volver a Ejemplos para elegir otro.'
+            )
+        else:
+            self.home_status_label.setText('No se encontro un ejemplo sintetico disponible.')
+
+    def open_code_decoder(self):
+        """Open and focus the educational compact-code decoder."""
+
+        self._go_to_tab('Codigos')
+        if hasattr(self, 'code_edit'):
+            self.code_edit.setFocus()
+            self.code_edit.selectAll()
+        self.home_status_label.setText(
+            'Decodificador abierto. Edita el codigo y observa las ecuaciones resultantes.'
+        )
+
+    def open_local_dictionary_dialog(self):
+        """Ask for a local dictionary and continue in the inventory page."""
+
+        self.browse_local_dic()
+        if hasattr(self, 'local_dic_path_edit') and self.local_dic_path_edit.text().strip():
+            self._go_to_tab('Inventario')
+            self.home_status_label.setText(
+                'Archivo local seleccionado. Carga su inventario para elegir un codigo.'
+            )
 
     def _build_theory_tab(self):
         widget = QWidget()

@@ -44,6 +44,7 @@ from core.diagnostics import (
     compare_integrator_methods,
     integer_qr_benettin_lyapunov,
     normalized_fft,
+    trajectory_spectrum,
 )
 from ui.canvases import (
     Mpl3DCanvas,
@@ -747,7 +748,7 @@ class TabTimeSeriesWidget(BaseTabWidget):
 
 
 class TabFFTWidget(BaseTabWidget):
-    """Tab for FFT analysis."""
+    """Tab for amplitude-spectrum and Welch-PSD analysis."""
 
     def __init__(self, main_window=None, parent=None):
         super().__init__(main_window, parent)
@@ -764,6 +765,11 @@ class TabFFTWidget(BaseTabWidget):
         self.fft_box = QGroupBox('Parámetros de FFT')
         fft_layout = QFormLayout(self.fft_box)
 
+        self.spectral_method_combo = QComboBox()
+        self.spectral_method_combo.addItem('PSD de Welch (recomendado)', 'psd_welch')
+        self.spectral_method_combo.addItem('Espectro de amplitud', 'fft')
+        fft_layout.addRow(QLabel('Método'), self.spectral_method_combo)
+
         self.transient_spin = make_double_spin(5.0, 0.0, 10000.0, 3)
         fft_layout.addRow(QLabel('Descartar transitorio (s)'), self.transient_spin)
 
@@ -775,7 +781,7 @@ class TabFFTWidget(BaseTabWidget):
         self.scroll_layout.addWidget(self.fft_box)
 
         # Buttons
-        self.btn_run = QPushButton('Calcular FFT')
+        self.btn_run = QPushButton('Calcular FFT/PSD')
         self.btn_run.clicked.connect(self.run_simulation)
         self.scroll_layout.addWidget(self.btn_run)
 
@@ -786,7 +792,7 @@ class TabFFTWidget(BaseTabWidget):
         self.btn_save = QPushButton('Guardar gráfica...')
         self.btn_save.clicked.connect(
             lambda: self.save_matplotlib_figure(
-                self.canvas.fig, 'caos_fft_normalizada'
+                self.canvas.fig, 'caos_espectro'
             )
         )
         self.scroll_layout.addWidget(self.btn_save)
@@ -866,21 +872,35 @@ class TabFFTWidget(BaseTabWidget):
             )
             return
 
+        selected_method = self.spectral_method_combo.currentData()
         try:
-            freqs, spectra = normalized_fft(
+            freqs, spectra, actual_method = trajectory_spectrum(
                 t_cropped,
                 X_cropped,
+                method=selected_method,
                 min_frequency=min_freq if use_bounds else None,
                 max_frequency=max_freq if use_bounds else None,
             )
         except Exception as exc:
-            QMessageBox.critical(self, 'Error de FFT', str(exc))
+            QMessageBox.critical(self, 'Error de análisis espectral', str(exc))
             return
 
         colors = ['#2563eb', '#dc2626', '#16a34a']
-        title = f"FFT normalizada - {SYSTEM_REGISTRY.get(sys_key, {'label': sys_key})['label']}"
+        if actual_method == 'psd_welch':
+            method_label = 'PSD de Welch'
+            value_label = 'PSD [unidad²/Hz]'
+        else:
+            method_label = 'Espectro de amplitud'
+            value_label = 'Amplitud [unidad]'
+        title = f"{method_label} - {SYSTEM_REGISTRY.get(sys_key, {'label': sys_key})['label']}"
         self.canvas.plot_fft(
-            freqs, spectra, title, colors=colors, auto_crop=not use_bounds
+            freqs,
+            spectra,
+            title,
+            colors=colors,
+            auto_crop=not use_bounds,
+            value_label=value_label,
+            line_plot=actual_method == 'psd_welch',
         )
 
 

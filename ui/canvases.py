@@ -257,7 +257,16 @@ class MplFFTCanvas(_BaseCanvas):
         full_hi = float(np.max(freqs))
         return max(full_lo, lo), min(full_hi, hi)
 
-    def plot_fft(self, freqs, spectra, title, colors=None, auto_crop=True):
+    def plot_fft(
+        self,
+        freqs,
+        spectra,
+        title,
+        colors=None,
+        auto_crop=True,
+        value_label='Amplitud',
+        line_plot=False,
+    ):
         self.reset_plot()
         colors = list(colors or ['#2563eb', '#dc2626', '#16a34a'])
         while len(colors) < len(self.axes):
@@ -267,8 +276,12 @@ class MplFFTCanvas(_BaseCanvas):
         xlim = self._dominant_frequency_xlim(freqs, spectra) if auto_crop else None
         for idx, ax in enumerate(self.axes):
             values = spectra[:, idx]
-            ax.vlines(freqs, 0.0, values, linewidth=0.75, color=colors[idx], alpha=0.95)
+            if line_plot:
+                ax.plot(freqs, values, linewidth=0.85, color=colors[idx], alpha=0.95)
+            else:
+                ax.vlines(freqs, 0.0, values, linewidth=0.75, color=colors[idx], alpha=0.95)
             ax.axhline(0.0, color='0.25', linewidth=0.6)
+            ax.set_ylabel(value_label)
             finite_values = values[np.isfinite(values)]
             if finite_values.size:
                 ymax = float(np.max(finite_values))
@@ -276,6 +289,7 @@ class MplFFTCanvas(_BaseCanvas):
             if xlim is not None:
                 ax.set_xlim(*xlim)
         self.axes[0].set_title(title)
+        self.axes[-1].set_xlabel('Frecuencia [Hz]')
         self.draw_idle()
 
 

@@ -35,18 +35,21 @@ In multistable systems, different initial conditions converge to distinct coexis
   \(E^*=\{(x,0,0):x\in\mathbb{R}\}\), rather than replacing that continuum by
   a single equilibrium point.
 
-## 5. Spectral Density (FFT Analysis)
+## 5. Spectral analysis
 
-- **Fourier Transform:** The FFT panel computes the power spectral density of time-series trajectories.
-- **Signature Identification:** Smooth, discrete peaks in the FFT output represent periodic or quasiperiodic motion, whereas broadband noise distributions indicate chaotic dynamics.
+- **Welch PSD:** The recommended mode computes a one-sided power spectral density using Hann-windowed Welch averaging and density scaling. If a state variable has units `U` and time is expressed in seconds, the ordinate has units `U²/Hz`.
+- **Amplitude spectrum:** The alternative mode computes a one-sided Hann-windowed amplitude spectrum; it is not labelled as a PSD.
+- **Evidence boundary:** Peaks and broadband structure support interpretation of a time series, but a spectrum alone does not certify periodicity, chaos, attraction, or hiddenness.
 
 ## 6. Classroom and Educational Exploration
 
 - **Historical Exploration:** The `Sprott Explorer` lets instructors and students load historical Sprott equations locally, providing a modern visual interface for educational exploration without distributing protected dictionary databases.
 - **Equation Catalog:** A registry-backed catalog provides an interactive
   dictionary of chaotic dynamical equations and equilibrium information. The
-  installed interface exposes verified systems; the open Python/C source has
-  explicit extension points for research models.
+  installed interface exposes verified systems. The `Crear sistema` tab also
+  accepts safe expression-based flows and maps through Hidden Attractors FO;
+  those user models remain distinct from curated and scientifically validated
+  catalog entries.
 
 ## 7. Extending the source for research
 

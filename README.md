@@ -6,11 +6,12 @@ Fyskode Chaotic Systems Toolbox version 0.1.0 is a PyQt6 desktop application for
 ## Features
 
 - **Phase Space Visualization**: 2D and 3D trajectory rendering.
-- **Time Series & FFT**: Trajectory wave analysis and Fast Fourier Transform spectral power diagnostics.
+- **Time Series & Spectra**: Time-series views, physical amplitude spectra, and one-sided Welch power spectral densities.
 - **Lyapunov Exponents**: Estimates of the spectrum of Lyapunov exponents.
 - **Bifurcation Sweeps**: Sweep-screening of parameter spaces to trace routes to chaos.
 - **Attraction Basins**: Grid-sweeping initial conditions to identify coexisting attractors.
 - **Sprott Explorer**: Parser/loader for personal study of historical dictionary files.
+- **No-code System Editor**: Safe expression-based definition, validation, JSON exchange, simulation, and plotting of flows and maps through Hidden Attractors FO.
 - **Updates & PDF Dictionary**: Assisted checks for updates and an integrated PDF viewer.
 
 ## Supported Systems
@@ -28,10 +29,12 @@ system selector and in the coexistence workflow.
 
 Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
 
-The source is modular but the GUI is not an arbitrary-equation editor. Adding
-a complete three-dimensional flow requires an explicit registry entry, a
-Python vector field, a native-C right-hand side, numerical tests, and any
-system-specific basin classification needed by the published model.
+The `Crear sistema` tab accepts variables, parameters, equations, and initial
+conditions without Python code. A restricted expression parser rejects
+imports, attributes, and arbitrary execution. These systems can be simulated
+as flows or maps through a compatible Hidden Attractors FO engine. This first
+integration generates trajectories and plots; it does not yet create all
+advanced diagnostics or a native optimized kernel automatically.
 
 ## Sprott Explorer Scope
 

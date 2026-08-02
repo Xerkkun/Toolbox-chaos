@@ -38,6 +38,27 @@ def test_mainwindow_construction():
             found_coex = True
             break
     assert found_coex, "Coexistence tab not found in MainWindow tabs"
+    assert any(
+        'crear sistema' in window.tabs.tabText(i).lower()
+        for i in range(window.tabs.count())
+    ), "No-code system editor tab not found"
+    assert hasattr(window, 'tab_custom_system')
+    window.deleteLater()
+
+
+def test_sprott_home_has_three_guided_routes():
+    window = MainWindow()
+    explorer = window.tab_sprott
+    labels = {button.text() for button in explorer.findChildren(QPushButton)}
+    assert '1. Probar ejemplo' in labels
+    assert '2. Decodificar codigo' in labels
+    assert '3. Abrir archivo .DIC' in labels
+
+    explorer.start_guided_example()
+    assert 'explor' in explorer.sections.tabText(explorer.sections.currentIndex()).lower()
+    assert explorer.last_result is not None
+    explorer.open_code_decoder()
+    assert 'codigo' in explorer.sections.tabText(explorer.sections.currentIndex()).lower()
     window.deleteLater()
 
 

@@ -11,6 +11,7 @@ from .lorenz import (
     simulate_system,
     vector_field,
 )
+from .hidden_engine import trajectory_spectrum as engine_trajectory_spectrum
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,25 @@ def normalized_fft(t, X, min_frequency=None, max_frequency=None):
         freqs = freqs[keep]
         spectrum = spectrum[keep]
     return freqs, spectrum
+
+
+def trajectory_spectrum(
+    t,
+    X,
+    *,
+    method='psd_welch',
+    min_frequency=None,
+    max_frequency=None,
+):
+    """Return a physical amplitude spectrum or Welch PSD from the shared engine."""
+
+    return engine_trajectory_spectrum(
+        t,
+        X,
+        method=method,
+        min_frequency=min_frequency,
+        max_frequency=max_frequency,
+    )
 
 
 def integer_qr_benettin_lyapunov(

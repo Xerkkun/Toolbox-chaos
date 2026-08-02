@@ -41,6 +41,8 @@ from core.app_metadata import (
 )
 from core.paths import bundled_doc_path, ensure_user_data_dir, resource_path
 from core.update_checker import UpdateCheckError, UpdateInfo, check_for_updates
+from core.hidden_engine import engine_status
+from ui.custom_system_tab import NoCodeSystemTab
 from ui.sprott_explorer_tab import SprottExplorerTab
 from ui.tab_controls import (
     Tab3DWidget,
@@ -120,6 +122,7 @@ class MainWindow(QMainWindow):
         self.build_spectrum_tab()
         self.build_coexistence_tab()
         self.build_dictionary_tab()
+        self.build_custom_system_tab()
         self.build_sprott_explorer_tab()
 
         self.tabs.currentChanged.connect(self.on_main_tab_changed)
@@ -203,9 +206,9 @@ class MainWindow(QMainWindow):
             f'<p><b>Creditos principales:</b> Python, PyQt6, NumPy, Matplotlib, pyqtgraph y PyInstaller.</p>'
             f'<p><b>Documentacion local:</b> {docs_path}</p>'
             f'<p><b>Fuente de actualizaciones:</b> {release_source}</p>'
-            '<p><b>Sistemas personalizados:</b> Esta version no permite registrar sistemas dinamicos '
-            'nuevos desde la interfaz principal. El soporte para sistemas personalizados esta planeado '
-            'para una version futura.</p>'
+            '<p><b>Sistemas personalizados:</b> El editor visual permite definir flujos y mapas mediante '
+            'expresiones restringidas, validarlos y simularlos con Hidden Attractors FO cuando el motor '
+            'compatible esta disponible.</p>'
             f'<p><b>Uso academico:</b> {ACADEMIC_NOTICE}</p>'
             '</body></html>'
         )
@@ -337,7 +340,7 @@ class MainWindow(QMainWindow):
 
     def build_fft_tab(self):
         self.tab_fft_widget = TabFFTWidget(self, self)
-        self.tabs.addTab(self.tab_fft_widget, 'FFT')
+        self.tabs.addTab(self.tab_fft_widget, 'Espectro')
 
     def build_lyapunov_tab(self):
         self.tab_lyap_widget = TabLyapunovWidget(self, self)
@@ -378,6 +381,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.pdf_viewer, stretch=1)
         self.tabs.addTab(self.tab_dict, 'Diccionario')
 
+    def build_custom_system_tab(self):
+        self.tab_custom_system = NoCodeSystemTab(self, self)
+        self.tabs.addTab(self.tab_custom_system, 'Crear sistema')
+
     def build_sprott_explorer_tab(self):
         self.tab_sprott = SprottExplorerTab(self)
         self.tabs.addTab(self.tab_sprott, 'Explorador Sprott')
@@ -388,9 +395,18 @@ class MainWindow(QMainWindow):
             and self.tabs.currentWidget() is self.tab_sprott
         )
         if hasattr(self, 'info_label'):
+            is_custom = (
+                hasattr(self, 'tab_custom_system')
+                and self.tabs.currentWidget() is self.tab_custom_system
+            )
             if is_sprott:
                 self.info_label.setText(
                     'Explorador Sprott: los controles de sistemas clasicos quedan ocultos; carga/crea codigos, simula, ajusta estilo y guarda/exporta dentro de esta pestana.'
+                )
+            elif is_custom:
+                status = engine_status()
+                self.info_label.setText(
+                    'Editor visual de sistemas: ' + status.message
                 )
             else:
                 self.info_label.setText('Listo.')
