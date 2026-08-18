@@ -1,44 +1,47 @@
-import os
-import sys
-# Set Qt offscreen platform
-os.environ['QT_QPA_PLATFORM'] = 'offscreen'
-from PyQt6.QtWidgets import QApplication, QMessageBox
-app = QApplication.instance() or QApplication([])
+"""Manual offscreen smoke check for the bifurcation tab.
 
-# Mock QMessageBox.critical to prevent blocking
-QMessageBox.critical = lambda parent, title, text, *args, **kwargs: print(f"CRITICAL DIALOG: {title} - {text}")
+This file is intentionally inert when imported. Run it directly from the
+repository root when an interactive smoke check is needed.
+"""
 
-from ui.tab_controls import TabBifurcationWidget
 
-print("Initializing TabBifurcationWidget...")
-tab = TabBifurcationWidget()
+def main() -> int:
+    import os
 
-# Test with a system without coexisting attractors, e.g. rossler
-print("\nTesting Rossler (no coexisting)...")
-tab.param_panel.system_combo.setCurrentIndex(tab.param_panel.system_combo.findData('rossler'))
-print("Current system:", tab.param_panel.current_system_key())
-print("Coex box enabled:", tab.coex_box.isEnabled())
-print("chk_compare checked:", tab.chk_compare.isChecked())
-print("Running bifurcation...")
-tab.run_bifurcation()
-print("Warning text:", tab.lbl_warning.text())
+    os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+    from core.qt_binding import configure_pyside6
 
-# Test with a system with coexisting attractors, e.g. lorenz
-print("\nTesting Lorenz (with coexisting, comparison checked = False)...")
-tab.param_panel.system_combo.setCurrentIndex(tab.param_panel.system_combo.findData('lorenz'))
-print("Current system:", tab.param_panel.current_system_key())
-print("Coex box enabled:", tab.coex_box.isEnabled())
-print("chk_compare checked:", tab.chk_compare.isChecked())
-print("Running bifurcation...")
-tab.run_bifurcation()
-print("Warning text:", tab.lbl_warning.text())
+    configure_pyside6()
 
-# Test with a system with coexisting attractors, e.g. lorenz, comparison checked = True
-print("\nTesting Lorenz (with coexisting, comparison checked = True)...")
-tab.chk_compare.setChecked(True)
-print("chk_compare checked:", tab.chk_compare.isChecked())
-print("Running bifurcation...")
-tab.run_bifurcation()
-print("Warning text:", tab.lbl_warning.text())
+    from PySide6.QtWidgets import QApplication, QMessageBox
 
-print("\nDone!")
+    from ui.tab_controls import TabBifurcationWidget
+
+    app = QApplication.instance() or QApplication([])
+    original_critical = QMessageBox.critical
+    try:
+        QMessageBox.critical = staticmethod(
+            lambda parent, title, message, *args, **kwargs: print(
+                f"CRITICAL DIALOG: {title} - {message}"
+            )
+        )
+        tab = TabBifurcationWidget()
+        for system_key, compare in (
+            ('rossler', False),
+            ('lorenz', False),
+            ('lorenz', True),
+        ):
+            tab.param_panel.system_combo.setCurrentIndex(
+                tab.param_panel.system_combo.findData(system_key)
+            )
+            tab.chk_compare.setChecked(compare)
+            tab.run_bifurcation()
+            print(system_key, compare, tab.lbl_warning.text())
+    finally:
+        QMessageBox.critical = original_critical
+        app.processEvents()
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 import numpy as np
-import pyqtgraph as pg
 
-from PyQt6.QtCore import Qt, pyqtSignal, QUrl
-from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
@@ -21,13 +22,11 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QTextEdit,
-    QTableWidget,
-    QHeaderView,
-    QTableWidgetItem,
     QMessageBox,
     QFileDialog,
     QStackedWidget,
 )
+import pyqtgraph as pg
 
 from core.lorenz import (
     SYSTEM_REGISTRY,
@@ -38,15 +37,14 @@ from core.lorenz import (
     compute_basin_generic,
     compute_basin_plane_z_lorenz_xiong,
     equilibria_for_system,
-    system_defaults,
 )
 from core.diagnostics import (
     compare_integrator_methods,
     integer_qr_benettin_lyapunov,
-    normalized_fft,
     trajectory_spectrum,
 )
 from ui.canvases import (
+    BASIN_RESIDUAL_LABEL,
     Mpl3DCanvas,
     MplBifCanvas,
     MplMethodComparisonCanvas,
@@ -55,7 +53,7 @@ from ui.canvases import (
     MplBasinCanvas,
     MplSpectrumCanvas,
 )
-from ui.widgets import make_double_spin, make_int_spin, make_help_label
+from ui.widgets import make_double_spin, make_int_spin
 from ui.parameter_panels import SystemParameterPanel
 from core.coexistence import load_coexisting_attractors
 
@@ -106,6 +104,37 @@ def get_system_variables(system_key: str) -> list[str]:
     while len(variables) < dim:
         variables.append(f"v{len(variables)+1}")
     return variables[:dim]
+
+
+def bifurcation_capability(metadata: dict) -> tuple[bool, str]:
+    """Return the UI capability derived from declared parameter metadata."""
+
+    reason = metadata.get(
+        'bifurcation_unavailable_reason',
+        'Bifurcación no disponible.',
+    )
+    if not metadata.get('bifurcation_supported', True):
+        return False, reason
+
+    labels = tuple(metadata.get('param_labels') or ())
+    defaults = tuple(metadata.get('defaults') or ())
+    parameter_index = metadata.get('bifurcation_param')
+    valid_index = (
+        isinstance(parameter_index, int)
+        and not isinstance(parameter_index, bool)
+        and 0 <= parameter_index < len(labels)
+        and parameter_index < len(defaults)
+    )
+    if not valid_index:
+        return (
+            False,
+            metadata.get(
+                'bifurcation_unavailable_reason',
+                'Bifurcación no disponible: el sistema no declara un parámetro '
+                'de barrido válido.',
+            ),
+        )
+    return True, ''
 
 
 def suggested_path(default_name: str, extension: str) -> str:
@@ -195,8 +224,8 @@ class BaseTabWidget(QWidget):
             )
 
     def save_widget_snapshot(self, widget, default_name):
-        from PyQt6.QtGui import QPainter
-        from PyQt6.QtGui import QPdfWriter
+        from PySide6.QtGui import QPainter
+        from PySide6.QtGui import QPdfWriter
 
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self,
@@ -915,7 +944,7 @@ class TabBifurcationWidget(BaseTabWidget):
     def init_ui(self):
         # Left Panel Controls
         self.param_panel = SystemParameterPanel(
-            show_method=True, show_ic=True, show_time=False, parent=self
+            show_method=False, show_ic=True, show_time=False, parent=self
         )
         self.param_panel.system_changed.connect(
             self._update_bifurcation_defaults
@@ -1032,7 +1061,15 @@ class TabBifurcationWidget(BaseTabWidget):
         meta = SYSTEM_REGISTRY[system_key]
         dim = meta.get('dimension', 3)
         self.lbl_dimension.setText(f'Dimensión detectada: {dim}')
-        self.lbl_warning.setText('')
+        supported, unavailable_reason = bifurcation_capability(meta)
+        self.btn_run.setEnabled(supported)
+        if supported:
+            self.lbl_warning.setText('')
+        else:
+            self.lbl_warning.setStyleSheet(
+                'color: #dc2626; font-size: 11px; font-weight: bold; margin: 4px;'
+            )
+            self.lbl_warning.setText(unavailable_reason)
 
         # Sweep parameter combo
         self.sweep_param_combo.blockSignals(True)
@@ -1099,14 +1136,13 @@ class TabBifurcationWidget(BaseTabWidget):
             self.coex_box.setTitle('Atractores coexistentes [No registrado]')
             self.chk_compare.setChecked(False)
             self.chk_compare.setEnabled(False)
-            # Use a neutral info style — NOT lbl_warning, so it doesn't
-            # bleed into run_bifurcation and confuse the user.
-            self.lbl_warning.setStyleSheet(
-                'color: #6b7280; font-size: 11px; margin: 4px;'
-            )
-            self.lbl_warning.setText(
-                'Info: este sistema no tiene atractores coexistentes registrados.'
-            )
+            if supported:
+                self.lbl_warning.setStyleSheet(
+                    'color: #6b7280; font-size: 11px; margin: 4px;'
+                )
+                self.lbl_warning.setText(
+                    'Info: este sistema no tiene atractores coexistentes registrados.'
+                )
 
         self.combo_attr_a.blockSignals(False)
         self.combo_attr_b.blockSignals(False)
@@ -1153,6 +1189,12 @@ class TabBifurcationWidget(BaseTabWidget):
         params = self.param_panel.current_params()
         method = self.param_panel.current_method_key()
         dim = meta.get('dimension', 3)
+
+        supported, message = bifurcation_capability(meta)
+        if not supported:
+            self.lbl_warning.setText(message)
+            QMessageBox.information(self, 'No disponible', message)
+            return
 
         bif_idx = self.sweep_param_combo.currentIndex()
         obs_idx = self.obs_var_combo.currentIndex()
@@ -1399,7 +1441,9 @@ class TabBasinWidget(BaseTabWidget):
         self._update_basin_defaults(self.param_panel.current_system_key())
 
     def _update_basin_defaults(self, system_key: str):
-
+        meta = SYSTEM_REGISTRY[system_key]
+        supported = meta.get('kind') == 'flow' and int(meta.get('dimension', 0)) == 3
+        self.btn_run.setEnabled(supported)
         defaults = BASIN_DEFAULTS.get(
             system_key, (-10.0, 10.0, -10.0, 10.0, 0.0, 0.02, 40.0)
         )
@@ -1418,7 +1462,7 @@ class TabBasinWidget(BaseTabWidget):
         params = self.param_panel.current_params()
         method = self.param_panel.current_method_key()
 
-        if meta.get('kind') not in {'flow'}:
+        if meta.get('kind') != 'flow' or int(meta.get('dimension', 0)) != 3:
             QMessageBox.information(
                 self,
                 'No disponible',
@@ -1518,14 +1562,14 @@ class TabBasinWidget(BaseTabWidget):
         if sys_key == 'lorenz':
             labels = {
                 0: 'Escape',
-                1: 'Caótico',
+                1: BASIN_RESIDUAL_LABEL,
                 2: 'Converge a E+',
                 3: 'Converge a E-',
                 4: 'Converge a O',
                 5: 'Periódico',
             }
         else:
-            labels = {0: 'Escape', 1: 'Caótico'}
+            labels = {0: 'Escape', 1: BASIN_RESIDUAL_LABEL}
             for idx, eq in enumerate(self.last_equilibria):
                 labels[2 + idx] = f"Converge a {eq.get('name', f'E{idx + 1}')}"
             labels[2 + len(self.last_equilibria)] = 'Periódico'
@@ -1551,7 +1595,7 @@ class TabLyapunovWidget(BaseTabWidget):
     def init_ui(self):
         # Left Panel Controls
         self.param_panel = SystemParameterPanel(
-            show_method=True, show_ic=True, show_time=False, parent=self
+            show_method=False, show_ic=True, show_time=False, parent=self
         )
         self.scroll_layout.addWidget(self.param_panel)
 
@@ -1564,6 +1608,8 @@ class TabLyapunovWidget(BaseTabWidget):
         self.t_final = make_double_spin(40.0, 0.01, 100000.0, 3)
         self.reorth = make_int_spin(10, 1, 100000)
 
+        self.integrator_label = QLabel('RK4 fijo (estado y sistema variacional)')
+        lyap_layout.addRow(QLabel('Integrador'), self.integrator_label)
         lyap_layout.addRow(QLabel('dt integrador'), self.dt)
         lyap_layout.addRow(QLabel('Burn-in time'), self.t_burn)
         lyap_layout.addRow(QLabel('Tiempo final'), self.t_final)
@@ -1597,7 +1643,8 @@ class TabLyapunovWidget(BaseTabWidget):
 
     def run_lyapunov(self):
         sys_key = self.param_panel.current_system_key()
-        if SYSTEM_REGISTRY[sys_key].get('kind') != 'flow':
+        meta = SYSTEM_REGISTRY[sys_key]
+        if meta.get('kind') != 'flow' or int(meta.get('dimension', 0)) != 3:
             QMessageBox.information(
                 self,
                 'No disponible',

@@ -6,9 +6,11 @@ import json
 from pathlib import Path
 
 import numpy as np
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
     QFileDialog,
@@ -25,6 +27,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
 
 from core.hidden_engine import (
     engine_status,

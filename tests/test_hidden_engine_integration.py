@@ -122,7 +122,7 @@ def test_multi_term_caputo_api_is_loaded_only_when_called_and_fails_clearly(
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     status = engine_status(refresh=True)
@@ -139,6 +139,38 @@ def test_multi_term_caputo_api_is_loaded_only_when_called_and_fails_clearly(
             n_steps=1,
         )
     assert imported == ["hidden_attractors", "hidden_attractors.fractional"]
+
+
+def test_engine_status_preserves_version_when_binary_import_is_broken(monkeypatch):
+    monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
+    monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
+
+    def broken_import(_name):
+        raise OSError("native dependency could not be loaded")
+
+    monkeypatch.setattr(hidden_engine_module, "import_module", broken_import)
+    status = engine_status(refresh=True)
+    assert not status.available
+    assert status.version == "1.1.0"
+    assert status.reason == "broken_import"
+    assert "native dependency" in status.message
+
+
+def test_engine_status_distinguishes_missing_required_api(monkeypatch):
+    monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
+    monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
+    monkeypatch.setattr(
+        hidden_engine_module,
+        "import_module",
+        lambda _name: SimpleNamespace(ExpressionSystemDefinition=object()),
+    )
+    status = engine_status(refresh=True)
+    assert not status.available
+    assert status.version == "1.1.0"
+    assert status.reason == "missing_api"
+    assert "simulate" in status.message
 
 
 def test_tempered_cq_bridge_is_lazy_and_forwards_contract_unchanged(monkeypatch):
@@ -172,7 +204,7 @@ def test_tempered_cq_bridge_is_lazy_and_forwards_contract_unchanged(monkeypatch)
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     assert engine_status(refresh=True).available
@@ -228,7 +260,7 @@ def test_tempered_cq_bridge_fails_clearly_when_hafo_api_is_missing(monkeypatch):
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     with pytest.raises(
@@ -304,7 +336,7 @@ def test_alignment_api_is_lazy_and_returns_hafo_result_unchanged(monkeypatch):
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     status = engine_status(refresh=True)
@@ -354,7 +386,7 @@ def test_alignment_bridge_reports_missing_optional_symbol(monkeypatch):
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     with pytest.raises(
@@ -390,7 +422,7 @@ def test_tangent_alignment_bridge_preserves_hafo_shape_error(monkeypatch):
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     with pytest.raises(ValueError, match="n_samples, n_vectors, dimension"):
@@ -440,7 +472,7 @@ def test_integer_system_alignment_bridge_compiles_and_delegates(monkeypatch):
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     definition = {"name": "stub flow"}
@@ -557,7 +589,7 @@ def test_covariant_qr_bridge_is_lazy_and_returns_typed_result_unchanged(monkeypa
 
     monkeypatch.setattr(hidden_engine_module, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine_module, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine_module, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine_module, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine_module, "import_module", fake_import)
 
     q_history = np.repeat(np.eye(2)[None, :, :], 2, axis=0)

@@ -1,11 +1,24 @@
 import os
 import sys
 import argparse
-from PyQt6.QtCore import QSize, QPoint
-from PyQt6.QtGui import QImage, QPainter, QColor
-from PyQt6.QtPdf import QPdfDocument
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import QSize, QPoint
+from PySide6.QtGui import QImage, QPainter, QColor
+from PySide6.QtPdf import QPdfDocument
 import pypdf
 import numpy as np
+
+from core.qt_image import qimage_rgba_array
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Verificador parametrizado de renderizado de PDF.")
@@ -120,9 +133,9 @@ def analyze_pdf(pdf_path, profile):
         canvas.save(png_path)
         
         # Analyze pixel data to check for blank pages
-        ptr = canvas.bits()
-        ptr.setsize(canvas.height() * canvas.width() * 4)
-        arr = np.frombuffer(ptr, dtype=np.uint8).reshape((canvas.height(), canvas.width(), 4))
+        # PySide6 exposes the buffer as a correctly sized ``memoryview``.
+        # Use Qt's actual byte count instead of assuming tightly packed rows.
+        arr = qimage_rgba_array(canvas)
         
         # Calculate background proportion
         rgb = arr[:, :, :3]

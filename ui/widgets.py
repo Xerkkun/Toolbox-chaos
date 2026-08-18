@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QHBoxLayout,
     QLabel,

@@ -7,8 +7,12 @@ import platform
 import tempfile
 import time
 
-from PyQt6.QtCore import QEvent, QObject, QTimer
-from PyQt6.QtWidgets import QApplication
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import QEvent, QObject, QTimer
+from PySide6.QtWidgets import QApplication
 
 from core.app_metadata import APP_NAME, APP_VERSION
 from core.performance_metrics import process_memory_snapshot

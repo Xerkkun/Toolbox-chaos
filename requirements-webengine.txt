@@ -1,2 +1,3 @@
+-c requirements-release.txt
 -r requirements.txt
-PyQt6-WebEngine>=6.11
+PySide6-Addons>=6.7

@@ -65,7 +65,7 @@ Compilación del ejecutable y del instalador Inno Setup, seguida de las pruebas:
   -ToolboxRoot 'C:\ruta\Toolbox chaos'
 ```
 
-Requiere Python 3.10 o posterior, GCC/Clang e Inno Setup 6. El resultado incluye
+Requiere Python 3.11 o posterior, GCC/Clang e Inno Setup 6. El resultado incluye
 `Chaos Toolbox.exe` y
 `installer\chaos-toolbox-v<version>-windows-x64-setup.exe`. Solo use
 `-AllowAppOnly` si desea aceptar explícitamente que no se cree el instalador.
@@ -132,8 +132,9 @@ un AppImage.
 
 Los scripts construyen y verifican la estructura del `.exe`, `.dmg` o `.deb`;
 además ejecutan un cálculo corto desde el binario situado en `dist`. Por tanto,
-el JSON demuestra el funcionamiento del bundle y registra el instalador
-generado; no sustituye una prueba de instalación y desinstalación en el sistema.
+el JSON registra que esa autoprueba finita del bundle terminó y registra el
+instalador generado; no sustituye una prueba de instalación y desinstalación en
+el sistema.
 
 Antes de distribuir, instale manualmente cada paquete, abra la aplicación
 instalada y ejecute al menos una trayectoria y una cuenca. Para comprobaciones
@@ -191,3 +192,19 @@ verificadas y cualquier diferencia de contrato o código. Las opciones
 Una comparación con hardware diferente describe configuraciones completas; no
 permite atribuir por sí sola las diferencias exclusivamente al sistema
 operativo.
+
+## Perfil focal del diagnóstico de Lyapunov
+
+`profile_lyapunov.py` conserva una línea base reproducible del contrato actual
+de `integer_qr_benettin_lyapunov`: un calentamiento, cinco mediciones, mediana,
+configuración numérica, versiones, hashes de fuentes, estado del commit y los
+hotspots de una ejecución con `cProfile`. Ejecútelo con:
+
+```bash
+python benchmarks/profile_lyapunov.py
+```
+
+El resultado `benchmarks/results/lyapunov_profile_current.json` caracteriza la
+implementación Python vigente. No demuestra una aceleración ni autoriza por sí
+solo una migración a C; cualquier kernel nuevo debe compararse con la misma
+configuración y validar primero equivalencia numérica.

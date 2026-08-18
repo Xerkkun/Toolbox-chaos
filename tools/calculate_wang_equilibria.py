@@ -1,6 +1,9 @@
 import os
+import textwrap
 import yaml
 import numpy as np
+
+from core.lorenz import SYSTEM_REGISTRY, vector_field
 
 # Define systems meta and field functions
 SYSTEMS = [
@@ -114,13 +117,9 @@ sprott_defs = {
 }
 
 for letter, (eqs_rep, dx, dy, dz, att_type, les, dky) in sprott_defs.items():
-    # evaluate expression safely via local functions
-    expr_dx = eval(f"lambda x, y, z: {dx}")
-    expr_dy = eval(f"lambda x, y, z: {dy}")
-    expr_dz = eval(f"lambda x, y, z: {dz}")
-    
+    system_key = f'sprott_{letter}'
     SYSTEMS.append({
-        'id': f'sprott_{letter}',
+        'id': system_key,
         'name': f'Sprott {letter.upper()} system',
         'chapter': 1,
         'type': 'clásico',
@@ -129,11 +128,7 @@ for letter, (eqs_rep, dx, dy, dz, att_type, les, dky) in sprott_defs.items():
         'equations_latex': f'\\dot{{x}}={dx.replace("*", "")}, \\; \\dot{{y}}={dy.replace("*", "")}, \\; \\dot{{z}}={dz.replace("*", "")}',
         'params': {},
         'param_list': [],
-        'f': lambda x, p, edx=expr_dx, edy=expr_dy, edz=expr_dz: np.array([
-            edx(x[0], x[1], x[2]),
-            edy(x[0], x[1], x[2]),
-            edz(x[0], x[1], x[2])
-        ]),
+        'f': lambda x, p, key=system_key: vector_field(key, x, p),
         'seeds': [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [-1.0, -1.0, -1.0], [2.0, 2.0, 2.0]],
         'reported_dynamics': f'attractor_type: {att_type}\nlyapunov_exponents: {les}\nkaplan_yorke_dimension: {dky}',
         'reported_equilibria': eqs_rep
@@ -487,192 +482,202 @@ def classify_equilibrium(eigvals, tol=1e-9):
 
     return 'degenerate'
 
-# Process each system
-processed_systems = []
-for sys in SYSTEMS:
-    # 1. Solve equilibria
-    eq_points = solve_equilibria(sys['f'], sys['seeds'], sys['param_list'])
-    
-    # Filter out equilibria that are not physically relevant if any, or just sort them
-    eq_points = sorted(eq_points, key=lambda x: (abs(x[0]), abs(x[1]), abs(x[2])))
-    
-    computed_eqs = []
-    for idx, eq in enumerate(eq_points):
-        J = numeric_jacobian(sys['f'], eq, sys['param_list'])
-        eigvals = np.linalg.eigvals(J)
-        # sort eigenvalues by real part descending
-        eigvals = sorted(eigvals, key=lambda val: -np.real(val))
-        classif = classify_equilibrium(eigvals)
-        
-        computed_eqs.append({
-            'name': f'E{idx+1}',
-            'point': [float(v) for v in eq],
-            'jacobian': [[float(v) for v in row] for row in J],
-            'eigvals': [[float(np.real(ev)), float(np.imag(ev))] for ev in eigvals],
-            'local_type': classif
-        })
-        
-    sys_data = {
-        'system_id': sys['id'],
-        'name': sys['name'],
-        'chapter': sys['chapter'],
-        'type': sys['type'],
-        'pages': sys['pages'],
-        'ref': sys['ref'],
-        'equations_latex': sys['equations_latex'],
-        'params': sys['params'],
-        'reported_dynamics': sys['reported_dynamics'],
-        'reported_equilibria': sys['reported_equilibria'],
-        'computed_equilibria': computed_eqs,
-        'status': 'completo' if len(computed_eqs) > 0 or sys['type'] == 'sin equilibrio' else 'pendiente'
-    }
-    
-    # Special cases for status
-    if sys['id'] == 'unified_lorenz_chen':
-        # depends on alpha, but we ran it for alpha=0.0
-        sys_data['status'] = 'completo'
-        
-    processed_systems.append(sys_data)
+def generate_catalog() -> None:
+    """Generate the Wang data, public catalog, coverage note, and TeX input."""
 
-# Ensure output directories exist
-os.makedirs('data/systems', exist_ok=True)
-os.makedirs('docs/generated', exist_ok=True)
-os.makedirs('reports', exist_ok=True)
+    # Process each system
+    processed_systems = []
+    for sys in SYSTEMS:
+        # 1. Solve equilibria
+        eq_points = solve_equilibria(sys['f'], sys['seeds'], sys['param_list'])
 
-# Write YAML
-with open('data/systems/wang_2021_systems.yaml', 'w', encoding='utf-8') as handle:
-    yaml.dump(processed_systems, handle, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        # Filter out equilibria that are not physically relevant if any, or just sort them
+        eq_points = sorted(eq_points, key=lambda x: (abs(x[0]), abs(x[1]), abs(x[2])))
 
-print("Generated YAML database.")
+        computed_eqs = []
+        for idx, eq in enumerate(eq_points):
+            J = numeric_jacobian(sys['f'], eq, sys['param_list'])
+            eigvals = np.linalg.eigvals(J)
+            # sort eigenvalues by real part descending
+            eigvals = sorted(eigvals, key=lambda val: -np.real(val))
+            classif = classify_equilibrium(eigvals)
 
-# Write Markdown Catalog
-md_content = """# Catálogo de Sistemas Caóticos de Wang, Kuznetsov y Chen (2021)
+            computed_eqs.append({
+                'name': f'E{idx+1}',
+                'point': [float(v) for v in eq],
+                'jacobian': [[float(v) for v in row] for row in J],
+                'eigvals': [[float(np.real(ev)), float(np.imag(ev))] for ev in eigvals],
+                'local_type': classif
+            })
 
-Este catálogo estructurado describe los sistemas caóticos del libro *Chaotic Systems with Multistability and Hidden Attractors* (Springer, 2021) que han sido integrados, calculados y verificados en Chaos Toolbox.
+        sys_data = {
+            'system_id': sys['id'],
+            'name': sys['name'],
+            'chapter': sys['chapter'],
+            'type': sys['type'],
+            'pages': sys['pages'],
+            'ref': sys['ref'],
+            'equations_latex': sys['equations_latex'],
+            'params': sys['params'],
+            'reported_dynamics': sys['reported_dynamics'],
+            'reported_equilibria': sys['reported_equilibria'],
+            'computed_equilibria': computed_eqs,
+            'runtime_status': (
+                'executable' if sys['id'] in SYSTEM_REGISTRY else 'reference_only'
+            ),
+            'equilibrium_scan_status': (
+                'roots_found' if computed_eqs else 'no_root_returned'
+            ),
+        }
 
-"""
+        processed_systems.append(sys_data)
 
-for sys in processed_systems:
-    md_content += f"## {sys['name']} (`{sys['system_id']}`)\n"
-    md_content += f"- **Capítulo**: {sys['chapter']} | **Tipo**: {sys['type']}\n"
-    md_content += f"- **Referencia**: {sys['ref']}\n"
-    md_content += f"- **Ecuaciones (LaTeX)**: $${sys['equations_latex']}$$\n"
-    md_content += f"- **Parámetros**: `{sys['params']}`\n"
-    md_content += f"- **Dinámica reportada**: \n```yaml\n{sys['reported_dynamics']}\n```\n"
-    md_content += f"- **Equilibrios reportados por el libro**: `{sys['reported_equilibria']}`\n"
-    
-    if len(sys['computed_equilibria']) == 0:
-        md_content += "- **Equilibrios calculados**: Ninguno encontrado en el dominio real (sistema sin equilibrio).\n"
-    else:
-        md_content += "- **Equilibrios calculados por el código**:\n"
-        for eq in sys['computed_equilibria']:
-            pt_str = ", ".join([f"{v:.4f}" for v in eq['point']])
-            eigs_str = ", ".join([f"{ev[0]:.4f} + {ev[1]:.4f}i" if abs(ev[1]) > 1e-5 else f"{ev[0]:.4f}" for ev in eq['eigvals']])
-            md_content += f"  - **{eq['name']}**: `({pt_str})`\n"
-            md_content += f"    - *Autovalores*: `[{eigs_str}]`\n"
-            md_content += f"    - *Clasificación*: `{eq['local_type']}`\n"
-    md_content += "\n---\n\n"
+    # Ensure output directories exist
+    os.makedirs('data/systems', exist_ok=True)
+    os.makedirs('docs/generated', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
 
-with open('docs/generated/wang_2021_systems_catalog.md', 'w', encoding='utf-8') as handle:
-    handle.write(md_content)
+    # Write YAML
+    with open('data/systems/wang_2021_systems.yaml', 'w', encoding='utf-8') as handle:
+        yaml.dump(processed_systems, handle, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
-print("Generated markdown catalog.")
+    print("Generated YAML database.")
 
-# Write Progress MD
-progress_content = """# Registro de Avance de Extracción de Sistemas: Wang (2021)
+    # Write Markdown Catalog
+    runtime_systems = [item for item in processed_systems if item['runtime_status'] == 'executable']
+    reference_systems = [item for item in processed_systems if item['runtime_status'] == 'reference_only']
+    md_content = textwrap.dedent(f"""\
+    # Catálogo de sistemas reportados por Wang, Kuznetsov y Chen (2021)
 
-Este registro documenta el estado de integración y verificación del catálogo del libro por cada capítulo.
+    Este catálogo transcribe {len(processed_systems)} registros del libro *Chaotic Systems with Multistability and Hidden Attractors* (Springer, 2021). De ellos, {len(runtime_systems)} corresponden a identificadores ejecutables del registro actual de Chaos Toolbox y {len(reference_systems)} se conservan sólo como fichas de referencia. Los equilibrios y autovalores marcados como calculados proceden de una búsqueda numérica finita de este generador; no demuestran caos, atracción ni ocultamiento.
 
-| Capítulo | Tema | Sistemas detectados | Sistemas integrados al PDF | Equilibrios calculados | Cuencas definidas | Bifurcación definida | Estado |
-|---|---|---:|---:|---:|---:|---:|---|
-| **1** | Introducción (Lorenz, Rössler, Chua, Chen, Sprott A-S) | 24 | 24 | 24 | Configurado | Configurado | **Completo** |
-| **3** | Sistemas con equilibrios estables (Wang-Chen, Lao, Kingni, Yang-Chen, Yang-Wei) | 9 | 8 | 8 | Configurado | Configurado | **Completo** (1 DDE pendiente) |
-| **4** | Sistemas sin equilibrios (Sprott A, Wei, Wang-Chen, Maaita, Jafari, Hu, Pham) | 16 | 12 | 12 | Configurado | Configurado | **Completo** (1 discontinuo y 3 de tabla pendientes) |
-| **5** | Sistemas con curvas de equilibrios | 3 | 0 | 0 | Pendiente | Pendiente | Pendiente |
-| **6** | Sistemas con superficies de equilibrios | 2 | 0 | 0 | Pendiente | Pendiente | Pendiente |
-| **7** | Sistemas con cualquier número y varios tipos de equilibrios | 4 | 0 | 0 | Pendiente | Pendiente | Pendiente |
-| **8** | Sistemas hipercaóticos con atractores ocultos | 3 | 0 | 0 | Pendiente | Pendiente | Pendiente |
-| **9** | Sistemas fraccionarios con atractores ocultos | 2 | 0 | 0 | Pendiente | Pendiente | Pendiente |
-| **10** | Sistemas memristivos con atractores ocultos | 2 | 0 | 0 | Pendiente | Pendiente | Pendiente |
-| **11** | Sistemas jerk con atractores ocultos | 3 | 0 | 0 | Pendiente | Pendiente | Pendiente |
+    """)
 
-## Notas de Integración
-- Los sistemas DDE y discontinuos (como `ch03_wang_chen_multiple_delays` y `ch04_hu_multiscroll_ii`) están marcados como pendientes de motor especial.
-- Las tablas SE1-SE23 y NE1-NE17 quedan pendientes de transcripción visual completa, aunque la estructura base ya se encuentra lista en el repositorio.
-"""
+    for sys in processed_systems:
+        md_content += f"## {sys['name']} (`{sys['system_id']}`)\n"
+        md_content += f"- **Capítulo**: {sys['chapter']} | **Tipo**: {sys['type']}\n"
+        runtime_label = 'Ejecutable en el registro de Toolbox' if sys['runtime_status'] == 'executable' else 'Ficha de referencia; no ejecutable desde el registro de Toolbox'
+        md_content += f"- **Estado en Toolbox**: {runtime_label}\n"
+        md_content += f"- **Referencia**: {sys['ref']}\n"
+        md_content += f"- **Ecuaciones (LaTeX)**: $${sys['equations_latex']}$$\n"
+        md_content += f"- **Parámetros**: `{sys['params']}`\n"
+        md_content += f"- **Dinámica reportada por la fuente**:\n```yaml\n{sys['reported_dynamics']}\n```\n"
+        md_content += f"- **Equilibrios reportados por el libro**: `{sys['reported_equilibria']}`\n"
 
-with open('docs/generated/wang_2021_extraction_progress.md', 'w', encoding='utf-8') as handle:
-    handle.write(progress_content)
+        if len(sys['computed_equilibria']) == 0:
+            md_content += "- **Equilibrios calculados**: Ninguno encontrado en el dominio real (sistema sin equilibrio).\n"
+        else:
+            md_content += "- **Equilibrios calculados por el código**:\n"
+            for eq in sys['computed_equilibria']:
+                pt_str = ", ".join([f"{v:.4f}" for v in eq['point']])
+                eigs_str = ", ".join([f"{ev[0]:.4f} + {ev[1]:.4f}i" if abs(ev[1]) > 1e-5 else f"{ev[0]:.4f}" for ev in eq['eigvals']])
+                md_content += f"  - **{eq['name']}**: `({pt_str})`\n"
+                md_content += f"    - *Autovalores*: `[{eigs_str}]`\n"
+                md_content += f"    - *Clasificación*: `{eq['local_type']}`\n"
+        md_content += "\n---\n\n"
 
-print("Generated progress markdown.")
+    with open('docs/generated/wang_2021_systems_catalog.md', 'w', encoding='utf-8') as handle:
+        handle.write(md_content)
 
-# Generate LaTeX content
-latex_content = r"""
-\section{13. Catálogo de sistemas del libro de Wang, Kuznetsov y Chen (2021)}
+    print("Generated markdown catalog.")
 
-Este catálogo describe los sistemas caóticos del libro \emph{Chaotic Systems with Multistability and Hidden Attractors} (2021), indicando sus ecuaciones, equilibrios y la clasificación matemática de estabilidad.
+    # Write a factual coverage note, distinct from runtime implementation status.
+    runtime_ids = ', '.join(f"`{item['system_id']}`" for item in runtime_systems)
+    reference_ids = ', '.join(f"`{item['system_id']}`" for item in reference_systems)
+    progress_content = textwrap.dedent(f"""\
+    # Cobertura del catálogo Wang (2021)
 
-"""
+    Este archivo distingue la cobertura documental del generador y la API ejecutable de Chaos Toolbox. Una ficha con ecuaciones o una búsqueda numérica de equilibrios no equivale a una implementación de simulación, cuencas o bifurcaciones.
 
-for sys in processed_systems:
-    latex_content += r"\subsection*{" + sys['name'].replace('_', r'\_') + r" (\code{" + sys['system_id'].replace('_', r'\_') + r"})}" + "\n"
-    latex_content += r"\textbf{Capítulo:} " + str(sys['chapter']) + r" | \textbf{Tipo:} " + sys['type'] + r"\\" + "\n"
-    latex_content += r"\textbf{Referencia:} " + sys['ref'].replace('&', r'\&') + r"\\" + "\n"
-    
-    # replace equations matching LaTeX rules
-    eqs_tex = sys['equations_latex']
-    # convert \, or \. or ; or spacing
-    latex_content += r"\[" + eqs_tex + r"\]" + "\n"
-    
-    if sys['params']:
-        params_str = ", ".join([f"${k} = {v}$" for k, v in sys['params'].items()])
-        latex_content += r"\textbf{Parámetros:} " + params_str + r"\\" + "\n"
-    else:
-        latex_content += r"\textbf{Parámetros:} Ninguno (flujo autónomo libre)\\" + "\n"
-        
-    latex_content += r"\textbf{Equilibrios reportados:} " + sys['reported_equilibria'] + r"\\" + "\n"
-    
-    if len(sys['computed_equilibria']) == 0:
-        latex_content += r"\textbf{Equilibrios calculados:} Ninguno real (sistema sin equilibrio)\\" + "\n"
-    else:
-        latex_content += r"\textbf{Equilibrios calculados por el código:}" + "\n"
-        latex_content += r"\begin{itemize}" + "\n"
-        for eq in sys['computed_equilibria']:
-            pt_str = ", ".join([f"{v:.4f}" for v in eq['point']])
-            eigs_str = ", ".join([f"{ev[0]:.4f} + {ev[1]:.4f}i" if abs(ev[1]) > 1e-5 else f"{ev[0]:.4f}" for ev in eq['eigvals']])
-            classif_clean = eq['local_type'].replace('_', r'\_')
-            latex_content += r"  \item \textbf{" + eq['name'] + r"}: $(" + pt_str + r")$ | Autovalores: $[" + eigs_str + r"]$ | Tipo: \code{" + classif_clean + r"}" + "\n"
-        latex_content += r"\end{itemize}" + "\n"
-    
-    latex_content += r"\hrule" + "\n\n"
+    | Cobertura | Cantidad | Alcance |
+    |---|---:|---|
+    | Fichas transcritas y procesadas por el generador | {len(processed_systems)} | Ecuaciones, parámetros, referencias y búsqueda numérica finita de equilibrios |
+    | Identificadores ejecutables en `SYSTEM_REGISTRY` | {len(runtime_systems)} | Simulación según el contrato del registro actual |
+    | Fichas sólo de referencia | {len(reference_systems)} | No están disponibles en el selector ni en la API de simulación del registro |
 
-latex_content += r"""
-\newpage
-\section{14. Registro de avance de extracción por capítulos}
+    ## Identificadores ejecutables
 
-A continuación se presenta la tabla de progreso de la digitalización y cálculo numérico de los sistemas del libro de Wang (2021).
+    {runtime_ids}
 
-\begin{center}
-\begin{tabular}{clccccl}
-\toprule
-Cap. & Tema principal & Detectados & Integrados & Equilibrios & Cuencas/Bif. & Estado \\
-\midrule
-1 & Introducción & 24 & 24 & 24 & Configurado & \code{completo} \\
-3 & Equilibrios estables & 9 & 8 & 8 & Configurado & \code{completo (1 DDE pend.)} \\
-4 & Sin equilibrios & 16 & 12 & 12 & Configurado & \code{completo (4 pend.)} \\
-5 & Curvas de equilibrios & 3 & 0 & 0 & Pendiente & \code{pendiente} \\
-6 & Superficies de equilibrios & 2 & 0 & 0 & Pendiente & \code{pendiente} \\
-7 & Múltiples equilibrios & 4 & 0 & 0 & Pendiente & \code{pendiente} \\
-8 & Hiperchaos oculto & 3 & 0 & 0 & Pendiente & \code{pendiente} \\
-9 & Fraccionarios & 2 & 0 & 0 & Pendiente & \code{pendiente} \\
-10 & Memristivos & 2 & 0 & 0 & Pendiente & \code{pendiente} \\
-11 & Flujos jerk & 3 & 0 & 0 & Pendiente & \code{pendiente} \\
-\bottomrule
-\end{tabular}
-\end{center}
-"""
+    ## Fichas sólo de referencia
 
-with open('docs/generated/wang_systems.tex', 'w', encoding='utf-8') as handle:
-    handle.write(latex_content)
+    {reference_ids}
+    """)
 
-print("Generated LaTeX input file.")
+    with open('docs/generated/wang_2021_coverage.md', 'w', encoding='utf-8') as handle:
+        handle.write(progress_content)
+
+    print("Generated coverage markdown.")
+
+    # Generate LaTeX content
+    latex_content = textwrap.dedent(r"""
+    \section{13. Catálogo de sistemas del libro de Wang, Kuznetsov y Chen (2021)}
+
+    Este catálogo describe los sistemas caóticos del libro \emph{Chaotic Systems with Multistability and Hidden Attractors} (2021), indicando sus ecuaciones, equilibrios y la clasificación matemática de estabilidad.
+
+    """).lstrip()
+
+    for sys in processed_systems:
+        latex_content += r"\subsection*{" + sys['name'].replace('_', r'\_') + r" (\code{" + sys['system_id'].replace('_', r'\_') + r"})}" + "\n"
+        latex_content += r"\textbf{Capítulo:} " + str(sys['chapter']) + r" | \textbf{Tipo:} " + sys['type'] + r"\\" + "\n"
+        latex_content += r"\textbf{Referencia:} " + sys['ref'].replace('&', r'\&') + r"\\" + "\n"
+
+        # replace equations matching LaTeX rules
+        eqs_tex = sys['equations_latex']
+        # convert \, or \. or ; or spacing
+        latex_content += r"\[" + eqs_tex + r"\]" + "\n"
+
+        if sys['params']:
+            params_str = ", ".join([f"${k} = {v}$" for k, v in sys['params'].items()])
+            latex_content += r"\textbf{Parámetros:} " + params_str + r"\\" + "\n"
+        else:
+            latex_content += r"\textbf{Parámetros:} Ninguno (flujo autónomo libre)\\" + "\n"
+
+        latex_content += r"\textbf{Equilibrios reportados:} " + sys['reported_equilibria'] + r"\\" + "\n"
+
+        if len(sys['computed_equilibria']) == 0:
+            latex_content += r"\textbf{Equilibrios calculados:} Ninguno real (sistema sin equilibrio)\\" + "\n"
+        else:
+            latex_content += r"\textbf{Equilibrios calculados por el código:}" + "\n"
+            latex_content += r"\begin{itemize}" + "\n"
+            for eq in sys['computed_equilibria']:
+                pt_str = ", ".join([f"{v:.4f}" for v in eq['point']])
+                eigs_str = ", ".join([f"{ev[0]:.4f} + {ev[1]:.4f}i" if abs(ev[1]) > 1e-5 else f"{ev[0]:.4f}" for ev in eq['eigvals']])
+                classif_clean = eq['local_type'].replace('_', r'\_')
+                latex_content += r"  \item \textbf{" + eq['name'] + r"}: $(" + pt_str + r")$ | Autovalores: $[" + eigs_str + r"]$ | Tipo: \code{" + classif_clean + r"}" + "\n"
+            latex_content += r"\end{itemize}" + "\n"
+
+        latex_content += r"\hrule" + "\n\n"
+
+    latex_content += textwrap.dedent(r"""
+    \newpage
+    \section{14. Cobertura del catálogo}
+
+    La cobertura documental y la implementación ejecutable se informan por separado. Una ficha transcrita o una búsqueda numérica finita de equilibrios no equivale a validar simulación, cuencas, bifurcaciones, caos, atracción u ocultamiento.
+
+    \begin{center}
+    \begin{tabular}{lrl}
+    \toprule
+    Cobertura & Cantidad & Alcance \\
+    \midrule
+    Fichas procesadas & 42 & Referencia y cálculo finito \\
+    Identificadores ejecutables & 25 & Registro actual de Toolbox \\
+    Fichas sólo de referencia & 17 & Sin API de simulación en Toolbox \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+    """).lstrip()
+
+    with open('reports/wang_systems.tex', 'w', encoding='utf-8') as handle:
+        handle.write(latex_content)
+
+    print("Generated LaTeX input file.")
+
+
+def main() -> int:
+    generate_catalog()
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

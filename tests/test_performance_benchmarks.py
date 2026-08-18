@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -70,3 +71,24 @@ def test_system_context_collectors_return_portable_shapes():
     assert total_memory is None or total_memory > 0
     status = power_status()
     assert set(status) == {"ac_line", "battery_percent"}
+
+
+def test_lyapunov_profile_baseline_records_protocol_hotspots_and_sources():
+    payload = json.loads(
+        (ROOT / 'benchmarks' / 'results' / 'lyapunov_profile_current.json').read_text(
+            encoding='utf-8'
+        )
+    )
+    assert payload['scope'].endswith('no speedup claim')
+    assert payload['protocol']['warmups'] == 1
+    assert payload['protocol']['measured_repetitions'] == 5
+    assert len(payload['timings_seconds']['raw']) == 5
+    assert payload['timings_seconds']['median'] > 0.0
+    assert payload['result']['status'] == 'ok'
+    assert payload['result']['convergence_shape'][1] == 3
+    assert payload['cprofile_hotspots_by_cumulative_time']
+    assert payload['source']['commit_status'] in {'clean', 'dirty', 'unavailable'}
+    assert 'core/diagnostics.py' in payload['source']['sha256']
+    for relative_path, expected_digest in payload['source']['sha256'].items():
+        actual_digest = hashlib.sha256((ROOT / relative_path).read_bytes()).hexdigest()
+        assert actual_digest == expected_digest, relative_path

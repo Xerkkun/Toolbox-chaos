@@ -127,7 +127,7 @@ if [[ -x "$venv_python" ]]; then
 fi
 
 if ((check_only)); then
-    "$check_python" -c "import json, numpy, PyQt6; json.load(open(r'${profile_path}', encoding='utf-8'))"
+    "$check_python" -c "import json, numpy, PySide6; json.load(open(r'${profile_path}', encoding='utf-8'))"
     "$check_python" "$benchmark_script" \
         --toolbox-root "$toolbox_root" \
         --machine-profile "$profile_path" \

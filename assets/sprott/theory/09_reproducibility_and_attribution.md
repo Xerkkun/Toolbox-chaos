@@ -12,8 +12,11 @@ La versión de Chaos Toolbox distribuida públicamente **no contiene ningún arc
 El software está estructurado para que el usuario, bajo su propia responsabilidad de estudio personal, suministre la ruta de los archivos locales `.DIC` que posea de su propio ejemplar del libro. El programa procesa las cadenas de coeficientes directamente desde el disco sin guardarlas en su base de datos interna ni copiarlas al repositorio.
 
 ## 3. Metadatos de Exportación para Reproducibilidad
-Para garantizar que cualquier gráfico pueda ser replicado exactamente por otros investigadores, toda imagen exportada desde la toolbox almacena de forma estructurada e inalterable sus metadatos de simulación:
+Cada entrada de la galería local guarda un archivo lateral `metadata.json` con
+los datos necesarios para repetir la simulación. Una imagen exportada por sí
+sola no conserva necesariamente ese archivo, y la repetición puede variar con
+la plataforma o versión. El registro incluye:
 - Código de familia de Sprott.
 - Parámetros de iteración y descarte de transitorio.
-- Paso temporal $h$ y método de flujo (Euler o RK4).
+- Paso temporal $h$ y método de flujo (Euler, Heun o RK4).
 - Presets visuales aplicados (proyección, color por variable oculta, paleta, fondo y nivel de transparencia alpha).

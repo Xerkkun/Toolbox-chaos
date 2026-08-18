@@ -1,0 +1,31 @@
+Qt 6.11.1 packaged security inventory
+======================================
+
+Resolved Qt for Python version: 6.11.1
+Reviewed on: 2026-08-15
+
+QtSvg is retained because the Matplotlib QtAgg backend imports PySide6.QtSvg
+and the PyInstaller QtGui hooks collect the qsvg and qsvgicon plugins. The
+frozen application permits QtSvg, Qt6Svg, qsvg, and qsvgicon for application-
+owned resources and Matplotlib internals. It does not accept user-provided
+SVG as a runtime input format.
+
+The official Qt 6.11 download index publishes the five-part
+CVE-2026-8168-qtsvg-6.11 patch series after the 6.11.1 source release. The
+public PySide6 6.11.1 wheels are therefore not claimed by this project to
+contain that later patch series. Public binary freeze requires explicit,
+recorded acceptance of this residual trusted-input risk until an official
+patched Qt for Python build is used or QtSvg is removed with a tested runtime
+adapter.
+
+The release gate rejects unused higher-risk surfaces that this application
+does not need: PySide6.QtSvgWidgets, PySide6.QtCore5Compat, PySide6.QtXml,
+Qt6Core5Compat, Qt6Xml, Qt6SvgWidgets, and qml/Qt5Compat. It also validates
+the paths, PNG signatures, checksums, and compressed image streams of the
+repository-owned Sprott thumbnails and rejects active external/local image
+references in bundled Markdown.
+
+Evidence: https://download.qt.io/official_releases/qt/6.11/
+
+This is an engineering security inventory, not a claim that every upstream
+vulnerability is patched and not legal advice.

@@ -1,5 +1,8 @@
 name: Release
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   push:
@@ -7,35 +10,131 @@ on:
       - "v*.*.*"
 
 jobs:
+  release-gate:
+    name: Verify release identity and public dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.14.6"
+
+      - name: Verify release tag matches package version
+        env:
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+        run: >-
+          python scripts/verify_release_tag.py
+          --ref-name "$RELEASE_REF_NAME"
+          --ref-type "$RELEASE_REF_TYPE"
+
+      - name: Gate compatible public HAFO release
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install packaging && python scripts/verify_hafo_release.py
+
+      - name: Verify source distribution compliance
+        run: python scripts/verify_distribution_compliance.py
+
+  corresponding-source:
+    name: Verify Qt and PySide corresponding source
+    runs-on: ubuntu-latest
+    needs: release-gate
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Download and verify exact Qt and PySide source archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          destination="dist/corresponding-source"
+          mkdir -p "$destination"
+          qt_archive="$destination/qt-everywhere-src-6.11.1.tar.xz"
+          pyside_archive="$destination/pyside-setup-everywhere-src-6.11.1.tar.xz"
+
+          curl -fL --retry 5 --retry-all-errors \
+            -o "$qt_archive" \
+            "https://download.qt.io/official_releases/qt/6.11/6.11.1/single/qt-everywhere-src-6.11.1.tar.xz"
+          curl -fL --retry 5 --retry-all-errors \
+            -o "$pyside_archive" \
+            "https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.11.1-src/pyside-setup-everywhere-src-6.11.1.tar.xz"
+
+          test "$(stat -c '%s' "$qt_archive")" = "1017723080"
+          test "$(stat -c '%s' "$pyside_archive")" = "17963432"
+          {
+            printf '%s  %s\n' \
+              "252acef8c5ae68074d91cadba2ee4a83465051bbb970dd26e8f0daa0f3904e03" \
+              "$(basename "$qt_archive")"
+            printf '%s  %s\n' \
+              "6ffd9835bb0dd2c56f061d62f1616bb1707cfc0202b80e3165d6be087f3965e2" \
+              "$(basename "$pyside_archive")"
+          } > "$destination/SHA256SUMS"
+          (
+            cd "$destination"
+            sha256sum --check SHA256SUMS
+          )
+          tar -tJf "$qt_archive" >/dev/null
+          tar -tJf "$pyside_archive" >/dev/null
+          cp LICENSES/Qt-PySide-6.11.1-Corresponding-Source.txt \
+            LICENSES/Qt-6.11.1-Security-Inventory.txt "$destination/"
+
+      - name: Stage verified corresponding source for release attachment
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: chaos-toolbox-qt-pyside-corresponding-source-6.11.1
+          if-no-files-found: error
+          path: dist/corresponding-source/
+          compression-level: 0
+          retention-days: 90
+
   build:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: [release-gate, corresponding-source]
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: "3.11"
+          python-version: "3.14.6"
 
       - name: Install Windows native compiler
         if: matrix.os == 'windows-latest'
-        uses: msys2/setup-msys2@v2
+        id: msys2
+        uses: msys2/setup-msys2@40677d36a502eb2cf0fb808cc9dec31bf6152638 # v2.28.0
         with:
           msystem: UCRT64
           update: true
           install: mingw-w64-ucrt-x86_64-gcc
 
+      - name: Expose Windows native compiler to host processes
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: |
+          $ucrt64Bin = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin'
+          $gcc = Join-Path $ucrt64Bin 'gcc.exe'
+          if (-not (Test-Path -LiteralPath $gcc -PathType Leaf)) {
+            throw "MSYS2 UCRT64 gcc was not found at $gcc"
+          }
+          $ucrt64Bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $env:PATH = "$ucrt64Bin;$env:PATH"
+          & $gcc --version
+
       - name: Install Linux packaging tools
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y build-essential dpkg-dev
 
-      - name: Install dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements-build.txt pytest
+      - name: Install Toolbox and build dependencies
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install -c requirements-release.txt ".[build,test,webengine]" && python -m pip check
+
+      - name: Verify PySide6-only build environment
+        run: python scripts/verify_distribution_compliance.py --check-installed --require-webengine --check-release-pins --check-build-pins
 
       - name: Prepare runtime resources
         run: python scripts/prepare_runtime_resources.py
@@ -57,21 +156,42 @@ jobs:
         run: |
           set -euo pipefail
           version="$(python -c 'from core.app_metadata import APP_VERSION; print(APP_VERSION)')"
+          case "$(uname -m)" in
+            x86_64|amd64) platform_arch=x64 ;;
+            arm64|aarch64) platform_arch=arm64 ;;
+            *) echo "Unsupported macOS architecture: $(uname -m)" >&2; exit 1 ;;
+          esac
           app="dist/Chaos Toolbox.app"
           executable="${app}/Contents/MacOS/Chaos Toolbox"
           native_library="$(find "$app" -type f -name libchaos_core.dylib -print -quit)"
           test -x "$executable"
           test -n "$native_library"
+          find "$app" -type f -name THIRD_PARTY_NOTICES.md -print -quit | grep -q .
+          find "$app" -type f -name LGPL-3.0-only.txt -print -quit | grep -q .
+          find "$app" -type f -name GPL-3.0-only.txt -print -quit | grep -q .
+          find "$app" -type f -name Chromium-BSD-3-Clause.txt -print -quit | grep -q .
+          find "$app" -type f -name QtWebEngine-Third-Party-NOTICE.txt -print -quit | grep -q .
+          find "$app" -type f -name Qt-PySide-6.11.1-Corresponding-Source.txt -print -quit | grep -q .
+          find "$app" -type f -name Qt-6.11.1-Security-Inventory.txt -print -quit | grep -q .
+          find "$app" -type f -path '*/LICENSES/Python/LICENSE*' -print -quit | grep -q .
 
           codesign --force --deep --sign - "$app"
           codesign --verify --deep --strict "$app"
 
           staging="$(mktemp -d "${RUNNER_TEMP}/chaos-toolbox-dmg.XXXXXX")"
-          trap 'rm -rf -- "$staging"' EXIT
+          mount_dir=""
+          cleanup() {
+            if [[ -n "$mount_dir" ]]; then
+              hdiutil detach "$mount_dir" >/dev/null 2>&1 || true
+              rm -rf -- "$mount_dir"
+            fi
+            rm -rf -- "$staging"
+          }
+          trap cleanup EXIT
           cp -R "$app" "${staging}/Chaos Toolbox.app"
           ln -s /Applications "${staging}/Applications"
 
-          dmg="dist/chaos-toolbox-v${version}-macos.dmg"
+          dmg="dist/chaos-toolbox-v${version}-macos-${platform_arch}.dmg"
           hdiutil create \
             -volname "Chaos Toolbox ${version}" \
             -srcfolder "$staging" \
@@ -80,6 +200,20 @@ jobs:
             "$dmg"
           test -s "$dmg"
           hdiutil imageinfo "$dmg" >/dev/null
+          mount_dir="$(mktemp -d "${RUNNER_TEMP}/chaos-toolbox-mount.XXXXXX")"
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount_dir" "$dmg" >/dev/null
+          test -x "$mount_dir/Chaos Toolbox.app/Contents/MacOS/Chaos Toolbox"
+          find "$mount_dir" -type f -name THIRD_PARTY_NOTICES.md -print -quit | grep -q .
+          find "$mount_dir" -type f -name LGPL-3.0-only.txt -print -quit | grep -q .
+          find "$mount_dir" -type f -name GPL-3.0-only.txt -print -quit | grep -q .
+          find "$mount_dir" -type f -name Chromium-BSD-3-Clause.txt -print -quit | grep -q .
+          find "$mount_dir" -type f -name QtWebEngine-Third-Party-NOTICE.txt -print -quit | grep -q .
+          find "$mount_dir" -type f -name Qt-PySide-6.11.1-Corresponding-Source.txt -print -quit | grep -q .
+          find "$mount_dir" -type f -name Qt-6.11.1-Security-Inventory.txt -print -quit | grep -q .
+          find "$mount_dir" -type f -path '*/LICENSES/Python/LICENSE*' -print -quit | grep -q .
+          hdiutil detach "$mount_dir" >/dev/null
+          rmdir "$mount_dir"
+          mount_dir=""
 
       - name: Build native Linux bundle
         if: matrix.os == 'ubuntu-latest'
@@ -93,11 +227,24 @@ jobs:
           set -euo pipefail
           version="$(python -c 'from core.app_metadata import APP_VERSION; print(APP_VERSION)')"
           architecture="$(dpkg --print-architecture)"
+          case "$architecture" in
+            amd64) platform_arch=x64 ;;
+            arm64) platform_arch=arm64 ;;
+            *) echo "Unsupported Linux architecture: $architecture" >&2; exit 1 ;;
+          esac
           bundle="dist/Chaos Toolbox"
           executable="${bundle}/Chaos Toolbox"
           native_library="$(find "$bundle" -type f -name libchaos_core.so -print -quit)"
           test -x "$executable"
           test -n "$native_library"
+          find "$bundle" -type f -name THIRD_PARTY_NOTICES.md -print -quit | grep -q .
+          find "$bundle" -type f -name LGPL-3.0-only.txt -print -quit | grep -q .
+          find "$bundle" -type f -name GPL-3.0-only.txt -print -quit | grep -q .
+          find "$bundle" -type f -name Chromium-BSD-3-Clause.txt -print -quit | grep -q .
+          find "$bundle" -type f -name QtWebEngine-Third-Party-NOTICE.txt -print -quit | grep -q .
+          find "$bundle" -type f -name Qt-PySide-6.11.1-Corresponding-Source.txt -print -quit | grep -q .
+          find "$bundle" -type f -name Qt-6.11.1-Security-Inventory.txt -print -quit | grep -q .
+          find "$bundle" -type f -path '*/LICENSES/Python/LICENSE*' -print -quit | grep -q .
 
           staging="build/deb/chaos-toolbox"
           rm -rf "$staging"
@@ -106,6 +253,7 @@ jobs:
             "$staging/usr/lib/chaos-toolbox" \
             "$staging/usr/bin" \
             "$staging/usr/share/applications" \
+            "$staging/usr/share/doc/chaos-toolbox/LICENSES" \
             "$staging/usr/share/icons/hicolor/scalable/apps"
           cp -a "${bundle}/." "$staging/usr/lib/chaos-toolbox/"
           ln -s "/usr/lib/chaos-toolbox/Chaos Toolbox" "$staging/usr/bin/chaos-toolbox"
@@ -113,6 +261,14 @@ jobs:
             "$staging/usr/share/applications/chaos-toolbox.desktop"
           cp resources/bundled/icons/chaos-toolbox.svg \
             "$staging/usr/share/icons/hicolor/scalable/apps/chaos-toolbox.svg"
+          cp LICENSE NOTICE.md THIRD_PARTY_NOTICES.md \
+            "$staging/usr/share/doc/chaos-toolbox/"
+          cp LICENSES/LGPL-3.0-only.txt LICENSES/GPL-3.0-only.txt \
+            LICENSES/Chromium-BSD-3-Clause.txt \
+            LICENSES/QtWebEngine-Third-Party-NOTICE.txt \
+            LICENSES/Qt-PySide-6.11.1-Corresponding-Source.txt \
+            LICENSES/Qt-6.11.1-Security-Inventory.txt \
+            "$staging/usr/share/doc/chaos-toolbox/LICENSES/"
 
           installed_size="$(du -sk "$staging/usr" | awk '{print $1}')"
           control="$staging/DEBIAN/control"
@@ -124,19 +280,57 @@ jobs:
             printf 'Architecture: %s\n' "$architecture"
             printf 'Maintainer: Maria Fernanda Moreno Lopez\n'
             printf 'Installed-Size: %s\n' "$installed_size"
-            printf 'Depends: libc6, libglib2.0-0, libgl1, libegl1, libdbus-1-3, libx11-6, libxkbcommon-x11-0, libxcb-cursor0\n'
+            printf '%s\n' 'Depends: libc6, libstdc++6, libgcc-s1, zlib1g, libzstd1, libbrotli1, libglib2.0-0t64 | libglib2.0-0, libdbus-1-3, libegl1, libgl1, libfontconfig1, libfreetype6, libgssapi-krb5-2, libexpat1, libgbm1, libdrm2, libudev1, libnspr4, libnss3, libasound2t64 | libasound2, libwayland-client0, libwayland-cursor0, libwayland-egl1, libwayland-server0, libx11-6, libx11-xcb1, libxcb1, libxcb-cursor0, libxcb-dri3-0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render0, libxcb-render-util0, libxcb-shape0, libxcb-shm0, libxcb-sync1, libxcb-util1, libxcb-xfixes0, libxcb-xkb1, libxcomposite1, libxdamage1, libxext6, libxfixes3, libxkbcommon0, libxkbcommon-x11-0, libxkbfile1, libxrandr2, libxtst6'
             printf 'Description: Desktop toolbox for chaotic systems and nonlinear dynamics\n'
             printf ' Reproducible numerical exploration, visualization and diagnostics.\n'
           } > "$control"
           chmod 0644 "$control"
 
-          deb="dist/chaos-toolbox_${version}_${architecture}.deb"
+          deb="dist/chaos-toolbox-v${version}-linux-${platform_arch}.deb"
           dpkg-deb --build --root-owner-group "$staging" "$deb"
           test -s "$deb"
           dpkg-deb --info "$deb" >/dev/null
           contents="$(dpkg-deb --contents "$deb")"
           grep -Fq 'usr/bin/chaos-toolbox' <<<"$contents"
           grep -Fq 'libchaos_core.so' <<<"$contents"
+          grep -Fq 'THIRD_PARTY_NOTICES.md' <<<"$contents"
+          grep -Fq 'LGPL-3.0-only.txt' <<<"$contents"
+          grep -Fq 'GPL-3.0-only.txt' <<<"$contents"
+          grep -Fq 'Chromium-BSD-3-Clause.txt' <<<"$contents"
+          grep -Fq 'QtWebEngine-Third-Party-NOTICE.txt' <<<"$contents"
+          grep -Fq 'Qt-PySide-6.11.1-Corresponding-Source.txt' <<<"$contents"
+          grep -Fq 'Qt-6.11.1-Security-Inventory.txt' <<<"$contents"
+          grep -Fq 'LICENSES/Python/LICENSE' <<<"$contents"
+
+          probe_evidence="build/deb-probe"
+          rm -rf "$probe_evidence"
+          mkdir -p "$probe_evidence"
+          docker run --rm \
+            -v "$(realpath dist):/artifacts:ro" \
+            -v "$(realpath "$probe_evidence"):/evidence" \
+            -v "$(realpath scripts/validate_self_test_output.py):/validate-self-test.py:ro" \
+            -e DEBIAN_FRONTEND=noninteractive \
+            ubuntu:24.04 bash -euo pipefail -c '
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                python3-minimal /artifacts/*.deb
+              dpkg-query -W -f="\${Status}\n" chaos-toolbox |
+                grep -Fx "install ok installed"
+              export QT_QPA_PLATFORM=offscreen
+              export QTWEBENGINE_DISABLE_SANDBOX=1
+              /usr/bin/chaos-toolbox \
+                --self-test-output /evidence/linux-deb-self-test.json
+              python3 /validate-self-test.py \
+                /evidence/linux-deb-self-test.json
+              apt-get install -y --no-install-recommends xvfb xauth
+              unset QT_QPA_PLATFORM
+              export CHAOS_BENCHMARK_READY_FILE=/evidence/linux-deb-startup-ready.json
+              export CHAOS_BENCHMARK_EXIT_AFTER_READY=1
+              xvfb-run -a /usr/bin/chaos-toolbox
+              python3 -c "import json; payload=json.load(open(\"/evidence/linux-deb-startup-ready.json\", encoding=\"utf-8\")); assert payload.get(\"status\") == \"ready\""
+            '
+          python scripts/validate_self_test_output.py \
+            "$probe_evidence/linux-deb-self-test.json"
 
       - name: Build Windows Executable & Installer
         if: matrix.os == 'windows-latest'
@@ -161,19 +355,224 @@ jobs:
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
               throw "Windows installer is missing: $installer"
           }
+          foreach ($noticeName in @(
+              "THIRD_PARTY_NOTICES.md",
+              "LGPL-3.0-only.txt",
+              "GPL-3.0-only.txt",
+              "Chromium-BSD-3-Clause.txt",
+              "QtWebEngine-Third-Party-NOTICE.txt",
+              "Qt-PySide-6.11.1-Corresponding-Source.txt",
+              "Qt-6.11.1-Security-Inventory.txt"
+          )) {
+              if (-not (Get-ChildItem -LiteralPath $bundle -Recurse -File -Filter $noticeName)) {
+                  throw "The Windows bundle omits required notice: $noticeName"
+              }
+          }
+          $pythonLicense = Get-ChildItem -LiteralPath $bundle -Recurse -File |
+              Where-Object { $_.FullName -match '[\\/]LICENSES[\\/]Python[\\/]LICENSE(?:\.txt)?$' } |
+              Select-Object -First 1
+          if (-not $pythonLicense) {
+              throw "The Windows bundle omits the exact Python runtime license."
+          }
+
+          $probeRoot = Join-Path $env:RUNNER_TEMP ("chaos-toolbox-installer-" + [Guid]::NewGuid().ToString("N"))
+          try {
+              New-Item -ItemType Directory -Path $probeRoot | Out-Null
+              $install = Start-Process -FilePath $installer -ArgumentList @(
+                  "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$probeRoot"
+              ) -Wait -PassThru -WindowStyle Hidden
+              if ($install.ExitCode -ne 0) {
+                  throw "Silent installer probe failed with exit code $($install.ExitCode)."
+              }
+              foreach ($noticeName in @(
+                  "THIRD_PARTY_NOTICES.md",
+                  "LGPL-3.0-only.txt",
+                  "GPL-3.0-only.txt",
+                  "Chromium-BSD-3-Clause.txt",
+                  "QtWebEngine-Third-Party-NOTICE.txt",
+                  "Qt-PySide-6.11.1-Corresponding-Source.txt",
+                  "Qt-6.11.1-Security-Inventory.txt"
+              )) {
+                  if (-not (Get-ChildItem -LiteralPath $probeRoot -Recurse -File -Filter $noticeName)) {
+                      throw "Installed application omits required notice: $noticeName"
+                  }
+              }
+              $installedPythonLicense = Get-ChildItem -LiteralPath $probeRoot -Recurse -File |
+                  Where-Object { $_.FullName -match '[\\/]LICENSES[\\/]Python[\\/]LICENSE(?:\.txt)?$' } |
+                  Select-Object -First 1
+              if (-not $installedPythonLicense) {
+                  throw "Installed application omits the Python runtime license."
+              }
+              $installedExecutable = Get-ChildItem -LiteralPath $probeRoot -Recurse -File -Filter "Chaos Toolbox.exe" |
+                  Select-Object -First 1
+              if (-not $installedExecutable) {
+                  throw "Installed application executable was not found."
+              }
+              $installedSelfTest = Join-Path $env:RUNNER_TEMP (
+                  "chaos-toolbox-installed-self-test-" + [Guid]::NewGuid().ToString("N") + ".json"
+              )
+              $installedRun = Start-Process -FilePath $installedExecutable.FullName -ArgumentList @(
+                  "--self-test-output", $installedSelfTest
+              ) -PassThru -WindowStyle Hidden
+              if (-not $installedRun.WaitForExit(120000)) {
+                  Stop-Process -Id $installedRun.Id -Force
+                  throw "Installed application self-test timed out."
+              }
+              if ($installedRun.ExitCode -ne 0) {
+                  throw "Installed application self-test failed with exit code $($installedRun.ExitCode)."
+              }
+              & python scripts\validate_self_test_output.py $installedSelfTest
+              if ($LASTEXITCODE -ne 0) {
+                  throw "Installed application self-test evidence is invalid."
+              }
+          } finally {
+              if ($installedSelfTest -and (Test-Path -LiteralPath $installedSelfTest)) {
+                  Remove-Item -LiteralPath $installedSelfTest -Force
+              }
+              if (Test-Path -LiteralPath $probeRoot) {
+                  Remove-Item -LiteralPath $probeRoot -Recurse -Force
+              }
+          }
 
       - name: Upload build output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: chaos-toolbox-${{ matrix.os }}
           if-no-files-found: error
           path: |
             dist/
             installer/*.exe
+            build/pyinstaller/*-self-test.json
+            build/deb-probe/*.json
+          retention-days: 90
+
+  python-package:
+    name: Build and verify Python wheel and sdist
+    runs-on: ubuntu-latest
+    needs: release-gate
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.14.6"
+
+      - name: Install native compiler for distribution probes
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Install distribution tools
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install -c requirements-release.txt build setuptools wheel twine cyclonedx-bom && python -m pip check
+
+      - name: Prepare and verify package resources
+        run: |
+          python scripts/prepare_runtime_resources.py
+          python scripts/verify_packaging.py
+
+      - name: Derive reproducible timestamp from release commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          epoch="$(git log -1 --pretty=%ct)"
+          [[ "$epoch" =~ ^[0-9]+$ ]]
+          printf 'SOURCE_DATE_EPOCH=%s\n' "$epoch" >> "$GITHUB_ENV"
+
+      - name: Build source and wheel distributions twice and compare
+        shell: bash
+        run: |
+          set -euo pipefail
+          first="build/python-package/reproducibility/first"
+          second="build/python-package/reproducibility/second"
+          mkdir -p "$first" "$second" "dist/python"
+
+          python -m build --no-isolation --sdist --wheel --outdir "$first"
+          python scripts/normalize_python_sdist.py "$first"/*.tar.gz
+          python -m build --no-isolation --sdist --wheel --outdir "$second"
+          python scripts/normalize_python_sdist.py "$second"/*.tar.gz
+
+          mapfile -t first_artifacts < <(
+            find "$first" -maxdepth 1 -type f \
+              \( -name '*.whl' -o -name '*.tar.gz' \) -print | sort
+          )
+          test "${#first_artifacts[@]}" -eq 2
+          test "$(find "$second" -maxdepth 1 -type f \
+            \( -name '*.whl' -o -name '*.tar.gz' \) -print | wc -l)" -eq 2
+
+          for artifact in "${first_artifacts[@]}"; do
+            counterpart="$second/$(basename "$artifact")"
+            test -f "$counterpart"
+            cmp -- "$artifact" "$counterpart"
+            cp -- "$artifact" "dist/python/"
+          done
+          sha256sum dist/python/*
+
+      - name: Check distribution metadata
+        run: python -m twine check dist/python/*
+
+      - name: Install and self-test wheel and sdist independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel="$(find dist/python -maxdepth 1 -type f -name '*.whl' -print -quit)"
+          sdist="$(find dist/python -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          test -n "$wheel"
+          test -n "$sdist"
+          mkdir -p build/python-package
+
+          probe_distribution() {
+            label="$1"
+            artifact="$2"
+            probe_dir="${RUNNER_TEMP}/chaos-toolbox-${label}"
+            self_test="build/python-package/${label}-self-test.json"
+            python -m venv "$probe_dir"
+            "$probe_dir/bin/python" -m pip install --upgrade -r "$GITHUB_WORKSPACE/requirements-bootstrap.txt"
+            "$probe_dir/bin/python" -m pip install -c "$GITHUB_WORKSPACE/requirements-release.txt" "${artifact}[webengine]"
+            "$probe_dir/bin/python" -m pip check
+            "$probe_dir/bin/python" scripts/verify_distribution_compliance.py \
+              --check-installed --require-webengine --check-release-pins
+            "$probe_dir/bin/chaos-toolbox" --self-test-output "$self_test"
+            python scripts/validate_self_test_output.py "$self_test"
+          }
+
+          probe_distribution wheel "$wheel"
+          probe_distribution sdist "$sdist"
+
+      - name: Generate and validate CycloneDX Python-environment SBOM
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(python -c 'from core.app_metadata import APP_VERSION; print(APP_VERSION)')"
+          wheel="$(find dist/python -maxdepth 1 -type f -name '*.whl' -print -quit)"
+          sdist="$(find dist/python -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          runtime_python="${RUNNER_TEMP}/chaos-toolbox-wheel/bin/python"
+          sbom="dist/python/chaos-toolbox-v${version}-python-environment.cdx.json"
+          python -m cyclonedx_py environment "$runtime_python" \
+            --pyproject pyproject.toml \
+            --mc-type application \
+            --spec-version 1.6 \
+            --output-format JSON \
+            --output-reproducible \
+            --output-file "$sbom"
+          python scripts/verify_distribution_compliance.py \
+            --artifact "$wheel" \
+            --artifact "$sdist" \
+            --sbom "$sbom"
+
+      - name: Upload Python distributions and self-test evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: chaos-toolbox-python-distributions
+          if-no-files-found: error
+          path: |
+            dist/python/*.whl
+            dist/python/*.tar.gz
+            dist/python/*.cdx.json
+            build/python-package/*-self-test.json
+          retention-days: 90
 
   notes:
     name: Signing and publishing notes
     runs-on: ubuntu-latest
+    needs: [release-gate, corresponding-source, build, python-package]
     steps:
       - run: |
           echo "Windows signing placeholder: configure certificate secrets before signing."

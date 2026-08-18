@@ -4,13 +4,13 @@ This guide describes the public web presentation guidelines for **Fyskode Chaoti
 
 ## About Fyskode Chaotic Systems Toolbox
 
-Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application designed for students, educators, and researchers exploring chaotic dynamical systems. It provides interactive tools to simulate trajectories, visualize attractors, and perform diagnostic analyses.
+Fyskode Chaotic Systems Toolbox is a PySide6 desktop application designed for students, educators, and researchers exploring chaotic dynamical systems. It provides interactive tools to simulate trajectories, visualize attractors, and perform diagnostic analyses.
 
 ## Current Features
 
 - **Attractor Simulation**: 2D and 3D phase space trajectory plots under customizable initial conditions.
 - **Diagnostic Sweeps**: Lyapunov exponent estimation, Fast Fourier Transform (FFT) analysis, and bifurcation diagram sweeps.
-- **Attraction Basins**: Multi-scroll attraction destination mapping.
+- **Attraction Basins**: Finite-time destination maps for systems with an explicit classifier contract.
 - **Sprott Explorer**: An educational loader to examine historical Sprott equations locally.
 - **Help Resources**: Integrated PDF dictionary viewer and updater interface.
 
@@ -22,7 +22,10 @@ The official project metadata is published on the Fyskode platform:
 
 ## License and Distribution Boundaries
 
-- **License**: MIT License.
+- **Project source license**: MIT.
+- **Dependency licenses**: PySide6/Qt and other bundled components retain
+  their own terms; release artifacts include third-party notices, LGPLv3/GPLv3
+  texts, and a CycloneDX SBOM.
 - **Sprott Explorer Policy**: No original Sprott copyrighted disk files, book figures, or historical dictionary databases are distributed. Users may load local files at runtime for personal study.
 
 ## Screenshot Gallery Policy

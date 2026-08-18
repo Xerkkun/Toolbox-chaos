@@ -9,9 +9,13 @@ from pathlib import Path
 if __package__ in {None, ''}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from PyQt6.QtCore import Qt, QSettings, QTimer, QUrl
-from PyQt6.QtGui import QAction, QDesktopServices
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import QSettings, QTimer, QUrl
+from PySide6.QtGui import QAction, QDesktopServices
+from PySide6.QtWidgets import (
     QApplication,
     QDialog,
     QDialogButtonBox,
@@ -35,11 +39,13 @@ from core.app_metadata import (
     APP_YEAR,
     APP_DOI,
     APP_DOI_URL,
+    DEFAULT_RELEASE_API_URL,
     DOCUMENTATION_ENTRY,
     RELEASE_API_ENV,
     UPDATE_CHECK_INTERVAL_DAYS,
 )
 from core.paths import bundled_doc_path, ensure_user_data_dir, resource_path
+from core.time_policy import utc_today_iso
 from core.update_checker import UpdateCheckError, UpdateInfo, check_for_updates
 from core.hidden_engine import engine_status
 from ui.custom_system_tab import NoCodeSystemTab
@@ -195,7 +201,9 @@ class MainWindow(QMainWindow):
             f'<h2>{APP_NAME}</h2>'
             f'<p><b>Version:</b> {APP_VERSION}<br>'
             f'<b>Desarrolladora:</b> {APP_DEVELOPER}<br>'
-            f'<b>Licencia:</b> {APP_LICENSE}<br>'
+            f'<b>Código propio:</b> {APP_LICENSE}<br>'
+            '<b>Dependencias de terceros:</b> conservan sus licencias; consulte '
+            '<code>THIRD_PARTY_NOTICES.md</code> incluido con la aplicación.<br>'
             f'<b>Anio:</b> {APP_YEAR}<br>'
             f'<b>DOI de archivo:</b> <a href="{APP_DOI_URL}">{APP_DOI}</a></p>'
             f'<p>{APP_DESCRIPTION}</p>'
@@ -203,7 +211,7 @@ class MainWindow(QMainWindow):
             '<span style="font-family: Consolas, monospace; background-color: #f3f4f6; padding: 6px; display: block; border-left: 4px solid #3b82f6; font-size: 11px; color: #1f2937;">'
             'Moreno Lopez, M. F. (2026). <i>Fyskode Chaotic Systems Toolbox</i> (Version 0.1.0). OSF. DOI: 10.17605/OSF.IO/GQMJR'
             '</span></p>'
-            f'<p><b>Creditos principales:</b> Python, PyQt6, NumPy, Matplotlib, pyqtgraph y PyInstaller.</p>'
+            f'<p><b>Creditos principales:</b> Python, PySide6, NumPy, Matplotlib, pyqtgraph y PyInstaller.</p>'
             f'<p><b>Documentacion local:</b> {docs_path}</p>'
             f'<p><b>Fuente de actualizaciones:</b> {release_source}</p>'
             '<p><b>Sistemas personalizados:</b> El editor visual permite definir flujos y mapas mediante '
@@ -220,8 +228,11 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def _release_api_url(self) -> str:
+        environment_override = os.environ.get(RELEASE_API_ENV, '').strip()
+        if environment_override:
+            return environment_override
         configured = self.settings.value('updates/release_api_url', '', type=str)
-        return os.environ.get(RELEASE_API_ENV, configured).strip()
+        return str(configured or '').strip() or DEFAULT_RELEASE_API_URL
 
     def _maybe_check_updates_on_startup(self):
         if not self.settings.value('updates/automatic_enabled', True, type=bool):
@@ -231,7 +242,7 @@ class MainWindow(QMainWindow):
         last = self.settings.value('updates/last_check_date', '', type=str)
         if last:
             try:
-                elapsed = (date.today() - date.fromisoformat(last)).days
+                elapsed = (date.fromisoformat(utc_today_iso()) - date.fromisoformat(last)).days
                 if elapsed < UPDATE_CHECK_INTERVAL_DAYS:
                     return
             except ValueError:
@@ -273,7 +284,7 @@ class MainWindow(QMainWindow):
             self._update_timer.stop()
             self._update_timer.deleteLater()
             self._update_timer = None
-        self.settings.setValue('updates/last_check_date', date.today().isoformat())
+        self.settings.setValue('updates/last_check_date', utc_today_iso())
         try:
             info = future.result()
         except UpdateCheckError as exc:
@@ -429,26 +440,6 @@ class MainWindow(QMainWindow):
             f'<p><a href="{pdf_uri}">Abrir chaos_dictionary.pdf</a></p>'
             '</body></html>'
         )
-
-    def _suggested_path(self, default_name, extension):
-        if not default_name.lower().endswith(extension):
-            default_name = f'{default_name}{extension}'
-        return os.path.join(os.path.expanduser('~'), default_name)
-
-    def _ensure_suffix(self, file_path, selected_filter):
-        base, ext = os.path.splitext(file_path)
-        if ext:
-            return file_path
-        filter_map = {
-            'PNG (*.png)': '.png',
-            'PDF (*.pdf)': '.pdf',
-            'SVG (*.svg)': '.svg',
-            'JPEG (*.jpg *.jpeg)': '.jpg',
-        }
-        for filter_text, suffix in filter_map.items():
-            if filter_text in selected_filter:
-                return f'{file_path}{suffix}'
-        return file_path
 
     def closeEvent(self, event):
         self._update_executor.shutdown(wait=False, cancel_futures=True)

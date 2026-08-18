@@ -177,7 +177,7 @@ def explain_code_pipeline(
     -------
     dict
         Diccionario completamente serializable (sin objetos numpy ni tipos
-        de datos PyQt) con todas las etapas del pipeline documentadas.
+        de datos Qt) con todas las etapas del pipeline documentadas.
     """
     # --- Paso 1 & 2: código original y limpieza ---
     raw_code = str(code)

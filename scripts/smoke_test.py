@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import os
 import sys
+from tempfile import TemporaryDirectory
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -11,11 +12,15 @@ if str(REPO_ROOT) not in sys.path:
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6 import QtCore
+from PySide6.QtWidgets import QApplication, QLabel
 import matplotlib
 import numpy as np
 import pyqtgraph
-from PyQt6 import QtCore
-from PyQt6.QtWidgets import QApplication, QLabel
 
 from core.native import library
 from core.lorenz import simulate_system, system_defaults
@@ -90,8 +95,8 @@ def main() -> int:
 
     # ── 4. QtPdf availability ─────────────────────────────────────────────────
     try:
-        from PyQt6.QtPdf import QPdfDocument        # noqa: F401
-        from PyQt6.QtPdfWidgets import QPdfView     # noqa: F401
+        from PySide6.QtPdf import QPdfDocument        # noqa: F401
+        from PySide6.QtPdfWidgets import QPdfView     # noqa: F401
         print('QtPdf OK: embedded PDF viewer will be available')
     except ImportError as exc:
         print(f'WARNING: QtPdf not available ({exc}) — PDF viewer will fall back to HTML/text')
@@ -115,11 +120,12 @@ def main() -> int:
         (item for item in examples if item.get('starter_label') == 'Primera imagen bonita'),
         examples[0],
     )
-    thumb_dir = REPO_ROOT / '.pytest_tmp' / 'smoke_sprott'
-    thumb_dir.mkdir(parents=True, exist_ok=True)
-    thumb = render_example_thumbnail(first_visual, thumb_dir / 'smoke_thumb.png', app=app)
-    _check(thumb.exists() and thumb.stat().st_size >= 1000,
-           'Sprott example thumbnail smoke render failed.')
+    with TemporaryDirectory(prefix='chaos-toolbox-smoke-') as temporary_dir:
+        thumb = render_example_thumbnail(
+            first_visual, Path(temporary_dir) / 'smoke_thumb.png', app=app
+        )
+        _check(thumb.exists() and thumb.stat().st_size >= 1000,
+               'Sprott example thumbnail smoke render failed.')
 
     # ── 8. SprottExplorerTab construction ─────────────────────────────────────
     tab = SprottExplorerTab()
@@ -195,8 +201,8 @@ def main() -> int:
     if spec_path.exists():
         spec_src = spec_path.read_text(encoding='utf-8')
         _check(
-            'PyQt6.QtPdf' in spec_src and 'PyQt6.QtPdfWidgets' in spec_src,
-            'chaos_toolbox.spec is missing PyQt6.QtPdf / PyQt6.QtPdfWidgets in hiddenimports',
+            'PySide6.QtPdf' in spec_src and 'PySide6.QtPdfWidgets' in spec_src,
+            'chaos_toolbox.spec is missing PySide6.QtPdf / PySide6.QtPdfWidgets in hiddenimports',
         )
         print('PyInstaller spec: hiddenimports OK')
     else:

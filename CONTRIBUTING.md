@@ -25,8 +25,7 @@ Thank you for your interest in contributing to **Fyskode Chaotic Systems Toolbox
 3. **Install dependencies:**
    ```powershell
    python -m pip install --upgrade pip
-   python -m pip install -r requirements.txt
-   python -m pip install pytest
+   python -m pip install ".[test]"
    ```
 
 4. **Run the application from source:**
@@ -46,11 +45,12 @@ Before proposing any changes, verify that the existing tests and packaging metad
 2. **Verify release and packaging checks:**
    ```powershell
    python scripts\verify_packaging.py
+   python scripts\verify_distribution_compliance.py --check-installed
    python scripts\verify_public_release_clean.py
    ```
 
 
-Note that on Linux CI/headless environments, PyQt6 requires a virtual display. Use the `QT_QPA_PLATFORM=offscreen` environment variable to run tests headlessly:
+Note that on Linux CI/headless environments, PySide6 requires a virtual display. Use the `QT_QPA_PLATFORM=offscreen` environment variable to run tests headlessly:
 ```bash
 QT_QPA_PLATFORM=offscreen python -m pytest
 ```
@@ -73,9 +73,9 @@ Pull Requests are proposed changes from a branch that can be reviewed before bei
 
 ## Contribution Style & Standards
 
-- **Code Style:** Follow PEP 8 guidelines for Python code. Ensure PyQt6 widgets and signal-slot connections are clear and decoupled from the numerical simulation logic.
+- **Code Style:** Follow PEP 8 guidelines for Python code. Ensure PySide6 widgets and signal-slot connections are clear and decoupled from the numerical simulation logic.
 - **Backend Optimization:** The computational engine uses a native C library under `core/csrc/chaos_core.c` for performance. If you propose modifications to the numerical integration methods, ensure the Python fallback implementations are kept in sync.
-- **System Catalog:** If you wish to propose adding a new chaotic system, it must be registered in the internal catalog under `core/systems/`. Arbitrary user-defined custom systems from the GUI are currently planned as future work, so catalog additions must be curried via the static registry.
+- **System Catalog:** Curated systems belong in `SYSTEM_REGISTRY`, with matching Python/native contracts and regression tests where applicable. The existing `Crear sistema` tab is for safe trajectory-only user definitions; it does not promote those definitions into the curated registry or its advanced diagnostics.
 - **Documentation Policy:** All public-facing documentation must adhere to the [Public Documentation Policy](docs/public_documentation_policy.md). Ensure that user guides, release notes, and README files contain only neutral, current-state facts and omit internal histories, AI-generated traces, or submission strategies.
 
 
@@ -83,7 +83,7 @@ Pull Requests are proposed changes from a branch that can be reviewed before bei
 ## Reporting Errors
 
 - **Numerical/Integration Errors:** When reporting incorrect orbits, divergent trajectories, or calculation discrepancies, provide the exact parameter values, initial conditions, and numerical solver settings (e.g., step size, duration).
-- **Interface Errors:** When reporting UI glitches, canvas freezing, or PyQt6 errors, please include log tracebacks, operating system version, and desktop resolution.
+- **Interface Errors:** When reporting UI glitches, canvas freezing, or PySide6 errors, please include log tracebacks, operating system version, and desktop resolution.
 
 ## Critical Security and Copyright Policy
 

@@ -11,18 +11,24 @@
   "repository": "https://github.com/Xerkkun/Toolbox-chaos",
   "website_path": "https://search.fyskode.com/toolbox_chaos",
   "osf_doi": "10.17605/OSF.IO/GQMJR",
-  "description": "Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for exploring chaotic dynamical systems through numerical simulation, visualization, and diagnostic analysis.",
+  "description": "Fyskode Chaotic Systems Toolbox is a PySide6 desktop application for exploring chaotic dynamical systems through numerical simulation, visualization, and diagnostic analysis.",
 
   "academic_note": "Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.",
   "features": [
-    "Classical chaotic systems",
+    "38 registered dynamical systems",
+    "3D attractors and 2D phase portraits",
+    "Reusable time-series trajectories",
+    "Euler, Heun, and RK4 comparison",
+    "Welch PSD and amplitude spectra",
+    "Equilibria and eigenvalues",
     "Sprott Explorer",
     "Coexisting attractors",
+    "Basins of attraction",
     "Bifurcation diagrams",
-    "Time series and FFT",
     "Lyapunov diagnostics",
+    "No-code custom systems and JSON exchange",
     "PDF dictionary",
-    "Exportable figures"
+    "Reproducible data and figure export"
   ],
   "links": {
     "github": "https://github.com/Xerkkun/Toolbox-chaos",

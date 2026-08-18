@@ -217,8 +217,4 @@ SPECIAL_FAMILY_REGISTRY = {
     "\\": SineFamily,
     "]": RotationalSineFamily,
     "^": ForcedOscillatorFamily,
-    "Z": {
-        "name": "AND/OR special family",
-        "status": "pending_semantics_validation"
-    }
 }

@@ -19,6 +19,9 @@ def app_base_dirs() -> list[Path]:
             roots.append(Path(meipass))
         roots.append(Path(sys.executable).resolve().parent)
     roots.append(repo_root())
+    installed_resources = Path(sys.prefix) / 'share' / 'chaos-toolbox'
+    if installed_resources not in roots:
+        roots.append(installed_resources)
     return roots
 
 

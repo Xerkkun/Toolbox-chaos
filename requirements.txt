@@ -1,6 +1,9 @@
-PyQt6>=6.7
+PySide6-Essentials>=6.7
+PySide6-Addons>=6.7
 numpy>=1.26
 matplotlib>=3.8
 pyqtgraph>=0.13
 pyyaml>=6.0
-tomli>=2.0; python_version < "3.11"
+Pillow>=10
+packaging>=24
+hidden-attractors-fo>=1.1,<2

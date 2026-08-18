@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from numbers import Integral
 
 import numpy as np
 
@@ -12,6 +13,7 @@ from .lorenz import (
     vector_field,
 )
 from .hidden_engine import trajectory_spectrum as engine_trajectory_spectrum
+from .time_policy import fixed_step_count
 
 
 @dataclass(frozen=True)
@@ -115,20 +117,36 @@ def integer_qr_benettin_lyapunov(
     div_threshold=1e6,
     q=1.0,
 ):
-    if abs(float(q) - 1.0) > 1e-9:
+    q_value = float(q)
+    if not np.isfinite(q_value) or abs(q_value - 1.0) > 1e-9:
         raise ValueError('integer_qr_benettin solo es valido para q=1 en ODE de orden entero.')
-    if SYSTEM_REGISTRY[system_key].get('kind') != 'flow':
+    meta = SYSTEM_REGISTRY[system_key]
+    if meta.get('kind') != 'flow' or int(meta.get('dimension', 0)) != 3:
         raise ValueError('El espectro de Lyapunov entero esta disponible para flujos ODE 3D.')
 
     h = float(h)
-    if h <= 0.0:
-        raise ValueError('h debe ser positivo.')
-    x = np.asarray(initial[:3], dtype=float).copy()
+    if not np.isfinite(h) or h <= 0.0:
+        raise ValueError('h debe ser finito y positivo.')
+    if isinstance(reorthonormalize_every, bool) or not isinstance(
+        reorthonormalize_every, Integral
+    ) or reorthonormalize_every <= 0:
+        raise ValueError('reorthonormalize_every debe ser un entero positivo.')
+    interval = int(reorthonormalize_every)
+    jacobian_eps = float(jacobian_eps)
+    if not np.isfinite(jacobian_eps) or jacobian_eps <= 0.0:
+        raise ValueError('jacobian_eps debe ser finito y positivo.')
+    div_threshold = float(div_threshold)
+    if not np.isfinite(div_threshold) or div_threshold <= 0.0:
+        raise ValueError('div_threshold debe ser finito y positivo.')
+    x = np.asarray(initial, dtype=float).copy()
+    if x.shape != (3,) or not np.all(np.isfinite(x)):
+        raise ValueError('initial debe contener exactamente tres valores finitos.')
     p = np.asarray(params, dtype=float)
+    if p.ndim != 1 or not np.all(np.isfinite(p)):
+        raise ValueError('params debe ser un vector de valores finitos.')
     n = x.size
-    burn_steps = int(max(0, round(float(t_burn) / h)))
-    total_steps = int(max(0, round(float(t_final) / h)))
-    interval = max(1, int(reorthonormalize_every))
+    burn_steps = fixed_step_count(t_burn, h, name='t_burn', allow_zero=True)
+    total_steps = fixed_step_count(t_final, h, name='t_final')
 
     def rhs(state):
         return np.asarray(vector_field(system_key, state, p)[:3], dtype=float)
@@ -171,7 +189,7 @@ def integer_qr_benettin_lyapunov(
 
     for _ in range(burn_steps):
         x = rk4_state_step(x)
-        if not np.all(np.isfinite(x)) or np.linalg.norm(x) >= float(div_threshold):
+        if not np.all(np.isfinite(x)) or np.linalg.norm(x) >= div_threshold:
             return LyapunovDiagnosticResult(
                 np.full(n, np.nan),
                 np.empty(0),
@@ -189,6 +207,17 @@ def integer_qr_benettin_lyapunov(
     convergence = []
     elapsed = 0.0
     status = 'ok'
+    last_qr_step = 0
+
+    def record_qr(current_time):
+        nonlocal basis, sums
+        qmat, rmat = np.linalg.qr(basis)
+        diag = np.abs(np.diag(rmat))
+        diag[diag <= 1.0e-300] = 1.0e-300
+        sums += np.log(diag)
+        basis = qmat
+        times.append(current_time)
+        convergence.append(sums / max(current_time, 1.0e-300))
 
     for step in range(1, total_steps + 1):
         x, basis = rk4_variational_step(x, basis)
@@ -197,20 +226,22 @@ def integer_qr_benettin_lyapunov(
         if not np.all(np.isfinite(x)) or not np.all(np.isfinite(basis)):
             status = 'nonfinite_solution'
             break
-        if np.linalg.norm(x) >= float(div_threshold):
+        if np.linalg.norm(x) >= div_threshold:
             status = 'diverged'
             break
 
         if step % interval == 0:
-            qmat, rmat = np.linalg.qr(basis)
-            diag = np.abs(np.diag(rmat))
-            diag[diag <= 1.0e-300] = 1.0e-300
-            sums += np.log(diag)
-            basis = qmat
-            times.append(elapsed)
-            convergence.append(sums / max(elapsed, 1.0e-300))
+            record_qr(elapsed)
+            last_qr_step = step
 
-    exponents = sums / max(elapsed, 1.0e-300) if elapsed > 0.0 else np.full(n, np.nan)
+    if status == 'ok' and last_qr_step < total_steps:
+        record_qr(elapsed)
+
+    exponents = (
+        sums / max(elapsed, 1.0e-300)
+        if status == 'ok' and elapsed > 0.0
+        else np.full(n, np.nan)
+    )
     return LyapunovDiagnosticResult(
         np.asarray(exponents, dtype=float),
         np.asarray(times, dtype=float),

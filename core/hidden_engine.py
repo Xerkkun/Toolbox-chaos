@@ -1,18 +1,23 @@
-"""Optional bridge from the desktop application to Hidden Attractors FO.
+"""Bridge from the desktop application to Hidden Attractors FO.
 
 The GUI owns interaction and rendering. Numerical system definitions and
 trajectory generation are delegated to the scientific engine when its
-compatible API is available. Import is lazy so starting the desktop
-application is not blocked by scientific dependencies.
+compatible API is available. Import is lazy so a broken scientific install can
+be reported through the desktop diagnostics instead of aborting at import time.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from importlib import import_module
-from pathlib import Path
-import sys
+from importlib.metadata import PackageNotFoundError, version as distribution_version
 from typing import Any, Mapping
+
+from packaging.version import InvalidVersion, Version
+
+
+_DISTRIBUTION_NAME = "hidden-attractors-fo"
+_ENGINE_SPEC = ">=1.1,<2"
 
 
 @dataclass(frozen=True)
@@ -21,18 +26,11 @@ class EngineStatus:
     version: str | None
     source: str | None
     message: str
+    reason: str
 
 
 _ENGINE: Any | None = None
 _ENGINE_STATUS: EngineStatus | None = None
-
-
-def _development_candidates() -> tuple[Path, ...]:
-    repo = Path(__file__).resolve().parents[1]
-    return (
-        repo.parent / "Hidden Attractors Fractional Order" / "version_2",
-        repo.parent / "Hidden-Attractors-Localization" / "version_2",
-    )
 
 
 def _load_engine() -> tuple[Any | None, EngineStatus]:
@@ -40,50 +38,84 @@ def _load_engine() -> tuple[Any | None, EngineStatus]:
     if _ENGINE_STATUS is not None:
         return _ENGINE, _ENGINE_STATUS
 
-    source = "installed package"
-    for candidate in _development_candidates():
-        if (candidate / "hidden_attractors" / "__init__.py").is_file():
-            candidate_text = str(candidate)
-            if candidate_text not in sys.path:
-                sys.path.insert(0, candidate_text)
-            source = candidate_text
-            break
+    source = f"Python distribution {_DISTRIBUTION_NAME}"
 
-    try:
-        engine = import_module("hidden_attractors")
-        required = (
-            "ExpressionSystemDefinition",
-            "compile_expression_system",
-            "simulate",
-            "trajectory_component_spectra",
-        )
-        missing = [name for name in required if not hasattr(engine, name)]
-        if missing:
-            raise RuntimeError(
-                "La version encontrada no ofrece la API de integracion: "
-                + ", ".join(missing)
-            )
-        version = getattr(engine, "__version__", None)
-        _ENGINE = engine
-        _ENGINE_STATUS = EngineStatus(
-            True,
-            str(version) if version else None,
-            source,
-            "Motor cientifico disponible.",
-        )
-    except Exception as exc:  # the GUI must remain usable without the optional engine
+    def unavailable(reason: str, detail: object, *, version: str | None = None) -> None:
+        global _ENGINE, _ENGINE_STATUS
         _ENGINE = None
         _ENGINE_STATUS = EngineStatus(
             False,
-            None,
+            version,
             source,
-            f"Hidden Attractors FO no esta disponible o es incompatible: {exc}",
+            "Hidden Attractors FO no esta disponible para Toolbox. "
+            f"Instale '{_DISTRIBUTION_NAME}{_ENGINE_SPEC}'. Detalle: {detail}",
+            reason,
         )
+
+    try:
+        installed_version = distribution_version(_DISTRIBUTION_NAME)
+    except PackageNotFoundError as exc:
+        unavailable("package_not_found", exc)
+        return _ENGINE, _ENGINE_STATUS
+    except (OSError, ValueError) as exc:
+        unavailable("metadata_error", exc)
+        return _ENGINE, _ENGINE_STATUS
+
+    try:
+        parsed_version = Version(installed_version)
+    except InvalidVersion as exc:
+        unavailable("invalid_version", exc, version=installed_version)
+        return _ENGINE, _ENGINE_STATUS
+
+    if parsed_version < Version("1.1") or parsed_version >= Version("2"):
+        unavailable(
+            "incompatible_version",
+            f"se requiere {_DISTRIBUTION_NAME}{_ENGINE_SPEC}; se encontro {installed_version}",
+            version=installed_version,
+        )
+        return _ENGINE, _ENGINE_STATUS
+
+    try:
+        engine = import_module("hidden_attractors")
+    except (ImportError, OSError) as exc:
+        unavailable("broken_import", exc, version=installed_version)
+        return _ENGINE, _ENGINE_STATUS
+    except Exception as exc:
+        unavailable("import_error", exc, version=installed_version)
+        return _ENGINE, _ENGINE_STATUS
+
+    required = (
+        "ExpressionSystemDefinition",
+        "compile_expression_system",
+        "simulate",
+        "trajectory_component_spectra",
+    )
+    try:
+        missing = [name for name in required if not hasattr(engine, name)]
+    except Exception as exc:
+        unavailable("api_inspection_error", exc, version=installed_version)
+        return _ENGINE, _ENGINE_STATUS
+    if missing:
+        unavailable(
+            "missing_api",
+            "La version encontrada no ofrece la API de integracion: " + ", ".join(missing),
+            version=installed_version,
+        )
+        return _ENGINE, _ENGINE_STATUS
+
+    _ENGINE = engine
+    _ENGINE_STATUS = EngineStatus(
+        True,
+        installed_version,
+        source,
+        "Motor cientifico disponible.",
+        "available",
+    )
     return _ENGINE, _ENGINE_STATUS
 
 
 def engine_status(*, refresh: bool = False) -> EngineStatus:
-    """Return availability without making the dependency mandatory."""
+    """Return installed-engine compatibility without importing it at startup."""
 
     global _ENGINE, _ENGINE_STATUS
     if refresh:
@@ -108,7 +140,7 @@ def engine_capability(name: str):
     getter = getattr(catalog, "get_capability", None)
     if getter is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             "hidden_attractors.capabilities.get_capability."
         )
     return getter(name)
@@ -130,7 +162,7 @@ def _load_alignment_function(name: str):
     function = getattr(alignment, name, None)
     if function is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             f"hidden_attractors.analysis.alignment_indices.{name}."
         )
     return function
@@ -172,7 +204,7 @@ def _load_covariant_function(name: str):
     function = getattr(covariant, name, None)
     if function is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             f"hidden_attractors.analysis.covariant_lyapunov.{name}."
         )
     return function
@@ -279,7 +311,7 @@ def integrate_multi_term_caputo_l1(
     integrator = getattr(fractional, "integrate_multi_term_caputo_l1", None)
     if integrator is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             "hidden_attractors.fractional.integrate_multi_term_caputo_l1."
         )
     return integrator(
@@ -340,7 +372,7 @@ def tempered_convolution_quadrature(
     evaluator = getattr(fractional, "tempered_convolution_quadrature", None)
     if evaluator is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             "hidden_attractors.fractional.tempered_convolution_quadrature."
         )
     return evaluator(
@@ -399,7 +431,7 @@ def tempered_fast_multistep_history(
     if evaluator is None:
         raise RuntimeError(
             "La version de Hidden Attractors FO no ofrece la capacidad "
-            "experimental "
+            "requerida "
             "hidden_attractors.fractional.tempered_fast_multistep_history."
         )
     return evaluator(
@@ -625,7 +657,7 @@ def trajectory_correlation_dimension(
     estimator = getattr(engine, "estimate_correlation_dimension", None)
     if estimator is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             "estimate_correlation_dimension."
         )
     return estimator(
@@ -671,7 +703,7 @@ def trajectory_permutation_entropy(
     estimator = getattr(engine, "permutation_entropy", None)
     if estimator is None:
         raise RuntimeError(
-            "La version de Hidden Attractors FO no ofrece la API experimental "
+            "La version de Hidden Attractors FO no ofrece la API requerida "
             "permutation_entropy."
         )
 

@@ -300,7 +300,7 @@ if (-not $compiler) {
 }
 Assert-BuildArchitecture -PythonPath $venvPython -CompilerPath $compiler
 $env:CHAOS_NATIVE_COMPILER = (& $compiler --version | Select-Object -First 1)
-$env:CHAOS_NATIVE_CFLAGS = "-O3 -shared -std=c11 -lm"
+$env:CHAOS_NATIVE_CFLAGS = "-O3 -shared -std=c11 -frandom-seed=chaos-core-v2 -Wl,--no-insert-timestamp,--image-base,0x180000000 -Wall -Wextra -Wpedantic -Werror -lm"
 
 Invoke-Checked -FilePath $venvPython -Arguments @("-m", "pip", "install", "--upgrade", "pip")
 Invoke-Checked -FilePath $venvPython -Arguments @(

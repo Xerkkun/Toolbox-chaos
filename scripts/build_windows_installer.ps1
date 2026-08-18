@@ -18,9 +18,92 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
     $venvPython = "python"
 }
 
+function Invoke-CheckedPython {
+    param([Parameter(Mandatory = $true)][string[]]$Arguments)
+
+    & $script:venvPython @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Python failed with exit code ${LASTEXITCODE}: $($Arguments -join ' ')"
+    }
+}
+
+function Move-ToInstallerArchive {
+    param(
+        [Parameter(Mandatory = $true)][string]$SourcePath,
+        [Parameter(Mandatory = $true)][string]$ArchivePath
+    )
+
+    $source = Get-Item -LiteralPath $SourcePath
+    $destination = Join-Path $ArchivePath $source.Name
+    if (Test-Path -LiteralPath $destination) {
+        $stamp = [DateTime]::UtcNow.ToString("yyyyMMddTHHmmssfffZ")
+        $token = [Guid]::NewGuid().ToString("N").Substring(0, 8)
+        $destinationName = "$($source.BaseName)-$stamp-$token$($source.Extension)"
+        $destination = Join-Path $ArchivePath $destinationName
+    }
+
+    Move-Item -LiteralPath $source.FullName -Destination $destination
+}
+
+function Get-FreeSubstDrive {
+    $usedDrives = @(
+        [System.IO.DriveInfo]::GetDrives() |
+            ForEach-Object { $_.Name.Substring(0, 2).ToUpperInvariant() }
+    )
+    foreach ($codePoint in 90..68) {
+        $candidate = "$([char]$codePoint):"
+        if ($usedDrives -notcontains $candidate) {
+            return $candidate
+        }
+    }
+    throw "No free drive letter is available to shorten the Inno Setup build path."
+}
+
+function Invoke-InnoCompiler {
+    param(
+        [Parameter(Mandatory = $true)][string]$CompilerPath,
+        [Parameter(Mandatory = $true)][string]$ScriptPath,
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot
+    )
+
+    $substDrive = $null
+    $compilerScript = $ScriptPath
+    try {
+        if ($ScriptPath.Length -ge 80) {
+            $substDrive = Get-FreeSubstDrive
+            & subst.exe $substDrive $RepositoryRoot
+            if ($LASTEXITCODE -ne 0) {
+                throw "subst.exe could not map $substDrive to $RepositoryRoot."
+            }
+            $shortRoot = "${substDrive}\"
+            $compilerScript = Join-Path $shortRoot "packaging\windows\ChaosToolbox.iss"
+            if (-not (Test-Path -LiteralPath $compilerScript)) {
+                throw "The shortened Inno Setup script path is unavailable: $compilerScript"
+            }
+            Write-Host "Using shortened Inno Setup path: $compilerScript"
+        }
+
+        & $CompilerPath $compilerScript
+        if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup compiler failed with exit code $LASTEXITCODE"
+        }
+    } finally {
+        if ($substDrive) {
+            & subst.exe $substDrive /D
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Could not remove temporary subst mapping $substDrive."
+            }
+        }
+    }
+}
 Write-Host "Reading version from core/app_metadata.py..."
-$appVersion = (& $venvPython -c "from core.app_metadata import APP_VERSION; print(APP_VERSION)").Trim()
+$appVersion = (Invoke-CheckedPython -Arguments @("-c", "from core.app_metadata import APP_VERSION; print(APP_VERSION)") | Out-String).Trim()
 Write-Host "Project Version: $appVersion"
+Invoke-CheckedPython -Arguments @(
+    "scripts\verify_distribution_compliance.py",
+    "--artifact",
+    "dist\Chaos Toolbox"
+)
 
 # 1. Update/Write generated_version.iss
 $versionInclude = Join-Path $repoRoot "packaging\windows\generated_version.iss"
@@ -78,8 +161,7 @@ $oldInstallers = Get-ChildItem -Path $installerDir -Filter "*.exe" -File
 if ($oldInstallers) {
     Write-Host "Archiving existing installers to $archiveDir..."
     foreach ($oldInst in $oldInstallers) {
-        $dest = Join-Path $archiveDir $oldInst.Name
-        Move-Item -LiteralPath $oldInst.FullName -Destination $dest -Force
+        Move-ToInstallerArchive -SourcePath $oldInst.FullName -ArchivePath $archiveDir
     }
 }
 
@@ -88,10 +170,10 @@ Write-Host "Compiling Windows installer..."
 $issScript = Join-Path $repoRoot "packaging\windows\ChaosToolbox.iss"
 $buildStartTime = [DateTime]::Now
 
-& $isccPath $issScript
-if ($LASTEXITCODE -ne 0) {
-    throw "Inno Setup compiler failed with exit code $LASTEXITCODE"
-}
+Invoke-InnoCompiler `
+    -CompilerPath $isccPath `
+    -ScriptPath $issScript `
+    -RepositoryRoot $repoRoot
 
 # 5. Verify Installer
 $expectedInstallerName = "chaos-toolbox-v$appVersion-windows-x64-setup.exe"
@@ -110,7 +192,7 @@ if ($fileInfo.LastWriteTime -lt $buildStartTime.AddSeconds(-5)) {
 $oldNamePath = Join-Path $installerDir "ChaosToolboxSetup-0.1.0.exe"
 if (Test-Path -LiteralPath $oldNamePath) {
     Write-Warning "Stale installer with old name found. Archiving it."
-    Move-Item -LiteralPath $oldNamePath -Destination (Join-Path $archiveDir "ChaosToolboxSetup-0.1.0.exe") -Force
+    Move-ToInstallerArchive -SourcePath $oldNamePath -ArchivePath $archiveDir
 }
 
 # Display results

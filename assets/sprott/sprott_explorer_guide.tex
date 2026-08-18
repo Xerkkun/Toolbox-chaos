@@ -75,7 +75,8 @@ I--L & mapa polinomial & 3 & 2, 3, 4, 5 \\
 M--P & mapa polinomial & 4 & 2, 3, 4, 5 \\
 Q--T & flujo polinomial & 3 & 2, 3, 4, 5 \\
 U--X & flujo polinomial & 4 & 2, 3, 4, 5 \\
-Y--Z & funciones especiales & pendiente & pendiente \\
+Y & función especial con valores absolutos & implementada & índice dependiente \\
+Z & familia lógica AND/OR & referencia no simulable & semántica no validada \\
 \bottomrule
 \end{longtable}
 
@@ -121,8 +122,9 @@ Un flujo continuo define una ecuacion diferencial:
 \[
 \dot{x}=F(x).
 \]
-La toolbox puede integrar estos sistemas con Euler o RK4. Euler es util para reproducir
-el espiritu de programas historicos; RK4 suele ser mas estable para exploracion moderna:
+La toolbox puede integrar estos sistemas con Euler, Heun o RK4. Euler es útil para reproducir
+el espíritu de programas históricos; Heun y RK4 ofrecen mayor orden local para campos suaves,
+pero ningún esquema garantiza estabilidad sin comprobar la convergencia al reducir \(h\):
 \[
 x(t+h)\approx x(t)+hF(x(t)) \quad \text{(Euler)}.
 \]

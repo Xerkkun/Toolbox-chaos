@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import numpy as np
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QLabel, QSizePolicy
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QLabel, QSizePolicy
 
 from core.sprott.visual import (
     SprottVisualConfig,
@@ -21,7 +26,11 @@ from core.sprott.visual import (
     projection_axes,
     quantize,
     sanitize_visual_config,
+    unit_sphere_projection,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Sprott2DCanvas(FigureCanvas):
@@ -50,7 +59,13 @@ class Sprott2DCanvas(FigureCanvas):
         self.last_values = values
         self.last_config = cfg
         self.fig.clear()
-        if cfg.projection == '3D x-y-z' and values.shape[1] >= 3:
+        if cfg.projection == 'esfera unitaria':
+            if values.shape[1] < 3:
+                raise ValueError(
+                    'La proyección esférica requiere una trayectoria de dimensión 3 o mayor.'
+                )
+            self._plot_unit_sphere(values, cfg, title)
+        elif cfg.projection == '3D x-y-z' and values.shape[1] >= 3:
             self._plot_3d(values, cfg, title)
         else:
             self.ax = self.fig.add_subplot(111)
@@ -124,6 +139,69 @@ class Sprott2DCanvas(FigureCanvas):
             self.ax.set_axis_off()
         self.fig.subplots_adjust(left=0.02, right=0.98, bottom=0.03, top=0.92)
 
+    def _plot_unit_sphere(
+        self, values: np.ndarray, cfg: SprottVisualConfig, title: str
+    ):
+        self.ax = self.fig.add_subplot(111, projection='3d')
+        bg = background_color(cfg.background)
+        fg = foreground_color(cfg.background)
+        transparent = cfg.background == 'transparente'
+        self.fig.patch.set_facecolor('none' if transparent else bg)
+        self.fig.patch.set_alpha(0.0 if transparent else 1.0)
+        self.ax.set_facecolor('none' if transparent else bg)
+
+        projected, retained = unit_sphere_projection(values)
+        source_values = values[retained]
+        cvals = quantize(color_values(source_values, cfg.color_by), cfg.band_count)
+        cmap = self._colormap(cfg)
+        constant_color = (
+            '#f8fafc' if cfg.background in {'negro', 'azul oscuro'} else '#111827'
+        )
+        if projected.size == 0:
+            self.ax.text2D(
+                0.5, 0.5, 'Sin direcciones no nulas', color=fg,
+                ha='center', va='center', transform=self.ax.transAxes,
+            )
+        else:
+            x, y, z = projected.T
+            if cfg.draw_mode in {'linea', 'linea + puntos'}:
+                self.ax.plot(
+                    x, y, z, color=constant_color,
+                    linewidth=max(0.25, cfg.point_size * 0.55), alpha=cfg.alpha,
+                )
+            if cfg.draw_mode in {'puntos', 'linea + puntos', 'densidad'}:
+                scatter_kwargs = {
+                    's': cfg.point_size, 'alpha': cfg.alpha, 'linewidths': 0,
+                }
+                if cvals is None:
+                    scatter_kwargs['color'] = constant_color
+                else:
+                    scatter_kwargs.update({'c': cvals, 'cmap': cmap})
+                self.ax.scatter(x, y, z, **scatter_kwargs)
+
+        azimuth = np.linspace(0.0, 2.0 * np.pi, 32)
+        polar = np.linspace(0.0, np.pi, 17)
+        sphere_x = np.outer(np.cos(azimuth), np.sin(polar))
+        sphere_y = np.outer(np.sin(azimuth), np.sin(polar))
+        sphere_z = np.outer(np.ones_like(azimuth), np.cos(polar))
+        self.ax.plot_wireframe(
+            sphere_x, sphere_y, sphere_z,
+            rstride=2, cstride=2, color=fg, alpha=0.12, linewidth=0.35,
+        )
+        self.ax.set_title(title, color=fg)
+        self.ax.set_xlabel('x / ||(x,y,z)||', color=fg)
+        self.ax.set_ylabel('y / ||(x,y,z)||', color=fg)
+        self.ax.set_zlabel('z / ||(x,y,z)||', color=fg)
+        self.ax.set_xlim(-1.05, 1.05)
+        self.ax.set_ylim(-1.05, 1.05)
+        self.ax.set_zlim(-1.05, 1.05)
+        self.ax.set_box_aspect((1.0, 1.0, 1.0))
+        self.ax.tick_params(colors=fg)
+        self.ax.grid(cfg.show_grid, alpha=0.18)
+        if not cfg.show_axes:
+            self.ax.set_axis_off()
+        self.fig.subplots_adjust(left=0.02, right=0.98, bottom=0.03, top=0.92)
+
     def _finish_axes(self, cfg: SprottVisualConfig, title: str, fg: str, xlabel: str, ylabel: str):
         self.ax.set_title(title, color=fg)
         self.ax.set_xlabel(xlabel, color=fg)
@@ -135,8 +213,11 @@ class Sprott2DCanvas(FigureCanvas):
         if cfg.equal_aspect:
             try:
                 self.ax.set_aspect('equal', adjustable='datalim')
-            except Exception:
-                pass
+            except Exception as exc:
+                LOGGER.debug(
+                    'Matplotlib no pudo aplicar el aspecto igual; se conserva el aspecto automático.',
+                    exc_info=exc,
+                )
         if not cfg.show_axes:
             self.ax.set_axis_off()
         self.fig.subplots_adjust(left=0.06, right=0.985, bottom=0.08, top=0.92)

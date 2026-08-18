@@ -6,7 +6,10 @@ from typing import Any
 import numpy as np
 
 
-PROJECTIONS = ['x-y', 'x-z', 'y-z', 'x-w', 'y-w', 'z-w', 'n-x', 'n-y', 'n-z', '3D x-y-z']
+PROJECTIONS = [
+    'x-y', 'x-z', 'y-z', 'x-w', 'y-w', 'z-w',
+    'n-x', 'n-y', 'n-z', '3D x-y-z', 'esfera unitaria',
+]
 COLOR_MODES = ['constante', 'tiempo', 'x', 'y', 'z', 'w', 'radio', 'velocidad']
 PALETTES = ['Sprott clasica', 'Viridis', 'Plasma', 'Inferno', 'Magma', 'Turbo', 'Gray', 'Cyclic']
 BACKGROUNDS = ['blanco', 'negro', 'azul oscuro', 'transparente']
@@ -198,7 +201,8 @@ def finite_post_transient(trajectory) -> np.ndarray:
     if values.ndim == 1:
         values = values.reshape(-1, 1)
     if values.size == 0:
-        return np.empty((0, 1), dtype=float)
+        dimension = values.shape[1] if values.ndim == 2 else 1
+        return np.empty((0, dimension), dtype=float)
     return values[np.all(np.isfinite(values), axis=1)]
 
 
@@ -207,6 +211,31 @@ def downsample(values: np.ndarray, max_points: int) -> np.ndarray:
         return values
     idx = np.linspace(0, len(values) - 1, int(max_points)).astype(int)
     return values[idx]
+
+
+def unit_sphere_projection(values: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Project nonzero ``(x, y, z)`` directions onto the unit sphere.
+
+    The boolean mask identifies the source rows retained by the projection, so
+    callers can compute colour values from the original (unnormalized) state.
+    Scaling each row before taking its norm avoids overflow for large finite
+    coordinates.  Zero directions are omitted because radial projection is
+    undefined at the origin.
+    """
+
+    array = np.asarray(values, dtype=float)
+    if array.ndim != 2 or array.shape[1] < 3:
+        raise ValueError('La proyección esférica requiere estados de dimensión 3 o mayor.')
+    coordinates = array[:, :3]
+    if not np.all(np.isfinite(coordinates)):
+        raise ValueError('La proyección esférica requiere coordenadas finitas.')
+    scales = np.max(np.abs(coordinates), axis=1)
+    valid = scales > 0.0
+    if not np.any(valid):
+        return np.empty((0, 3), dtype=float), valid
+    scaled = coordinates[valid] / scales[valid, None]
+    lengths = np.linalg.norm(scaled, axis=1)
+    return scaled / lengths[:, None], valid
 
 
 def projection_axes(values: np.ndarray, projection: str) -> tuple[np.ndarray, np.ndarray, str, str]:

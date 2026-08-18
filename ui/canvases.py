@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import numpy as np
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtWidgets import QSizePolicy
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.colors import ListedColormap
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
-from PyQt6.QtWidgets import QSizePolicy
+
+
+BASIN_RESIDUAL_LABEL = 'Acotado residual / no clasificado'
 
 
 SPECTRUM_STYLE = {
@@ -353,7 +360,7 @@ class MplBasinCanvas(_BaseCanvas):
         eq_names = [eq.get('name', f'E{idx + 1}') for idx, eq in enumerate(equilibrium_data or [])]
         colors = ['#000000', '#87ceeb', '#d62728', '#2ca02c', '#1f77b4', '#9467bd', '#ff7f0e', '#8c564b', '#e377c2']
         max_class = int(np.nanmax(basin)) if np.size(basin) else 1
-        label_map = class_labels or {0: 'Escape', 1: 'Caótico'}
+        label_map = class_labels or {0: 'Escape', 1: BASIN_RESIDUAL_LABEL}
         if class_labels is None:
             label_map.update({2 + idx: name for idx, name in enumerate(eq_names)})
         needed = max(max(label_map.keys(), default=1) + 1, max_class + 1, 2)

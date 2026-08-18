@@ -36,7 +36,7 @@ Las familias especiales implementan dinámicas específicas con funciones no lin
 - **`\` (Especial - Senos):** Mapa 4D con 18 coeficientes.
 - **`]` (Especial - Seno Rotacional):** Mapa 4D con 6 coeficientes.
 - **`^` (Especial - Oscilador Forzado):** Mapa 4D con 9 coeficientes.
-- **`Z` (Especial - Lógica AND/OR):** Mapa 4D con 10 coeficientes *(pendiente de validación semántica en la simulación).*
+- **`Z` (Especial - Lógica AND/OR):** Código 4D de 10 coeficientes reconocido por el parser, pero deshabilitado para simulación porque el contrato público no especifica una semántica numérica validada.
 
 ---
 

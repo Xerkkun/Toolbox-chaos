@@ -66,9 +66,11 @@ Los flujos polinomiales se definen de manera análoga a los mapas, pero interpre
 
 $$\dot{x}_i = f_i(x) = \sum_{j=1}^{N_m} c_{ij} m_j(x), \qquad i = 1, \ldots, D$$
 
-Para simular la trayectoria del flujo, la toolbox resuelve numéricamente la EDO con un paso de tiempo $h$. Se implementan dos métodos de integración:
+Para simular la trayectoria del flujo, la toolbox resuelve numéricamente la EDO con un paso de tiempo $h$. Se implementan tres métodos de integración:
 - **Euler explícito (histórico):**
   $$x_{k+1} = x_k + h f(x_k)$$
+- **Heun (predictor-corrector de segundo orden):**
+  $$x^* = x_k + h f(x_k), \qquad x_{k+1} = x_k + \frac{h}{2}\left(f(x_k)+f(x^*)\right)$$
 - **Runge-Kutta de 4º orden (RK4, recomendado):**
   $$k_1 = f(x_k)$$
   $$k_2 = f\left(x_k + \frac{h}{2} k_1\right)$$
@@ -76,7 +78,10 @@ Para simular la trayectoria del flujo, la toolbox resuelve numéricamente la EDO
   $$k_4 = f(x_k + h k_3)$$
   $$x_{k+1} = x_k + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)$$
 
-El método RK4 proporciona un error de truncamiento local significativamente menor, lo que estabiliza dinámicas complejas y previene divergencias espurias inducidas por el paso de integración.
+RK4 tiene menor error de truncamiento local que Euler y Heun bajo las
+hipótesis usuales de suavidad, pero ningún método fijo garantiza por sí solo
+que una trayectoria represente la dinámica continua. Se debe repetir el
+cálculo con pasos menores y comparar métodos.
 
 ---
 
@@ -137,7 +142,9 @@ $$z_{n+1} = (z_n + 0.1(a_8 + 1.3)) \bmod 2\pi$$
 $$w_{n+1} = \frac{n-1000}{N_{\max}-1000}$$
 
 ### Familia `Z` (AND/OR Lógica)
-Se reconoce como familia de lógica AND/OR de 10 coeficientes, pero su semántica exacta se encuentra **pendiente de validación científica** en la versión actual del motor. Se desaconseja su simulación para resultados reproducibles.
+Se reconoce como familia de lógica AND/OR de 10 coeficientes. La simulación
+está deshabilitada porque el contrato público actual no define una semántica
+numérica validada; el parser devuelve ese motivo explícito.
 
 ---
 
@@ -155,7 +162,8 @@ La condición inicial por defecto en la toolbox se sitúa en $x_0 = (0.1, 0.1, \
 
 ## 8. Clasificación de candidatos
 
-El algoritmo de búsqueda automática en Chaos Toolbox descarta millones de combinaciones estériles mediante filtros rápidos aplicados a la trayectoria post-transitorio:
+El algoritmo de búsqueda automática en Chaos Toolbox descarta combinaciones
+triviales mediante filtros rápidos aplicados a la trayectoria post-transitorio:
 - **Divergente (`divergent`):** Si la norma $\|x_n\|$ supera un umbral de escape (por defecto $R_{\max} = 10^6$) o contiene valores no finitos (`NaN` o `Inf`), la simulación se detiene de inmediato.
 - **Punto Fijo (`fixed_point`):** Si la trayectoria colapsa asintóticamente a un único estado, es decir:
   $$\max_{n \in \text{cola}} \|x_n - x_{N_{\max}}\| \leq \varepsilon$$
@@ -170,11 +178,11 @@ El algoritmo de búsqueda automática en Chaos Toolbox descarta millones de comb
 
 ## 9. Lyapunov, dimensión de Kaplan--Yorke y límites de la evidencia
 
-Para confirmar rigurosamente la naturaleza caótica de un candidato, se estiman sus exponentes de Lyapunov:
+Para evaluar con mayor rigor numérico la naturaleza dinámica de un candidato, se estiman sus exponentes de Lyapunov:
 
 $$\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_D$$
 
-La presencia de caos disipativo requiere que $\lambda_1 > 0$ y que la suma de todos los exponentes sea negativa ($\sum \lambda_i < 0$), lo que indica contracción global del volumen en el espacio de fases. En flujos autónomos tridimensionales ($D=3$), un atractor caótico típico presenta la firma $(\lambda_1, 0, \lambda_3)$ con $\lambda_1 > 0$, $\lambda_2 \approx 0$ (en la dirección de la trayectoria) y $\lambda_3 < -\lambda_1$.
+La evidencia numérica de caos disipativo suele buscar que $\lambda_1 > 0$ y que la suma de todos los exponentes sea negativa ($\sum \lambda_i < 0$). Esta suma negativa indica contracción media o asintótica a lo largo de la órbita y de la ventana estudiadas; es un diagnóstico numérico y no demuestra por sí sola contracción global del volumen en todo el espacio de fases. En flujos autónomos tridimensionales ($D=3$), un atractor caótico típico presenta la firma $(\lambda_1, 0, \lambda_3)$ con $\lambda_1 > 0$, $\lambda_2 \approx 0$ (en la dirección de la trayectoria) y $\lambda_3 < -\lambda_1$.
 
 A partir de los exponentes de Lyapunov, la **dimensión de Kaplan-Yorke** ($D_{KY}$) estima la dimensión fractal del atractor:
 
@@ -206,7 +214,7 @@ El Explorador Sprott permite explorar sistemas que caen en estas categorías. La
 Para cumplir con la política de distribución ética de Chaos Toolbox:
 - **Sin archivos protegidos:** La versión pública del software no incluye archivos de diccionarios propietarios de Sprott (`BOOKFIGS.DIC`, `SELECTED.DIC`, etc.), códigos fuente originales, ejecutables ni DLLs históricas.
 - **Carga local de usuario:** Los archivos `.DIC` son leídos en tiempo de ejecución de manera local y exclusiva por el usuario. El programa no copia ni distribuye dichos contenidos.
-- **Metadatos de visualización:** Toda imagen exportada desde la toolbox almacena sus parámetros esenciales de generación en sus metadatos (código Sprott, transitorio, iteraciones, paso $h$, método de integración, proyección, variables de color e información de clasificación). Esto garantiza la perfecta reproducibilidad científica de cada figura.
+- **Metadatos de visualización:** Las entradas guardadas en la galería local incluyen un archivo lateral `metadata.json` con el código Sprott, transitorio, iteraciones, paso $h$, método, proyección, estilo y clasificación. La exportación aislada de una imagen no incorpora necesariamente ese archivo. Conservar ambos ayuda a repetir el cálculo, sin garantizar identidad entre plataformas o versiones.
 
 ---
 

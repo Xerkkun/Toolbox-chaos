@@ -1,13 +1,14 @@
-# Catálogo de Sistemas Caóticos de Wang, Kuznetsov y Chen (2021)
+# Catálogo de sistemas reportados por Wang, Kuznetsov y Chen (2021)
 
-Este catálogo estructurado describe los sistemas caóticos del libro *Chaotic Systems with Multistability and Hidden Attractors* (Springer, 2021) que han sido integrados, calculados y verificados en Chaos Toolbox.
+Este catálogo transcribe 42 registros del libro *Chaotic Systems with Multistability and Hidden Attractors* (Springer, 2021). De ellos, 25 corresponden a identificadores ejecutables del registro actual de Chaos Toolbox y 17 se conservan sólo como fichas de referencia. Los equilibrios y autovalores marcados como calculados proceden de una búsqueda numérica finita de este generador; no demuestran caos, atracción ni ocultamiento.
 
 ## Lorenz system (`lorenz`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Lorenz, E. N. (1963). Deterministic nonperiodic flow. Journal of the Atmospheric Sciences.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=\sigma(y-x), \; \dot{y}=\rho x-y-xz, \; \dot{z}=xy-\beta z$$
 - **Parámetros**: `{'sigma': 10.0, 'rho': 28.0, 'beta': 2.6666666666666665}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.9056, 0.0, -14.5723]
@@ -29,10 +30,11 @@ kaplan_yorke_dimension: 2.06
 
 ## Rössler system (`rossler`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Rössler, O. E. (1976). An Equation for Continuous Chaos. Physics Letters A.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-y-z, \; \dot{y}=x+ay, \; \dot{z}=b+z(x-c)$$
 - **Parámetros**: `{'a': 0.2, 'b': 0.2, 'c': 5.7}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.0714, 0.0, -5.3943]
@@ -51,10 +53,11 @@ kaplan_yorke_dimension: 2.013
 
 ## Chua circuit, piecewise-linear form (`chua`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Chua, L. O. (1984). A Chaotic Attractor from Chua's Circuit. IEEE Transactions on Circuits and Systems.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=\alpha(y-x-h(x)), \; \dot{y}=x-y+z, \; \dot{z}=-\beta y$$
 - **Parámetros**: `{'alpha': 15.6, 'beta': 28.0, 'm0': -1.143, 'm1': -0.714}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 ```
@@ -74,10 +77,11 @@ attractor_type: self_excited
 
 ## Chen system (`chen`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Chen, G., Ueta, T. (1999). Yet another chaotic attractor. International Journal of Bifurcation and Chaos.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=a(y-x), \; \dot{y}=(c-a)x-xz+cy, \; \dot{z}=xy-bz$$
 - **Parámetros**: `{'a': 35.0, 'b': 3.0, 'c': 28.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 ```
@@ -97,10 +101,11 @@ attractor_type: self_excited
 
 ## Unified Lorenz-Chen system (`unified_lorenz_chen`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Lü, J., Chen, G., Zhang, S. (2002). The compound structure of a new chaotic attractor. Chaos, Solitons & Fractals.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=(25\alpha+10)(y-x), \; \dot{y}=(28-35\alpha)x+(29\alpha-1)y-xz, \; \dot{z}=-\frac{\alpha+8}{3}z+xy$$
 - **Parámetros**: `{'alpha': 0.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited (alpha=0: Lorenz, alpha=1: Chen)
 ```
@@ -120,10 +125,11 @@ attractor_type: self_excited (alpha=0: Lorenz, alpha=1: Chen)
 
 ## Sprott A system (`sprott_a`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x+yz, \; \dot{z}=1.0-y2$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: conservative_chaotic_sea
 lyapunov_exponents: [0.014, 0.0, -0.014]
@@ -136,10 +142,11 @@ kaplan_yorke_dimension: 3.000
 
 ## Sprott B system (`sprott_b`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=yz, \; \dot{y}=x-y, \; \dot{z}=1.0-xy$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.21, 0.0, -1.21]
@@ -158,10 +165,11 @@ kaplan_yorke_dimension: 2.174
 
 ## Sprott C system (`sprott_c`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=yz, \; \dot{y}=x-y, \; \dot{z}=1.0-x2$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.163, 0.0, -0.163]
@@ -180,10 +188,11 @@ kaplan_yorke_dimension: 2.140
 
 ## Sprott D system (`sprott_d`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-y, \; \dot{y}=x+z, \; \dot{z}=xz+3.0y2$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.103, 0.0, -1.32]
@@ -199,10 +208,11 @@ kaplan_yorke_dimension: 2.078
 
 ## Sprott E system (`sprott_e`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=yz, \; \dot{y}=x2-y, \; \dot{z}=1.0-4.0x$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.078, 0.0, -1.078]
@@ -218,10 +228,11 @@ kaplan_yorke_dimension: 2.072
 
 ## Sprott F system (`sprott_f`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y+z, \; \dot{y}=-x+0.5y, \; \dot{z}=x2-z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.117, 0.0, -0.617]
@@ -237,10 +248,11 @@ kaplan_yorke_dimension: 2.190
 
 ## Sprott G system (`sprott_g`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=0.4x+z, \; \dot{y}=xz-y, \; \dot{z}=-x+y$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.034, 0.0, -0.634]
@@ -259,10 +271,11 @@ kaplan_yorke_dimension: 2.054
 
 ## Sprott H system (`sprott_h`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-y+z2, \; \dot{y}=x+0.5y, \; \dot{z}=x-z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.117, 0.0, -0.617]
@@ -278,10 +291,11 @@ kaplan_yorke_dimension: 2.190
 
 ## Sprott I system (`sprott_i`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=0.2y, \; \dot{y}=x+z, \; \dot{z}=x+y2-z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.012, 0.0, -1.012]
@@ -297,10 +311,11 @@ kaplan_yorke_dimension: 2.012
 
 ## Sprott J system (`sprott_j`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=2.0z, \; \dot{y}=-2.0y+z, \; \dot{z}=-x+y+y2$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.076, 0.0, -2.076]
@@ -316,10 +331,11 @@ kaplan_yorke_dimension: 2.037
 
 ## Sprott K system (`sprott_k`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=xy-z, \; \dot{y}=x-y, \; \dot{z}=x+0.3z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.038, 0.0, -0.89]
@@ -335,10 +351,11 @@ kaplan_yorke_dimension: 2.042
 
 ## Sprott L system (`sprott_l`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y+3.9z, \; \dot{y}=0.9x2-y, \; \dot{z}=1.0-x$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.061, 0.0, -1.061]
@@ -354,10 +371,11 @@ kaplan_yorke_dimension: 2.057
 
 ## Sprott M system (`sprott_m`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-z, \; \dot{y}=-x2-y, \; \dot{z}=1.7+1.7x+y$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.044, 0.0, -1.044]
@@ -376,10 +394,11 @@ kaplan_yorke_dimension: 2.042
 
 ## Sprott N system (`sprott_n`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-2.0y, \; \dot{y}=x+z2, \; \dot{z}=1.0+y-2.0z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.076, 0.0, -2.076]
@@ -395,10 +414,11 @@ kaplan_yorke_dimension: 2.037
 
 ## Sprott O system (`sprott_o`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=x-z, \; \dot{z}=x+xz+2.7y$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.049, 0.0, -0.319]
@@ -417,10 +437,11 @@ kaplan_yorke_dimension: 2.154
 
 ## Sprott P system (`sprott_p`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=2.7y+z, \; \dot{y}=-x+y2, \; \dot{z}=x+y$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.087, 0.0, -0.481]
@@ -439,10 +460,11 @@ kaplan_yorke_dimension: 2.181
 
 ## Sprott Q system (`sprott_q`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-z, \; \dot{y}=x-y, \; \dot{z}=3.1x+y2+0.5z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.109, 0.0, -0.609]
@@ -458,10 +480,11 @@ kaplan_yorke_dimension: 2.179
 
 ## Sprott R system (`sprott_r`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=0.9-y, \; \dot{y}=0.4+z, \; \dot{z}=xy-z$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.062, 0.0, -1.062]
@@ -477,10 +500,11 @@ kaplan_yorke_dimension: 2.058
 
 ## Sprott S system (`sprott_s`)
 - **Capítulo**: 1 | **Tipo**: clásico
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=x-4.0y, \; \dot{y}=x+z2, \; \dot{z}=1.0+x$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 lyapunov_exponents: [0.188, 0.0, -1.188]
@@ -499,10 +523,11 @@ kaplan_yorke_dimension: 2.151
 
 ## Wang-Chen system with one stable equilibrium (`wang_chen_stable_equilibrium`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Wang, X., Chen, G. (2012). A chaotic system with only one stable equilibrium. Communications in Nonlinear Science and Numerical Simulation.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=yz+a, \; \dot{y}=x^2-y, \; \dot{z}=1-4x$$
 - **Parámetros**: `{'a': 0.006}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 lyapunov_exponents: [0.0489, 0.0, -1.0485]
@@ -517,10 +542,11 @@ lyapunov_exponents: [0.0489, 0.0, -1.0485]
 
 ## Wei extended Sprott E system (`wei_extended_sprott_e`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Wei, Z. (2013). Chaotic behavior of a simple system with one stable equilibrium. Kybernetika.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=yz+ex^2+fx+g, \; \dot{y}=x^2-y, \; \dot{z}=1-4x$$
 - **Parámetros**: `{'e': 0.0, 'f': -0.1, 'g': 0.02}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -534,10 +560,11 @@ attractor_type: hidden_candidate
 
 ## Lao system (`lao`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Lao, S.-K., Shekofteh, Y., Jafari, S., Sprott, J. C. (2014). GMM parameter estimation of a chaotic circuit. International Journal of Bifurcation and Chaos.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-z, \; \dot{y}=-x-z, \; \dot{z}=2x-1.3y-2z+x^2+z^2-xz$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 lyapunov_exponents: [0.018, 0.0, -2.018]
@@ -552,10 +579,11 @@ lyapunov_exponents: [0.018, 0.0, -2.018]
 
 ## Kingni system (`kingni`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Kingni, S., Jafari, S., Simo, H., Woafo, P. (2014). Three-dimensional chaotic autonomous system with only one stable equilibrium. European Physical Journal Plus.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-z, \; \dot{y}=-x-z, \; \dot{z}=3x-ay+x^2-z^2-yz+b$$
 - **Parámetros**: `{'a': 1.3, 'b': 1.01}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -569,10 +597,11 @@ attractor_type: hidden_candidate
 
 ## Controlled LE1 system (`line_equilibrium_to_one_stable`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Pham, V.-T., et al. (2013). Line equilibrium system controlled to one stable equilibrium.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x+yz+c, \; \dot{z}=-x-axy-bxz$$
 - **Parámetros**: `{'a': 15.0, 'b': 1.0, 'c': 0.001}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -586,10 +615,11 @@ attractor_type: hidden_candidate
 
 ## Yang-Chen system (`yang_chen`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Yang, Q., Chen, G. (2008). A chaotic system with one saddle and two stable node-foci. International Journal of Bifurcation and Chaos.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=a(y-x), \; \dot{y}=cx-xz, \; \dot{z}=-bz+xy$$
 - **Parámetros**: `{'a': 35.0, 'b': 3.0, 'c': 35.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: self_excited
 ```
@@ -609,10 +639,11 @@ attractor_type: self_excited
 
 ## Yang-Wei system (`yang_wei`)
 - **Capítulo**: 3 | **Tipo**: con equilibrio estable
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Yang, Q., Wei, Z., Chen, G. (2010). An unusual 3D autonomous quadratic chaotic system with two stable node-foci. International Journal of Bifurcation and Chaos.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=a(y-x), \; \dot{y}=-cy-xz, \; \dot{z}=-b+xy$$
 - **Parámetros**: `{'a': 10.0, 'b': 100.0, 'c': 11.2}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -629,10 +660,11 @@ attractor_type: hidden_candidate
 
 ## Sprott A no-equilibrium system (`sprott_a_no_equilibrium`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Sprott, J. C. (1994). Some simple chaotic flows. Physical Review E.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x+yz, \; \dot{z}=1-y^2$$
 - **Parámetros**: `{}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: conservative_chaotic_sea
 lyapunov_exponents: [0.0139, 0.0, -0.0139]
@@ -645,10 +677,11 @@ kaplan_yorke_dimension: 3.0
 
 ## Wei no-equilibrium system (`wei_no_equilibrium`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Wei, Z. (2011). Dynamical behaviors of a chaotic system with no equilibria. Physics Letters A.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=-y, \; \dot{y}=cx+z, \; \dot{z}=ay^2+xz-d$$
 - **Parámetros**: `{'a': 2.0, 'b': 1.0, 'c': 0.35}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 lyapunov_exponents: [0.0793, 0.0, -1.5034]
@@ -661,10 +694,11 @@ kaplan_yorke_dimension: 2.0528
 
 ## Wang-Chen no-equilibrium system (`wang_chen_no_equilibrium`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ejecutable en el registro de Toolbox
 - **Referencia**: Wang, X., Chen, G. (2013). Constructing a chaotic system with any number of equilibria. Nonlinear Dynamics.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=z, \; \dot{z}=-y+3y^2-x^2-xz+a$$
 - **Parámetros**: `{'a': -0.05}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -675,10 +709,11 @@ attractor_type: hidden_candidate
 
 ## Maaita cubic no-equilibrium system (`maaita`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Maaita, J., Volos, C. K., Kyprianidis, I., Stouboulos, I. (2015). The dynamics of a cubic nonlinear system with no equilibrium point. Nonlinear Dynamics.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x^3-zy, \; \dot{z}=y^2-a$$
 - **Parámetros**: `{'a': 5.16}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -689,10 +724,11 @@ attractor_type: hidden_candidate
 
 ## Akgul no-equilibrium system (`akgul`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Akgul, A., et al. (2016). Chaos-based engineering applications with a 3D chaotic system without equilibrium points. Nonlinear Dynamics.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=ay-x+zy, \; \dot{y}=-bxz-cx+zy+d, \; \dot{z}=e-fxy-x^2$$
 - **Parámetros**: `{'a': 2.8, 'b': 0.2, 'c': 1.4, 'd': 1.0, 'e': 10.0, 'f': 2.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -703,10 +739,11 @@ attractor_type: hidden_candidate
 
 ## Pham modified Jafari LE5 system (`pham_modified_le5`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Pham, V.-T., Volos, C., Kapitaniak, T. (2017). Systems with stable equilibria. Springer.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-1.5x+zy, \; \dot{z}=-x^2+y^2-5xy+a$$
 - **Parámetros**: `{'a': 0.001}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -717,10 +754,11 @@ attractor_type: hidden_candidate
 
 ## Pham modified Jafari LE6 system (`pham_modified_le6`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Pham, V.-T., Volos, C., Kapitaniak, T. (2017). Systems with stable equilibria. Springer.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x+zy, \; \dot{z}=0.04y^2-xy-0.1xz+a$$
 - **Parámetros**: `{'a': 0.001}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -731,10 +769,11 @@ attractor_type: hidden_candidate
 
 ## Pham special hidden-attractor system (`pham_special_hidden`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Pham, V.-T., et al. (2017). A novel hidden chaotic system.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=0.4xz-a, \; \dot{z}=0.3y-0.1z-1.4y^2-bxy-c$$
 - **Parámetros**: `{'a': 0.005, 'b': 0.2, 'c': 0.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```
@@ -745,10 +784,11 @@ attractor_type: hidden_candidate
 
 ## Pham-Akgul no-equilibrium system with boostable variable (`pham_akgul_boostable`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Pham, V.-T., Akgul, A., Volos, C., Jafari, S., Kapitaniak, T. (2017). Dynamics and circuit realization of a no-equilibrium chaotic system. AEU.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y+a, \; \dot{y}=-x+z, \; \dot{z}=-bx^2+z^2+c$$
 - **Parámetros**: `{'a': 1.0, 'b': 0.8, 'c': 2.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 lyapunov_exponents: [0.026, 0.0, -6.8624]
@@ -761,10 +801,11 @@ kaplan_yorke_dimension: 2.0038
 
 ## Jafari multiscroll chaotic sea without equilibrium (`jafari_multiscroll_no_equilibrium`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Jafari, S., Pham, V.-T., Kapitaniak, T. (2016). Multiscroll chaotic sea obtained from a simple 3D system. IJBC.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x+ayz+by\sin(z), \; \dot{z}=1-y^2$$
 - **Parámetros**: `{'a': 0.1, 'b': 2.9}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: conservative_chaotic_sea
 ```
@@ -775,10 +816,11 @@ attractor_type: conservative_chaotic_sea
 
 ## Hu System I, sine improved Sprott A (`hu_multiscroll_i`)
 - **Capítulo**: 4 | **Tipo**: sin equilibrio
+- **Estado en Toolbox**: Ficha de referencia; no ejecutable desde el registro de Toolbox
 - **Referencia**: Hu, X., Liu, C., Liu, L., Ni, J., Li, S. (2016). Multi-scroll hidden attractors in improved Sprott A system. Nonlinear Dynamics.
 - **Ecuaciones (LaTeX)**: $$\dot{x}=y, \; \dot{y}=-x+yz-a\sin(2\pi bx), \; \dot{z}=1-y^2$$
 - **Parámetros**: `{'a': 25.0, 'b': 1.0}`
-- **Dinámica reportada**: 
+- **Dinámica reportada por la fuente**:
 ```yaml
 attractor_type: hidden_candidate
 ```

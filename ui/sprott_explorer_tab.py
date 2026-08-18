@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import html
 import json
-import os
+import logging
 import re
 import tempfile
 from pathlib import Path
@@ -10,9 +11,13 @@ from time import perf_counter
 
 import numpy as np
 
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QBrush, QColor, QDesktopServices
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QBrush, QColor, QDesktopServices
+from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
@@ -43,16 +48,11 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-try:
-    from PyQt6.QtWebEngineWidgets import QWebEngineView
-    WEBENGINE_AVAILABLE = os.environ.get('QT_QPA_PLATFORM', '').lower() != 'offscreen'
-except Exception:
-    QWebEngineView = None
-    WEBENGINE_AVAILABLE = False
+from core.image_security import ImageSecurityError, confined_png
 
 try:
-    from PyQt6.QtPdf import QPdfDocument
-    from PyQt6.QtPdfWidgets import QPdfView
+    from PySide6.QtPdf import QPdfDocument
+    from PySide6.QtPdfWidgets import QPdfView
     QT_PDF_AVAILABLE = True
 except Exception:
     QPdfDocument = None
@@ -60,12 +60,22 @@ except Exception:
     QT_PDF_AVAILABLE = False
 
 from core.sprott import decode_code, describe_family
+
+
+LOGGER = logging.getLogger(__name__)
 from core.sprott.explain import explain_code_pipeline, format_explanation_markdown
-from core.sprott.catalog import favorites_path, load_favorites, load_synthetic_examples, save_favorite
-from core.sprott.gallery import build_metadata, gallery_root, list_gallery_entries, save_gallery_entry
+from core.sprott.catalog import load_favorites, load_synthetic_examples, save_favorite
+from core.sprott.gallery import (
+    build_metadata,
+    delete_gallery_entry,
+    gallery_root,
+    list_gallery_entries,
+    load_gallery_entry,
+    save_gallery_entry,
+)
 from core.sprott.reading_log import (
-    MARK_LABELS, READING_MARKS,
-    dominant_color, entry_key, get_entry, load_reading_log,
+    ReadingLogError,
+    dominant_color, entry_key, load_reading_log,
     marks_icons_text, save_reading_log, set_code, set_mark, set_note,
 )
 from core.sprott.references import index_local_reference_folder, read_dic_entries
@@ -83,6 +93,7 @@ from core.sprott.visual import (
     visual_recommendation,
 )
 from core.paths import bundled_doc_path, sprott_assets_dir
+from core.qt_capabilities import create_webengine_view
 from ui.math_render import render_math_to_path
 from ui.sprott_canvases import Sprott2DCanvas, SprottGalleryThumbnail
 from ui.widgets import make_help_label
@@ -170,10 +181,15 @@ class SprottExplorerTab(QWidget):
         return path.read_text(encoding='utf-8')
 
     def _markdown_browser(self, markdown: str) -> QTextBrowser:
-        html_doc = _markdown_to_clean_html(markdown, webengine=WEBENGINE_AVAILABLE, asset_root=self.assets_dir)
-        if WEBENGINE_AVAILABLE:
-            browser = QWebEngineView()
-            browser.setHtml(html_doc, QUrl.fromLocalFile(str(self.repo_root / 'assets' / 'sprott' / 'index.html')))
+        browser, _status = create_webengine_view()
+        html_doc = _markdown_to_clean_html(
+            markdown, webengine=browser is not None, asset_root=self.assets_dir
+        )
+        if browser is not None:
+            browser.setHtml(
+                html_doc,
+                QUrl.fromLocalFile(str(self.assets_dir / 'index.html')),
+            )
             return browser
         browser = QTextBrowser()
         browser.setOpenExternalLinks(False)
@@ -450,7 +466,7 @@ class SprottExplorerTab(QWidget):
         self.visual_preset_status_label.setWordWrap(True)
         self.visual_preset_combo.currentTextChanged.connect(self.apply_visual_preset)
         self.projection_combo = QComboBox()
-        self.projection_combo.addItems(PROJECTIONS + ['esfera (pendiente)'])
+        self.projection_combo.addItems(PROJECTIONS)
         self.projection_combo.setToolTip('Selecciona que variables se proyectan o si se dibuja 3D x-y-z.')
         self.color_by_combo = QComboBox()
         self.color_by_combo.addItems(COLOR_MODES)
@@ -486,7 +502,13 @@ class SprottExplorerTab(QWidget):
 
         style_form.addRow(make_help_label('Preset visual', 'Estilos inspirados por el flujo visual del libro, generados desde datos propios.'), self.visual_preset_combo)
         style_form.addRow('', self.visual_preset_status_label)
-        style_form.addRow(make_help_label('Proyeccion', 'Proyeccion 2D o 3D. Esfera queda marcada como pendiente.'), self.projection_combo)
+        style_form.addRow(
+            make_help_label(
+                'Proyeccion',
+                'Proyección 2D, 3D o radial de (x,y,z) sobre la esfera unitaria.',
+            ),
+            self.projection_combo,
+        )
         style_form.addRow(make_help_label('Color por', 'Constante, tiempo, variable, radio o diferencia entre iterados.'), self.color_by_combo)
         style_form.addRow(make_help_label('Paleta', 'Mapa de colores para puntos con color variable.'), self.palette_combo)
         style_form.addRow(make_help_label('Fondo', 'Color de fondo de la figura y exportacion.'), self.background_combo)
@@ -826,9 +848,11 @@ class SprottExplorerTab(QWidget):
 
         self.local_dic_sim_button = QPushButton('Simular codigo local seleccionado')
         self.local_dic_sim_button.setToolTip('Carga el codigo local en Exploracion y lo simula con el backend C si la familia A-X esta soportada.')
+        self.local_dic_sim_button.setEnabled(False)
         self.local_dic_sim_button.clicked.connect(self.simulate_selected_local_dic)
         self.local_dic_style_button = QPushButton('Simular con estilo recomendado')
         self.local_dic_style_button.setToolTip('Carga el codigo local, ajusta parametros largos y aplica un preset visual segun dimension.')
+        self.local_dic_style_button.setEnabled(False)
         self.local_dic_style_button.clicked.connect(self.simulate_selected_local_dic_recommended)
         self.local_dic_gallery_limit_combo = QComboBox()
         for value in (10, 25, 50):
@@ -1179,8 +1203,12 @@ class SprottExplorerTab(QWidget):
         if starter:
             try:
                 self.apply_example_to_controls(starter, apply_visual=True)
-            except Exception:
-                pass
+            except Exception as exc:
+                LOGGER.warning(
+                    'No se pudo aplicar el ejemplo inicial %r; se usará el código rápido.',
+                    starter.get('id', starter.get('name', 'sin-id')),
+                    exc_info=exc,
+                )
         # Fall back to quick default code
         self.quick_simulate()
 
@@ -1193,8 +1221,6 @@ class SprottExplorerTab(QWidget):
 
     def current_visual_config(self) -> SprottVisualConfig:
         projection = self.projection_combo.currentText()
-        if projection.startswith('esfera'):
-            projection = '3D x-y-z'
         return SprottVisualConfig(
             projection=projection,
             color_by=self.color_by_combo.currentText(),
@@ -1395,9 +1421,25 @@ class SprottExplorerTab(QWidget):
         lyap = ''
         if classification.get('state') == 'candidate_chaotic':
             try:
-                lyap = f'{quick_lyapunov_estimate(code, steps=350):.4g}'
-            except Exception:
-                lyap = ''
+                estimate = quick_lyapunov_estimate(
+                    code,
+                    steps=350,
+                    h=self.h_spin.value(),
+                    method=self.method_combo.currentText(),
+                )
+                value = (
+                    f'{estimate.value:.4g}'
+                    if np.isfinite(estimate.value)
+                    else str(estimate.value)
+                )
+                context = [estimate.status, *estimate.warnings]
+                lyap = (
+                    value
+                    if estimate.status == 'ok' and not estimate.warnings
+                    else f"{value} [{'; '.join(context)}]"
+                )
+            except Exception as exc:
+                lyap = f'error: {type(exc).__name__}: {exc}'
         record = {
             'attempt': attempt,
             'code': code,
@@ -1632,8 +1674,12 @@ class SprottExplorerTab(QWidget):
         params = item.get('parameters', {})
         visual = item.get('visual', {})
         thumbnail = item.get('thumbnail', '')
-        thumb_path = self.assets_dir / thumbnail if thumbnail else None
-        if thumb_path and thumb_path.exists():
+        try:
+            thumb_path = confined_png(self.assets_dir, thumbnail) if thumbnail else None
+        except ImageSecurityError as exc:
+            LOGGER.warning('Miniatura Sprott bloqueada: %s', exc)
+            thumb_path = None
+        if thumb_path is not None:
             self.example_thumbnail.set_image(thumb_path)
         else:
             self.example_thumbnail.clear()
@@ -1996,6 +2042,20 @@ class SprottExplorerTab(QWidget):
             return
         entry = self.local_dic_visible_entries[row]
         code = decode_code(entry['code'])
+        simulable = entry.get('support') in {'simulable', 'simulable especial'}
+        self.local_dic_sim_button.setEnabled(simulable)
+        self.local_dic_style_button.setEnabled(simulable)
+        if simulable:
+            self.local_dic_sim_button.setToolTip(
+                'Simula el código seleccionado con su implementación disponible.'
+            )
+            self.local_dic_style_button.setToolTip(
+                'Simula el código seleccionado y aplica el estilo recomendado.'
+            )
+        else:
+            reason = entry.get('support_reason') or entry.get('support', 'no simulable')
+            self.local_dic_sim_button.setToolTip(f'No simulable: {reason}')
+            self.local_dic_style_button.setToolTip(f'No simulable: {reason}')
         lines = [
             'REFERENCIA LOCAL DEL LIBRO',
             f"archivo: {entry['source_name']}",
@@ -2028,7 +2088,7 @@ class SprottExplorerTab(QWidget):
         self.local_dic_detail.setPlainText('\n'.join(lines))
 
     def show_cleaning_test_dialog(self):
-        from PyQt6.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QLabel, QHeaderView
+        from PySide6.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QLabel, QHeaderView
         
         erroneous_entries = []
         for entry in self.local_dic_entries:
@@ -2092,7 +2152,7 @@ class SprottExplorerTab(QWidget):
         self._go_to_tab('Exploracion')
         self.quick_simulate()
     def show_special_family_dialog(self, entry: dict, code):
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
         
         dialog = QDialog(self)
         dialog.setWindowTitle('Familia especial de Sprott detectada')
@@ -2437,7 +2497,16 @@ class SprottExplorerTab(QWidget):
         item = self._current_gallery_entry()
         if not item:
             return
-        QDesktopServices.openUrl(QUrl.fromLocalFile(item.get('_render_path', '')))
+        try:
+            validated = load_gallery_entry(
+                item.get('_entry_dir', ''), base=gallery_root()
+            )
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            QMessageBox.critical(self, 'Entrada no válida', str(exc))
+            return
+        QDesktopServices.openUrl(
+            QUrl.fromLocalFile(validated.get('_render_path', ''))
+        )
 
     def resimulate_selected_gallery_entry(self):
         item = self._current_gallery_entry()
@@ -2480,24 +2549,46 @@ class SprottExplorerTab(QWidget):
         item = self._current_gallery_entry()
         if not item:
             return
+        try:
+            validated = load_gallery_entry(
+                item.get('_entry_dir', ''), base=gallery_root()
+            )
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            QMessageBox.critical(self, 'Entrada no válida', str(exc))
+            return
+        render_path = Path(validated['_render_path'])
         path, _filter = QFileDialog.getSaveFileName(
             self,
             'Exportar render de galeria',
-            str(Path.home() / Path(item.get('_render_path', 'render.png')).name),
+            str(Path.home() / render_path.name),
             'PNG (*.png)',
         )
         if not path:
             return
-        Path(path).write_bytes(Path(item.get('_render_path', '')).read_bytes())
+        import shutil
+
+        shutil.copyfile(render_path, Path(path))
 
     def delete_selected_gallery_entry(self):
         item = self._current_gallery_entry()
         if not item:
             return
-        entry_dir = Path(item.get('_entry_dir', ''))
-        if entry_dir.exists() and (entry_dir / 'metadata.json').exists():
-            import shutil
-            shutil.rmtree(entry_dir)
+        answer = QMessageBox.question(
+            self,
+            'Eliminar entrada',
+            '¿Eliminar permanentemente esta entrada de la galería local?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            delete_gallery_entry(
+                item.get('_entry_dir', ''), base=gallery_root()
+            )
+        except (OSError, ValueError) as exc:
+            QMessageBox.critical(self, 'No se pudo eliminar', str(exc))
+            return
         self.refresh_gallery()
 
     def browse_import_folder(self):
@@ -2738,15 +2829,34 @@ class SprottExplorerTab(QWidget):
         """Carga el log de marcas desde el JSON de usuario."""
         try:
             self._reading_log = load_reading_log()
-        except Exception:
+            self._reading_log_load_error = None
+        except ReadingLogError as exc:
             self._reading_log = {}
+            self._reading_log_load_error = str(exc)
+            QMessageBox.warning(
+                self,
+                'Diario de lectura no disponible',
+                f'{exc}\nEl archivo existente no se sobrescribirá automáticamente.',
+            )
 
-    def _persist_reading_log(self):
+    def _persist_reading_log(self, candidate_log=None):
         """Guarda el log de marcas al JSON de usuario."""
+        load_error = getattr(self, '_reading_log_load_error', None)
+        if load_error:
+            QMessageBox.warning(
+                self,
+                'No se guardó el diario de lectura',
+                'El diario existente no se sobrescribirá porque no pudo leerse. '
+                'Corrige o mueve el archivo y reinicia la aplicación antes de guardar.\n'
+                f'Detalle: {load_error}',
+            )
+            return False
         try:
-            save_reading_log(self._reading_log)
-        except Exception:
-            pass
+            save_reading_log(self._reading_log if candidate_log is None else candidate_log)
+        except ReadingLogError as exc:
+            QMessageBox.warning(self, 'No se guardó el diario de lectura', str(exc))
+            return False
+        return True
 
     def _current_reading_entry(self) -> dict | None:
         """Entry actualmente seleccionado en la tabla de lectura, o None."""
@@ -2895,7 +3005,12 @@ class SprottExplorerTab(QWidget):
 
         try:
             code = decode_code(code_text)
-        except Exception:
+        except Exception as exc:
+            LOGGER.warning(
+                'No se pudo decodificar la entrada de lectura %s:%s.',
+                entry.get('source_name', 'desconocido'), entry.get('line', '?'),
+                exc_info=exc,
+            )
             self.reading_detail.setPlainText(f'No se pudo decodificar: {code_text}')
             return
 
@@ -2910,8 +3025,12 @@ class SprottExplorerTab(QWidget):
                 from core.sprott.families import PolynomialFlowFamily
                 fam = PolynomialFlowFamily(code.dimension, code.order, code.coefficients)
                 eq_text = fam.equations_text()
-        except Exception:
-            pass
+        except Exception as exc:
+            LOGGER.warning(
+                'No se pudieron reconstruir ecuaciones para %s:%s.',
+                entry.get('source_name', 'desconocido'), entry.get('line', '?'),
+                exc_info=exc,
+            )
 
         # Parámetros recomendados
         if code.kind == 'map':
@@ -2925,7 +3044,12 @@ class SprottExplorerTab(QWidget):
         try:
             vis_cfg = self._recommended_visual_for_entry(entry)
             vis_desc = f'proyección {vis_cfg.projection} | color {vis_cfg.color_by} | paleta {vis_cfg.palette}'
-        except Exception:
+        except Exception as exc:
+            LOGGER.warning(
+                'No se pudo obtener la configuración visual para %s:%s.',
+                entry.get('source_name', 'desconocido'), entry.get('line', '?'),
+                exc_info=exc,
+            )
             vis_desc = '(no disponible)'
 
         # Advertencia de soporte
@@ -3010,8 +3134,12 @@ class SprottExplorerTab(QWidget):
         try:
             cfg = self._recommended_visual_for_entry(entry)
             self.apply_visual_config_to_widgets(cfg)
-        except Exception:
-            pass
+        except Exception as exc:
+            LOGGER.warning(
+                'No se pudo aplicar la configuración recomendada para %s:%s.',
+                entry.get('source_name', 'desconocido'), entry.get('line', '?'),
+                exc_info=exc,
+            )
         self.simulate_reading_entry()
 
     def decode_reading_entry(self):
@@ -3028,14 +3156,17 @@ class SprottExplorerTab(QWidget):
         key = self._current_reading_key()
         if not key:
             return
+        candidate_log = deepcopy(self._reading_log)
         entry = self._current_reading_entry()
         if entry:
-            self._reading_log = set_code(
-                self._reading_log, key,
+            candidate_log = set_code(
+                candidate_log, key,
                 entry.get('code', ''), entry.get('source_name', ''), entry.get('line', 0)
             )
-        self._reading_log = set_note(self._reading_log, key, self.reading_note_edit.text())
-        self._persist_reading_log()
+        candidate_log = set_note(candidate_log, key, self.reading_note_edit.text())
+        if not self._persist_reading_log(candidate_log):
+            return
+        self._reading_log = candidate_log
         # Refrescar celda de nota en la fila actual
         row = self.reading_table.currentRow()
         if 0 <= row < self.reading_table.rowCount():
@@ -3144,14 +3275,22 @@ class SprottExplorerTab(QWidget):
                 btn.blockSignals(False)
             return
         # Asegurarse de que los metadatos del código están en el log
+        candidate_log = deepcopy(self._reading_log)
         entry = self._current_reading_entry()
         if entry:
-            self._reading_log = set_code(
-                self._reading_log, key,
+            candidate_log = set_code(
+                candidate_log, key,
                 entry.get('code', ''), entry.get('source_name', ''), entry.get('line', 0)
             )
-        self._reading_log = set_mark(self._reading_log, key, mark, checked)
-        self._persist_reading_log()
+        candidate_log = set_mark(candidate_log, key, mark, checked)
+        if not self._persist_reading_log(candidate_log):
+            btn = self._mark_buttons.get(mark)
+            if btn:
+                btn.blockSignals(True)
+                btn.setChecked(not checked)
+                btn.blockSignals(False)
+            return
+        self._reading_log = candidate_log
         # Actualizar color e iconos de la fila actual
         row = self.reading_table.currentRow()
         marks = self._reading_log.get(key, {}).get('marks', [])
@@ -3400,14 +3539,22 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False, asset_roo
             elif re.match(r'^!\[[^\]]*\]\([^)]+\)$', line):
                 close_list()
                 alt, src = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)$', line).groups()
-                image_src = _asset_image_src(src.strip(), asset_root)
                 caption = _inline_html(alt.strip())
-                parts.append(
-                    '<figure>'
-                    f'<img src="{html.escape(image_src)}" alt="{html.escape(alt.strip())}">'
-                    f'<figcaption>{caption}</figcaption>'
-                    '</figure>'
-                )
+                try:
+                    image_src = _asset_image_src(src.strip(), asset_root)
+                except ImageSecurityError as exc:
+                    LOGGER.warning('Imagen Markdown bloqueada: %s', exc)
+                    parts.append(
+                        '<p class="blocked-image">Imagen bloqueada: '
+                        f'{caption}</p>'
+                    )
+                else:
+                    parts.append(
+                        '<figure>'
+                        f'<img src="{html.escape(image_src)}" alt="{html.escape(alt.strip())}">'
+                        f'<figcaption>{caption}</figcaption>'
+                        '</figure>'
+                    )
             elif line.startswith(('- ', '* ')):
                 if not in_list:
                     parts.append('<ul>')
@@ -3426,17 +3573,9 @@ def _markdown_to_clean_html(markdown: str, *, webengine: bool = False, asset_roo
 
 
 def _asset_image_src(src: str, asset_root: Path | None) -> str:
-    if re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:', src):
-        return src
     if asset_root is None:
-        return src
-    path = Path(src)
-    if not path.is_absolute():
-        path = asset_root / path
-    try:
-        return path.resolve().as_uri()
-    except ValueError:
-        return src
+        raise ImageSecurityError('No se configuro una raiz local para la imagen.')
+    return confined_png(asset_root, src).as_uri()
 
 
 def _inline_html(text: str) -> str:

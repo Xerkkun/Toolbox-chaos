@@ -1,4 +1,6 @@
 #include <math.h>
+#include <float.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -8,6 +10,86 @@
 #else
   #define CHAOS_API __attribute__((visibility("default")))
 #endif
+
+#define CHAOS_CORE_ABI_VERSION 2
+
+CHAOS_API int chaos_core_abi_version(void) {
+    return CHAOS_CORE_ABI_VERSION;
+}
+
+typedef enum {
+    CHAOS_METHOD_EULER = 0,
+    CHAOS_METHOD_HEUN = 1,
+    CHAOS_METHOD_RK4 = 2
+} ChaosMethod;
+
+static int valid_method(int method) {
+    return method >= CHAOS_METHOD_EULER && method <= CHAOS_METHOD_RK4;
+}
+
+static int fixed_step_count(double duration, double dt, int allow_zero, int *steps_out) {
+    if (steps_out == NULL || !isfinite(duration) || !isfinite(dt) || dt <= 0.0) return -1;
+    if (duration < 0.0 || (!allow_zero && duration == 0.0)) return -1;
+    double ratio = duration / dt;
+    if (!isfinite(ratio) || ratio > (double)(INT_MAX - 2)) return -1;
+    double nearest = nearbyint(ratio);
+    double reconstructed = nearest * dt;
+    double scale = fmax(fabs(duration), fmax(fabs(reconstructed), fabs(dt)));
+    double duration_ulp = fabs(nextafter(duration, INFINITY) - duration);
+    double reconstructed_ulp = fabs(nextafter(reconstructed, INFINITY) - reconstructed);
+    double tolerance = fmax(
+        64.0 * DBL_EPSILON * scale,
+        fmax(8.0 * duration_ulp, 8.0 * reconstructed_ulp)
+    );
+    if (fabs(reconstructed - duration) > tolerance || nearest < 0.0) return -1;
+    if (!allow_zero && nearest < 1.0) return -1;
+    *steps_out = (int)nearest;
+    return 0;
+}
+
+static int bounded_integer(double value, int minimum, int maximum, int *result) {
+    if (result == NULL || !isfinite(value)) return -1;
+    double nearest = nearbyint(value);
+    double scale = fmax(1.0, fabs(value));
+    double tolerance = fmax(
+        64.0 * DBL_EPSILON * scale,
+        8.0 * fabs(nextafter(value, INFINITY) - value)
+    );
+    if (fabs(value - nearest) > tolerance || nearest < (double)minimum ||
+        nearest > (double)maximum) return -1;
+    *result = (int)nearest;
+    return 0;
+}
+
+static int checked_mul_size(size_t left, size_t right, size_t *result) {
+    if (result == NULL || (right != 0 && left > SIZE_MAX / right)) return -1;
+    *result = left * right;
+    return 0;
+}
+
+static int checked_add_size(size_t left, size_t right, size_t *result) {
+    if (result == NULL || left > SIZE_MAX - right) return -1;
+    *result = left + right;
+    return 0;
+}
+
+static int finite_array(const double *values, int count) {
+    if (count < 0 || (count > 0 && values == NULL)) return 0;
+    for (int index = 0; index < count; ++index) {
+        if (!isfinite(values[index])) return 0;
+    }
+    return 1;
+}
+
+static double convex_interpolate(double left, double right, int numerator, int denominator) {
+    if (denominator <= 0 || numerator <= 0) return left;
+    if (numerator >= denominator) return right;
+    double alpha = (double)numerator / (double)denominator;
+    if (signbit(left) == signbit(right)) {
+        return left + (right - left) * alpha;
+    }
+    return (1.0 - alpha) * left + alpha * right;
+}
 
 static void lorenz_rhs(double x, double y, double z, double sigma, double rho, double beta,
                        double *dx, double *dy, double *dz) {
@@ -25,7 +107,7 @@ static void step_lorenz(double *x, double *y, double *z,
     double dx4, dy4, dz4;
     double xn, yn, zn;
 
-    if (method == 0) { /* Euler */
+    if (method == CHAOS_METHOD_EULER) {
         lorenz_rhs(*x, *y, *z, sigma, rho, beta, &dx1, &dy1, &dz1);
         *x += dt * dx1;
         *y += dt * dy1;
@@ -33,7 +115,7 @@ static void step_lorenz(double *x, double *y, double *z,
         return;
     }
 
-    if (method == 1) { /* Heun / improved Euler */
+    if (method == CHAOS_METHOD_HEUN) {
         lorenz_rhs(*x, *y, *z, sigma, rho, beta, &dx1, &dy1, &dz1);
         xn = *x + dt * dx1;
         yn = *y + dt * dy1;
@@ -93,7 +175,12 @@ CHAOS_API int lorenz_simulate(
     double *X_out,
     int n
 ) {
-    if (dt <= 0.0 || T <= 0.0 || n < 2 || t_out == NULL || X_out == NULL) {
+    int steps = 0;
+    if (fixed_step_count(T, dt, 0, &steps) != 0 || n != steps + 1 ||
+        !valid_method(method) ||
+        !isfinite(x0) || !isfinite(y0) || !isfinite(z0) ||
+        !isfinite(sigma) || !isfinite(rho) || !isfinite(beta) ||
+        t_out == NULL || X_out == NULL) {
         return -1;
     }
 
@@ -108,9 +195,10 @@ CHAOS_API int lorenz_simulate(
         step_lorenz(&x, &y, &z, sigma, rho, beta, dt, method);
         t += dt;
         t_out[i] = t;
-        X_out[3 * i + 0] = x;
-        X_out[3 * i + 1] = y;
-        X_out[3 * i + 2] = z;
+        size_t offset = (size_t)3 * (size_t)i;
+        X_out[offset + 0U] = x;
+        X_out[offset + 1U] = y;
+        X_out[offset + 2U] = z;
     }
     return 0;
 }
@@ -128,14 +216,20 @@ CHAOS_API int lorenz_bifurcation_poincare(
     double *out_z,
     int *out_count
 ) {
-    if (n_rho < 1 || max_crossings_per_rho < 1 || dt <= 0.0 || T_keep <= 0.0 ||
+    int steps_trans = 0;
+    int steps_keep = 0;
+    if (n_rho < 1 || max_crossings_per_rho < 1 ||
+        n_rho > INT_MAX / max_crossings_per_rho ||
+        fixed_step_count(T_trans, dt, 1, &steps_trans) != 0 ||
+        fixed_step_count(T_keep, dt, 0, &steps_keep) != 0 ||
+        !valid_method(method) ||
+        !isfinite(x0) || !isfinite(y0) || !isfinite(z0) ||
+        !isfinite(sigma) || !isfinite(beta) ||
+        !isfinite(rho_min) || !isfinite(rho_max) || rho_min > rho_max ||
+        (continuation != 0 && continuation != 1) ||
         out_rho == NULL || out_z == NULL || out_count == NULL) {
         return -1;
     }
-
-    int steps_trans = (int)(T_trans / dt);
-    int steps_keep = (int)(T_keep / dt);
-    if (steps_keep < 2) steps_keep = 2;
 
     int count = 0;
     int denom = (n_rho == 1) ? 1 : (n_rho - 1);
@@ -143,7 +237,7 @@ CHAOS_API int lorenz_bifurcation_poincare(
     double x_seed = x0, y_seed = y0, z_seed = z0;
 
     for (int j = 0; j < n_rho; ++j) {
-        double rho = rho_min + (rho_max - rho_min) * ((double)j) / ((double)denom);
+        double rho = convex_interpolate(rho_min, rho_max, j, denom);
         double x = x_seed, y = y_seed, z = z_seed;
         int valid = 1;
 
@@ -225,12 +319,19 @@ CHAOS_API int lorenz_basin_plane(
     int method,
     uint8_t *basin_out
 ) {
-    if (nx < 2 || ny < 2 || dt <= 0.0 || T_total <= 0.0 || basin_out == NULL) {
+    int steps_total = 0;
+    size_t basin_count = 0;
+    if (nx < 2 || ny < 2 ||
+        checked_mul_size((size_t)nx, (size_t)ny, &basin_count) != 0 ||
+        fixed_step_count(T_total, dt, 0, &steps_total) != 0 ||
+        !isfinite(sigma) || !isfinite(rho) || !isfinite(beta) ||
+        !isfinite(z0_fixed) || !isfinite(x_min) || !isfinite(x_max) ||
+        !isfinite(y_min) || !isfinite(y_max) || x_min >= x_max || y_min >= y_max ||
+        !isfinite(hit_radius) || hit_radius <= 0.0 ||
+        !isfinite(esc_radius) || esc_radius <= 0.0 ||
+        !valid_method(method) || basin_out == NULL) {
         return -1;
     }
-
-    int steps_total = (int)(T_total / dt);
-    if (steps_total < 2) steps_total = 2;
 
     int denom_x = (nx == 1) ? 1 : (nx - 1);
     int denom_y = (ny == 1) ? 1 : (ny - 1);
@@ -244,9 +345,9 @@ CHAOS_API int lorenz_basin_plane(
     }
 
     for (int iy = 0; iy < ny; ++iy) {
-        double y0 = y_min + (y_max - y_min) * ((double)iy) / ((double)denom_y);
+        double y0 = convex_interpolate(y_min, y_max, iy, denom_y);
         for (int ix = 0; ix < nx; ++ix) {
-            double x0 = x_min + (x_max - x_min) * ((double)ix) / ((double)denom_x);
+            double x0 = convex_interpolate(x_min, x_max, ix, denom_x);
             double x = x0, y = y0, z = z0_fixed;
             uint8_t basin_class = 1;
             int crossing_count = 0;
@@ -333,51 +434,22 @@ CHAOS_API int lorenz_basin_plane(
                 );
             }
 
-            basin_out[iy * nx + ix] = basin_class;
+            basin_out[(size_t)iy * (size_t)nx + (size_t)ix] = basin_class;
         }
     }
     return 0;
 }
 
-enum {
-    SYS_LORENZ = 0,
-    SYS_ROSSLER = 1,
-    SYS_CHUA = 2,
-    SYS_CHEN = 3,
-    SYS_LU = 4,
-    SYS_HENON = 5,
-    SYS_LOGISTIC = 6,
-    SYS_IKEDA = 7,
-    SYS_MACKEY_GLASS = 8,
-    SYS_DUFFING_UEDA = 9,
-    SYS_RABINOVICH_FABRIKANT = 10,
-    SYS_RIKITAKE = 11,
-    SYS_SPROTT_A = 12,
-    SYS_THOMAS = 13,
-    SYS_HINDMARSH_ROSE = 14,
-    SYS_LORENZ96 = 15,
-    SYS_UNIFIED_LORENZ_CHEN = 16,
-    SYS_SPROTT_B = 17,
-    SYS_SPROTT_C = 18,
-    SYS_SPROTT_D = 19,
-    SYS_SPROTT_E = 20,
-    SYS_SPROTT_F = 21,
-    SYS_SPROTT_G = 22,
-    SYS_SPROTT_H = 23,
-    SYS_SPROTT_I = 24,
-    SYS_SPROTT_J = 25,
-    SYS_SPROTT_K = 26,
-    SYS_SPROTT_L = 27,
-    SYS_SPROTT_M = 28,
-    SYS_SPROTT_N = 29,
-    SYS_SPROTT_O = 30,
-    SYS_SPROTT_P = 31,
-    SYS_SPROTT_Q = 32,
-    SYS_SPROTT_R = 33,
-    SYS_SPROTT_S = 34,
-    SYS_WANG_CHEN_NO_EQUILIBRIUM = 35,
-    SYS_NAZARIMEHR_LINE_EQUILIBRIUM = 36
-};
+typedef enum {
+    #define CHAOS_SYSTEM(py_key, c_symbol, numeric_id) c_symbol = numeric_id,
+    #include "system_ids.def"
+    #undef CHAOS_SYSTEM
+    SYS_COUNT
+} ChaosSystem;
+
+static int valid_system(int system_id) {
+    return system_id >= SYS_LORENZ && system_id < SYS_COUNT;
+}
 
 static double param_at(const double *params, int n_params, int idx, double fallback) {
     if (params == NULL || idx < 0 || idx >= n_params) return fallback;
@@ -394,6 +466,184 @@ static int is_dde_system(int system_id) {
 
 static int is_lorenz96_system(int system_id) {
     return system_id == SYS_LORENZ96;
+}
+
+static void lorenz96_rhs(const double *state, double *derivative, int dimension,
+                         double forcing) {
+    for (int j = 0; j < dimension; ++j) {
+        derivative[j] =
+            (state[(j + 1) % dimension] - state[(j - 2 + dimension) % dimension])
+            * state[(j - 1 + dimension) % dimension]
+            - state[j] + forcing;
+    }
+}
+
+static void step_lorenz96(double *state, double *next, double *workspace,
+                          int dimension, double forcing, double dt, int method) {
+    double *k1 = workspace;
+    double *k2 = workspace + dimension;
+    double *k3 = workspace + 2 * dimension;
+    double *k4 = workspace + 3 * dimension;
+    double *temporary = workspace + 4 * dimension;
+    lorenz96_rhs(state, k1, dimension, forcing);
+    if (method == CHAOS_METHOD_EULER) {
+        for (int j = 0; j < dimension; ++j) next[j] = state[j] + dt * k1[j];
+        return;
+    }
+    if (method == CHAOS_METHOD_HEUN) {
+        for (int j = 0; j < dimension; ++j) temporary[j] = state[j] + dt * k1[j];
+        lorenz96_rhs(temporary, k2, dimension, forcing);
+        for (int j = 0; j < dimension; ++j) {
+            next[j] = state[j] + 0.5 * dt * (k1[j] + k2[j]);
+        }
+        return;
+    }
+    for (int j = 0; j < dimension; ++j) temporary[j] = state[j] + 0.5 * dt * k1[j];
+    lorenz96_rhs(temporary, k2, dimension, forcing);
+    for (int j = 0; j < dimension; ++j) temporary[j] = state[j] + 0.5 * dt * k2[j];
+    lorenz96_rhs(temporary, k3, dimension, forcing);
+    for (int j = 0; j < dimension; ++j) temporary[j] = state[j] + dt * k3[j];
+    lorenz96_rhs(temporary, k4, dimension, forcing);
+    for (int j = 0; j < dimension; ++j) {
+        next[j] = state[j] + (dt / 6.0) * (
+            k1[j] + 2.0 * k2[j] + 2.0 * k3[j] + k4[j]
+        );
+    }
+}
+
+static int vector_invalid(const double *state, int dimension, double escape_radius) {
+    if (state == NULL || dimension < 1) return 1;
+    for (int index = 0; index < dimension; ++index) {
+        if (!isfinite(state[index]) || fabs(state[index]) > escape_radius) return 1;
+    }
+    return 0;
+}
+
+static int mackey_delay_layout(double tau, double dt, int *delay_ceiling,
+                               double *delay_ratio) {
+    if (delay_ceiling == NULL || delay_ratio == NULL ||
+        !isfinite(tau) || !isfinite(dt) || dt <= 0.0 || tau < dt) return -1;
+    double ratio = tau / dt;
+    if (!isfinite(ratio) || ratio > (double)(INT_MAX - 2)) return -1;
+    double ceiling = ceil(ratio);
+    if (!isfinite(ceiling) || ceiling < 1.0 || ceiling > (double)(INT_MAX - 2)) return -1;
+    *delay_ceiling = (int)ceiling;
+    *delay_ratio = ratio;
+    return 0;
+}
+
+static double mackey_delayed_value(const double *history, size_t current_index,
+                                   double delay_ratio, double stage_fraction,
+                                   int cubic, size_t origin_index,
+                                   int constant_before_origin) {
+    double position = (double)current_index + stage_fraction - delay_ratio;
+    if (position < 0.0) position = 0.0;
+    if (position > (double)current_index) position = (double)current_index;
+    size_t lower = (size_t)floor(position);
+    if (lower >= current_index) return history[current_index];
+    double fraction = position - (double)lower;
+    if (!cubic || current_index < 3U || fraction <= 8.0 * DBL_EPSILON) {
+        return (1.0 - fraction) * history[lower] + fraction * history[lower + 1U];
+    }
+
+    size_t stencil_min = 0U;
+    size_t stencil_max = current_index;
+    double relative = position - (double)origin_index;
+    double tolerance = 64.0 * DBL_EPSILON * fmax(1.0, fabs(position));
+    if (constant_before_origin && relative <= tolerance) return history[origin_index];
+    if (relative >= -tolerance) {
+        double segment_value = floor(fmax(0.0, relative) / delay_ratio);
+        double left_boundary = (double)origin_index + segment_value * delay_ratio;
+        double right_boundary = left_boundary + delay_ratio;
+        double minimum_value = ceil(left_boundary - tolerance);
+        double maximum_value = floor(right_boundary + tolerance);
+        if (minimum_value > 0.0) stencil_min = (size_t)minimum_value;
+        if (maximum_value < (double)current_index) {
+            stencil_max = maximum_value < 0.0 ? 0U : (size_t)maximum_value;
+        }
+    }
+
+    size_t available = stencil_max >= stencil_min
+        ? stencil_max - stencil_min + 1U : 0U;
+    size_t degree_count = available < 4U ? available : 4U;
+    if (degree_count < 2U) {
+        double nearest_value = nearbyint(position);
+        if (nearest_value < 0.0) nearest_value = 0.0;
+        if (nearest_value > (double)current_index) nearest_value = (double)current_index;
+        return history[(size_t)nearest_value];
+    }
+    size_t start = lower > 0U ? lower - 1U : 0U;
+    if (start < stencil_min) start = stencil_min;
+    size_t latest_start = stencil_max - degree_count + 1U;
+    if (start > latest_start) start = latest_start;
+    double result = 0.0;
+    for (size_t node_offset = 0U; node_offset < degree_count; ++node_offset) {
+        size_t node = start + node_offset;
+        double weight = 1.0;
+        for (size_t other_offset = 0U; other_offset < degree_count; ++other_offset) {
+            if (other_offset != node_offset) {
+                size_t other = start + other_offset;
+                weight *= (position - (double)other) / ((double)node - (double)other);
+            }
+        }
+        result += weight * history[node];
+    }
+    return result;
+}
+
+static double mackey_rhs(double current, double delayed, double beta,
+                         double gamma, double exponent) {
+    double power = pow(fabs(delayed), exponent);
+    double feedback = isinf(power) ? 0.0 : beta * delayed / (1.0 + power);
+    return feedback - gamma * current;
+}
+
+static double step_mackey(const double *history, size_t current_index,
+                          double delay_ratio, double beta, double gamma,
+                          double exponent, double dt, int method,
+                          size_t origin_index, int constant_before_origin) {
+    double current = history[current_index];
+    int cubic = method == CHAOS_METHOD_RK4;
+    double delayed_1 = mackey_delayed_value(
+        history, current_index, delay_ratio, 0.0, cubic,
+        origin_index, constant_before_origin
+    );
+    double k1 = mackey_rhs(current, delayed_1, beta, gamma, exponent);
+    if (method == CHAOS_METHOD_EULER) return current + dt * k1;
+    if (method == CHAOS_METHOD_HEUN) {
+        double delayed_2 = mackey_delayed_value(
+            history, current_index, delay_ratio, 1.0, 0,
+            origin_index, constant_before_origin
+        );
+        double k2 = mackey_rhs(current + dt * k1, delayed_2, beta, gamma, exponent);
+        return current + 0.5 * dt * (k1 + k2);
+    }
+    double delayed_half = mackey_delayed_value(
+        history, current_index, delay_ratio, 0.5, 1,
+        origin_index, constant_before_origin
+    );
+    double k2 = mackey_rhs(current + 0.5 * dt * k1, delayed_half, beta, gamma, exponent);
+    double k3 = mackey_rhs(current + 0.5 * dt * k2, delayed_half, beta, gamma, exponent);
+    double delayed_4 = mackey_delayed_value(
+        history, current_index, delay_ratio, 1.0, 1,
+        origin_index, constant_before_origin
+    );
+    double k4 = mackey_rhs(current + dt * k3, delayed_4, beta, gamma, exponent);
+    return current + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+}
+
+static double mackey_observed(const double *history, size_t current_index,
+                              double delay_ratio, double beta, double gamma,
+                              double exponent, int observed_var_idx, int method,
+                              size_t origin_index, int constant_before_origin) {
+    double current = history[current_index];
+    double delayed = mackey_delayed_value(
+        history, current_index, delay_ratio, 0.0,
+        method == CHAOS_METHOD_RK4, origin_index, constant_before_origin
+    );
+    if (observed_var_idx == 0) return current;
+    if (observed_var_idx == 1) return delayed;
+    return mackey_rhs(current, delayed, beta, gamma, exponent);
 }
 
 static void rhs3_generic(int system_id, double x, double y, double z,
@@ -637,14 +887,14 @@ static void rhs3_generic(int system_id, double x, double y, double z,
 static void step3_generic(int system_id, double *x, double *y, double *z,
                           const double *p, int n_params, double dt, int method) {
     double dx1, dy1, dz1, dx2, dy2, dz2, dx3, dy3, dz3, dx4, dy4, dz4;
-    if (method == 0) {
+    if (method == CHAOS_METHOD_EULER) {
         rhs3_generic(system_id, *x, *y, *z, p, n_params, &dx1, &dy1, &dz1);
         *x += dt * dx1;
         *y += dt * dy1;
         *z += dt * dz1;
         return;
     }
-    if (method == 1) {
+    if (method == CHAOS_METHOD_HEUN) {
         rhs3_generic(system_id, *x, *y, *z, p, n_params, &dx1, &dy1, &dz1);
         rhs3_generic(system_id, *x + dt * dx1, *y + dt * dy1, *z + dt * dz1, p, n_params, &dx2, &dy2, &dz2);
         *x += 0.5 * dt * (dx1 + dx2);
@@ -691,29 +941,6 @@ static void map_step_generic(int system_id, double *x, double *y, double *z,
     }
 }
 
-static int simulate_final3(int system_id, const double *p, int n_params,
-                           double x0, double y0, double z0,
-                           double dt, double T, int method,
-                           double *xf, double *yf, double *zf) {
-    int n = (int)(T / dt) + 1;
-    if (n < 2) n = 2;
-    double x = x0, y = y0, z = z0;
-    if (is_map_system(system_id)) {
-        for (int i = 1; i < n; ++i) map_step_generic(system_id, &x, &y, &z, p, n_params);
-    } else if (!is_dde_system(system_id) && !is_lorenz96_system(system_id)) {
-        for (int i = 1; i < n; ++i) {
-            step3_generic(system_id, &x, &y, &z, p, n_params, dt, method);
-            if (state_invalid(x, y, z, 1e6)) break;
-        }
-    } else {
-        return -1;
-    }
-    *xf = x;
-    *yf = y;
-    *zf = z;
-    return 0;
-}
-
 CHAOS_API int chaos_simulate_system(
     int system_id,
     const double *params,
@@ -725,7 +952,13 @@ CHAOS_API int chaos_simulate_system(
     double *X_out,
     int n
 ) {
-    if (dt <= 0.0 || T <= 0.0 || n < 2 || t_out == NULL || X_out == NULL) return -1;
+    int steps = 0;
+    if (!valid_system(system_id) || !valid_method(method) || n_params < 0 ||
+        (n_params > 0 && params == NULL) ||
+        !finite_array(params, n_params) ||
+        !isfinite(x0) || !isfinite(y0) || !isfinite(z0) ||
+        fixed_step_count(T, dt, 0, &steps) != 0 || n != steps + 1 ||
+        t_out == NULL || X_out == NULL) return -1;
 
     double x = x0, y = y0, z = z0;
     double t = 0.0;
@@ -739,9 +972,10 @@ CHAOS_API int chaos_simulate_system(
             map_step_generic(system_id, &x, &y, &z, params, n_params);
             t += dt;
             t_out[i] = t;
-            X_out[3 * i + 0] = x;
-            X_out[3 * i + 1] = y;
-            X_out[3 * i + 2] = z;
+            size_t offset = (size_t)3 * (size_t)i;
+            X_out[offset + 0U] = x;
+            X_out[offset + 1U] = y;
+            X_out[offset + 2U] = z;
         }
         return 0;
     }
@@ -751,20 +985,44 @@ CHAOS_API int chaos_simulate_system(
         double gamma = param_at(params, n_params, 1, 0.1);
         double exponent = param_at(params, n_params, 2, 10.0);
         double tau = param_at(params, n_params, 3, 17.0);
-        int delay_steps = (int)round(tau / dt);
-        if (delay_steps < 1) delay_steps = 1;
-        double *history = (double *)malloc((size_t)(n + delay_steps + 1) * sizeof(double));
+        int delay_ceiling = 0;
+        double delay_ratio = 0.0;
+        if (exponent <= 0.0 ||
+            mackey_delay_layout(tau, dt, &delay_ceiling, &delay_ratio) != 0 ||
+            delay_ceiling > INT_MAX - n - 2) return -1;
+        size_t prefix_count = (size_t)delay_ceiling + 3U;
+        size_t history_count = 0;
+        size_t history_bytes = 0;
+        if (checked_add_size(prefix_count, (size_t)n - 1U, &history_count) != 0 ||
+            checked_mul_size(history_count, sizeof(double), &history_bytes) != 0) return -2;
+        double *history = (double *)malloc(history_bytes);
         if (history == NULL) return -2;
-        for (int i = 0; i < n + delay_steps + 1; ++i) history[i] = x0;
+        for (size_t i = 0; i < history_count; ++i) history[i] = x0;
+        size_t origin_index = prefix_count - 1U;
         for (int i = 0; i < n; ++i) {
-            double x_tau = history[i];
-            double x_now = history[i + delay_steps];
-            double dx = beta * x_tau / (1.0 + pow(fabs(x_tau), exponent)) - gamma * x_now;
-            history[i + delay_steps + 1] = x_now + dt * dx;
+            size_t current_index = origin_index + (size_t)i;
+            double x_now = history[current_index];
+            double x_tau = mackey_delayed_value(
+                history, current_index, delay_ratio, 0.0,
+                method == CHAOS_METHOD_RK4, origin_index, 1
+            );
+            double dx = mackey_rhs(x_now, x_tau, beta, gamma, exponent);
             t_out[i] = i * dt;
-            X_out[3 * i + 0] = x_now;
-            X_out[3 * i + 1] = x_tau;
-            X_out[3 * i + 2] = dx;
+            size_t offset = (size_t)3 * (size_t)i;
+            X_out[offset + 0U] = x_now;
+            X_out[offset + 1U] = x_tau;
+            X_out[offset + 2U] = dx;
+            if (i + 1 < n) {
+                double next_value = step_mackey(
+                    history, current_index, delay_ratio,
+                    beta, gamma, exponent, dt, method, origin_index, 1
+                );
+                if (!isfinite(next_value)) {
+                    free(history);
+                    return -3;
+                }
+                history[current_index + 1U] = next_value;
+            }
         }
         free(history);
         return 0;
@@ -772,14 +1030,23 @@ CHAOS_API int chaos_simulate_system(
 
     if (is_lorenz96_system(system_id)) {
         double forcing = param_at(params, n_params, 0, 8.0);
-        int dim = (int)round(param_at(params, n_params, 1, 8.0));
-        if (dim < 4) dim = 4;
-        if (dim > 256) dim = 256;
-        double *state = (double *)malloc((size_t)dim * sizeof(double));
-        double *next = (double *)malloc((size_t)dim * sizeof(double));
-        if (state == NULL || next == NULL) {
+        double dimension_value = param_at(params, n_params, 1, 8.0);
+        int dim = 0;
+        if (!isfinite(forcing) ||
+            bounded_integer(dimension_value, 4, 256, &dim) != 0) return -1;
+        size_t state_bytes = 0;
+        size_t workspace_count = 0;
+        size_t workspace_bytes = 0;
+        if (checked_mul_size((size_t)dim, sizeof(double), &state_bytes) != 0 ||
+            checked_mul_size((size_t)dim, 5U, &workspace_count) != 0 ||
+            checked_mul_size(workspace_count, sizeof(double), &workspace_bytes) != 0) return -2;
+        double *state = (double *)malloc(state_bytes);
+        double *next = (double *)malloc(state_bytes);
+        double *workspace = (double *)malloc(workspace_bytes);
+        if (state == NULL || next == NULL || workspace == NULL) {
             free(state);
             free(next);
+            free(workspace);
             return -2;
         }
         for (int j = 0; j < dim; ++j) state[j] = forcing;
@@ -787,19 +1054,18 @@ CHAOS_API int chaos_simulate_system(
         state[1] = y0;
         state[2] = z0;
         for (int i = 1; i < n; ++i) {
-            for (int j = 0; j < dim; ++j) {
-                double rhs = (state[(j + 1) % dim] - state[(j - 2 + dim) % dim]) * state[(j - 1 + dim) % dim] - state[j] + forcing;
-                next[j] = state[j] + dt * rhs;
-            }
+            step_lorenz96(state, next, workspace, dim, forcing, dt, method);
             for (int j = 0; j < dim; ++j) state[j] = next[j];
             t += dt;
             t_out[i] = t;
-            X_out[3 * i + 0] = state[0];
-            X_out[3 * i + 1] = state[1];
-            X_out[3 * i + 2] = state[2];
+            size_t offset = (size_t)3 * (size_t)i;
+            X_out[offset + 0U] = state[0];
+            X_out[offset + 1U] = state[1];
+            X_out[offset + 2U] = state[2];
         }
         free(state);
         free(next);
+        free(workspace);
         return 0;
     }
 
@@ -807,20 +1073,314 @@ CHAOS_API int chaos_simulate_system(
         step3_generic(system_id, &x, &y, &z, params, n_params, dt, method);
         t += dt;
         t_out[i] = t;
-        X_out[3 * i + 0] = x;
-        X_out[3 * i + 1] = y;
-        X_out[3 * i + 2] = z;
+        size_t offset = (size_t)3 * (size_t)i;
+        X_out[offset + 0U] = x;
+        X_out[offset + 1U] = y;
+        X_out[offset + 2U] = z;
         if (state_invalid(x, y, z, 1e12)) {
             for (int j = i + 1; j < n; ++j) {
                 t += dt;
                 t_out[j] = t;
-                X_out[3 * j + 0] = NAN;
-                X_out[3 * j + 1] = NAN;
-                X_out[3 * j + 2] = NAN;
+                size_t tail_offset = (size_t)3 * (size_t)j;
+                X_out[tail_offset + 0U] = NAN;
+                X_out[tail_offset + 1U] = NAN;
+                X_out[tail_offset + 2U] = NAN;
             }
             break;
         }
     }
+    return 0;
+}
+
+static void emit_bifurcation_ring(
+    double parameter,
+    const double *maxima, int maxima_count,
+    const double *fallback, int fallback_count,
+    int max_points,
+    double *out_param, double *out_value, int *count
+) {
+    const double *source = maxima_count > 0 ? maxima : fallback;
+    int source_count = maxima_count > 0 ? maxima_count : fallback_count;
+    int emit = source_count < max_points ? source_count : max_points;
+    int start = source_count < max_points ? 0 : (source_count % max_points);
+    for (int index = 0; index < emit; ++index) {
+        out_param[*count] = parameter;
+        out_value[*count] = source[(start + index) % max_points];
+        *count += 1;
+    }
+}
+
+static int bifurcation_mackey_glass(
+    const double *params, int n_params, int param_idx, int observed_var_idx,
+    double x0, double param_min, double param_max, int n_param,
+    double dt, int steps_trans, int steps_keep, int max_points,
+    int continuation, int method,
+    double *out_param, double *out_value, int *out_count
+) {
+    if (n_params < 4 || param_idx >= n_params || steps_trans > INT_MAX - steps_keep) {
+        return -1;
+    }
+    double exponent_min = param_idx == 2 ? param_min : params[2];
+    double tau_min = param_idx == 3 ? param_min : params[3];
+    double tau_max = param_idx == 3 ? param_max : params[3];
+    if (exponent_min <= 0.0) return -1;
+    int delay_ceiling = 0;
+    int minimum_delay_ceiling = 0;
+    double maximum_delay_ratio = 0.0;
+    double minimum_delay_ratio = 0.0;
+    if (mackey_delay_layout(tau_min, dt, &minimum_delay_ceiling,
+                            &minimum_delay_ratio) != 0 ||
+        mackey_delay_layout(tau_max, dt, &delay_ceiling,
+                            &maximum_delay_ratio) != 0) return -1;
+    (void)minimum_delay_ceiling;
+    (void)minimum_delay_ratio;
+    (void)maximum_delay_ratio;
+
+    int steps_total = steps_trans + steps_keep;
+    if (steps_total > INT_MAX - 3 ||
+        delay_ceiling > INT_MAX - steps_total - 3) return -1;
+    size_t prefix_count = (size_t)delay_ceiling + 3U;
+    size_t history_count = 0;
+    size_t params_bytes = 0;
+    size_t prefix_bytes = 0;
+    size_t history_bytes = 0;
+    size_t points_bytes = 0;
+    if (checked_add_size(prefix_count, (size_t)steps_total, &history_count) != 0 ||
+        checked_mul_size((size_t)n_params, sizeof(double), &params_bytes) != 0 ||
+        checked_mul_size(prefix_count, sizeof(double), &prefix_bytes) != 0 ||
+        checked_mul_size(history_count, sizeof(double), &history_bytes) != 0 ||
+        checked_mul_size((size_t)max_points, sizeof(double), &points_bytes) != 0) {
+        return -2;
+    }
+    double *p = (double *)malloc(params_bytes);
+    double *seed_history = (double *)malloc(prefix_bytes);
+    double *history = (double *)malloc(history_bytes);
+    double *fallback = (double *)malloc(points_bytes);
+    double *maxima = (double *)malloc(points_bytes);
+    if (p == NULL || seed_history == NULL || history == NULL ||
+        fallback == NULL || maxima == NULL) {
+        free(p); free(seed_history); free(history); free(fallback); free(maxima);
+        return -2;
+    }
+    for (size_t index = 0; index < prefix_count; ++index) seed_history[index] = x0;
+
+    int count = 0;
+    int seed_is_constant = 1;
+    int denominator = n_param == 1 ? 1 : n_param - 1;
+    for (int parameter_index = 0; parameter_index < n_param; ++parameter_index) {
+        for (int index = 0; index < n_params; ++index) p[index] = params[index];
+        double parameter = convex_interpolate(
+            param_min, param_max, parameter_index, denominator
+        );
+        p[param_idx] = parameter;
+        double beta = p[0];
+        double gamma = p[1];
+        double exponent = p[2];
+        double tau = p[3];
+        int actual_delay_ceiling = 0;
+        double delay_ratio = 0.0;
+        if (exponent <= 0.0 ||
+            mackey_delay_layout(tau, dt, &actual_delay_ceiling, &delay_ratio) != 0 ||
+            actual_delay_ceiling > delay_ceiling) {
+            free(p); free(seed_history); free(history); free(fallback); free(maxima);
+            return -1;
+        }
+        for (size_t index = 0; index < prefix_count; ++index) {
+            history[index] = continuation ? seed_history[index] : x0;
+        }
+        size_t current_index = prefix_count - 1U;
+        size_t origin_index = current_index;
+        int constant_before_origin = !continuation || seed_is_constant;
+        int valid = 1;
+        for (int step = 0; step < steps_trans; ++step) {
+            double next_value = step_mackey(
+                history, current_index, delay_ratio,
+                beta, gamma, exponent, dt, method,
+                origin_index, constant_before_origin
+            );
+            if (!isfinite(next_value) || fabs(next_value) > 1e8) {
+                valid = 0;
+                break;
+            }
+            current_index += 1U;
+            history[current_index] = next_value;
+        }
+
+        int maxima_count = 0;
+        int fallback_count = 0;
+        if (valid) {
+            double previous_previous = mackey_observed(
+                history, current_index, delay_ratio,
+                beta, gamma, exponent, observed_var_idx, method,
+                origin_index, constant_before_origin
+            );
+            double previous = previous_previous;
+            for (int step = 0; step < steps_keep; ++step) {
+                double next_value = step_mackey(
+                    history, current_index, delay_ratio,
+                    beta, gamma, exponent, dt, method,
+                    origin_index, constant_before_origin
+                );
+                if (!isfinite(next_value) || fabs(next_value) > 1e8) {
+                    valid = 0;
+                    break;
+                }
+                current_index += 1U;
+                history[current_index] = next_value;
+                double value = mackey_observed(
+                    history, current_index, delay_ratio,
+                    beta, gamma, exponent, observed_var_idx, method,
+                    origin_index, constant_before_origin
+                );
+                if (!isfinite(value)) {
+                    valid = 0;
+                    break;
+                }
+                if (step >= 1 && previous > previous_previous && previous >= value) {
+                    maxima[maxima_count % max_points] = previous;
+                    maxima_count += 1;
+                }
+                fallback[fallback_count % max_points] = value;
+                fallback_count += 1;
+                previous_previous = previous;
+                previous = value;
+            }
+        }
+        if (valid) {
+            emit_bifurcation_ring(
+                parameter, maxima, maxima_count, fallback, fallback_count,
+                max_points, out_param, out_value, &count
+            );
+            if (continuation) {
+                size_t start = current_index - prefix_count + 1U;
+                for (size_t index = 0; index < prefix_count; ++index) {
+                    seed_history[index] = history[start + index];
+                }
+                seed_is_constant = 0;
+            }
+        } else if (continuation) {
+            for (size_t index = 0; index < prefix_count; ++index) seed_history[index] = x0;
+            seed_is_constant = 1;
+        }
+    }
+
+    free(p); free(seed_history); free(history); free(fallback); free(maxima);
+    *out_count = count;
+    return 0;
+}
+
+static int bifurcation_lorenz96(
+    const double *params, int n_params, int param_idx, int observed_var_idx,
+    double x0, double y0, double z0,
+    double param_min, double param_max, int n_param,
+    double dt, int steps_trans, int steps_keep, int max_points,
+    int continuation, int method,
+    double *out_param, double *out_value, int *out_count
+) {
+    if (n_params < 2 || param_idx >= n_params || steps_trans > INT_MAX - steps_keep ||
+        (param_idx == 1 && (n_param != 1 || param_min != param_max))) return -1;
+    double dimension_value = param_idx == 1 ? param_min : params[1];
+    int dimension = 0;
+    if (bounded_integer(dimension_value, 4, 256, &dimension) != 0) return -1;
+
+    size_t params_bytes = 0;
+    size_t state_bytes = 0;
+    size_t workspace_count = 0;
+    size_t workspace_bytes = 0;
+    size_t points_bytes = 0;
+    if (checked_mul_size((size_t)n_params, sizeof(double), &params_bytes) != 0 ||
+        checked_mul_size((size_t)dimension, sizeof(double), &state_bytes) != 0 ||
+        checked_mul_size((size_t)dimension, 5U, &workspace_count) != 0 ||
+        checked_mul_size(workspace_count, sizeof(double), &workspace_bytes) != 0 ||
+        checked_mul_size((size_t)max_points, sizeof(double), &points_bytes) != 0) return -2;
+    double *p = (double *)malloc(params_bytes);
+    double *state = (double *)malloc(state_bytes);
+    double *next = (double *)malloc(state_bytes);
+    double *seed_state = (double *)malloc(state_bytes);
+    double *workspace = (double *)malloc(workspace_bytes);
+    double *fallback = (double *)malloc(points_bytes);
+    double *maxima = (double *)malloc(points_bytes);
+    if (p == NULL || state == NULL || next == NULL || seed_state == NULL ||
+        workspace == NULL || fallback == NULL || maxima == NULL) {
+        free(p); free(state); free(next); free(seed_state); free(workspace);
+        free(fallback); free(maxima);
+        return -2;
+    }
+
+    int count = 0;
+    int have_seed = 0;
+    int denominator = n_param == 1 ? 1 : n_param - 1;
+    for (int parameter_index = 0; parameter_index < n_param; ++parameter_index) {
+        for (int index = 0; index < n_params; ++index) p[index] = params[index];
+        double parameter = convex_interpolate(
+            param_min, param_max, parameter_index, denominator
+        );
+        p[param_idx] = parameter;
+        int actual_dimension = 0;
+        if (bounded_integer(p[1], 4, 256, &actual_dimension) != 0 ||
+            actual_dimension != dimension || !isfinite(p[0])) {
+            free(p); free(state); free(next); free(seed_state); free(workspace);
+            free(fallback); free(maxima);
+            return -1;
+        }
+        if (continuation && have_seed) {
+            for (int index = 0; index < dimension; ++index) state[index] = seed_state[index];
+        } else {
+            for (int index = 0; index < dimension; ++index) state[index] = p[0];
+            state[0] = x0;
+            state[1] = y0;
+            state[2] = z0;
+        }
+        int valid = 1;
+        for (int step = 0; step < steps_trans; ++step) {
+            step_lorenz96(state, next, workspace, dimension, p[0], dt, method);
+            if (vector_invalid(next, dimension, 1e8)) {
+                valid = 0;
+                break;
+            }
+            for (int index = 0; index < dimension; ++index) state[index] = next[index];
+        }
+
+        int maxima_count = 0;
+        int fallback_count = 0;
+        if (valid) {
+            double previous_previous = state[observed_var_idx];
+            double previous = previous_previous;
+            for (int step = 0; step < steps_keep; ++step) {
+                step_lorenz96(state, next, workspace, dimension, p[0], dt, method);
+                if (vector_invalid(next, dimension, 1e8)) {
+                    valid = 0;
+                    break;
+                }
+                for (int index = 0; index < dimension; ++index) state[index] = next[index];
+                double value = state[observed_var_idx];
+                if (step >= 1 && previous > previous_previous && previous >= value) {
+                    maxima[maxima_count % max_points] = previous;
+                    maxima_count += 1;
+                }
+                fallback[fallback_count % max_points] = value;
+                fallback_count += 1;
+                previous_previous = previous;
+                previous = value;
+            }
+        }
+        if (valid) {
+            emit_bifurcation_ring(
+                parameter, maxima, maxima_count, fallback, fallback_count,
+                max_points, out_param, out_value, &count
+            );
+            if (continuation) {
+                for (int index = 0; index < dimension; ++index) seed_state[index] = state[index];
+                have_seed = 1;
+            }
+        } else if (continuation) {
+            have_seed = 0;
+        }
+    }
+
+    free(p); free(state); free(next); free(seed_state); free(workspace);
+    free(fallback); free(maxima);
+    *out_count = count;
     return 0;
 }
 
@@ -841,22 +1401,49 @@ CHAOS_API int chaos_bifurcation_generic(
     double *out_value,
     int *out_count
 ) {
-    if (params == NULL || n_params < 0 || param_idx < 0 || observed_var_idx < 0 || observed_var_idx > 2 || n_param < 1 || dt <= 0.0 ||
-        T_keep <= 0.0 || max_points < 1 || out_param == NULL || out_value == NULL || out_count == NULL) {
+    int steps_trans = 0;
+    int steps_keep = 0;
+    if (!valid_system(system_id) || !valid_method(method) || params == NULL ||
+        n_params < 0 || param_idx < 0 || observed_var_idx < 0 ||
+        observed_var_idx > 2 || n_param < 1 ||
+        fixed_step_count(T_trans, dt, 1, &steps_trans) != 0 ||
+        fixed_step_count(T_keep, dt, 0, &steps_keep) != 0 ||
+        max_points < 1 || n_param > INT_MAX / max_points ||
+        !finite_array(params, n_params) ||
+        !isfinite(x0) || !isfinite(y0) || !isfinite(z0) ||
+        !isfinite(param_min) || !isfinite(param_max) || param_min > param_max ||
+        (continuation != 0 && continuation != 1) ||
+        out_param == NULL || out_value == NULL || out_count == NULL) {
         return -1;
     }
     if (param_idx >= n_params) return -1;
-
-    int steps_trans = (int)(T_trans / dt);
-    int steps_keep = (int)(T_keep / dt);
-    if (steps_keep < 2) steps_keep = 2;
+    if (is_dde_system(system_id)) {
+        return bifurcation_mackey_glass(
+            params, n_params, param_idx, observed_var_idx,
+            x0, param_min, param_max, n_param,
+            dt, steps_trans, steps_keep, max_points,
+            continuation, method, out_param, out_value, out_count
+        );
+    }
+    if (is_lorenz96_system(system_id)) {
+        return bifurcation_lorenz96(
+            params, n_params, param_idx, observed_var_idx,
+            x0, y0, z0, param_min, param_max, n_param,
+            dt, steps_trans, steps_keep, max_points,
+            continuation, method, out_param, out_value, out_count
+        );
+    }
     int denom = (n_param == 1) ? 1 : (n_param - 1);
     int count = 0;
 
     double seed_x = x0, seed_y = y0, seed_z = z0;
-    double *p = (double *)malloc((size_t)n_params * sizeof(double));
-    double *fallback = (double *)malloc((size_t)max_points * sizeof(double));
-    double *maxima = (double *)malloc((size_t)max_points * sizeof(double));
+    size_t params_bytes = 0;
+    size_t points_bytes = 0;
+    if (checked_mul_size((size_t)n_params, sizeof(double), &params_bytes) != 0 ||
+        checked_mul_size((size_t)max_points, sizeof(double), &points_bytes) != 0) return -2;
+    double *p = (double *)malloc(params_bytes);
+    double *fallback = (double *)malloc(points_bytes);
+    double *maxima = (double *)malloc(points_bytes);
     if (p == NULL || fallback == NULL || maxima == NULL) {
         free(p);
         free(fallback);
@@ -866,7 +1453,7 @@ CHAOS_API int chaos_bifurcation_generic(
 
     for (int j = 0; j < n_param; ++j) {
         for (int k = 0; k < n_params; ++k) p[k] = params[k];
-        double param_value = param_min + (param_max - param_min) * ((double)j) / ((double)denom);
+        double param_value = convex_interpolate(param_min, param_max, j, denom);
         p[param_idx] = param_value;
 
         double x = seed_x, y = seed_y, z = seed_z;
@@ -939,8 +1526,19 @@ CHAOS_API int chaos_bifurcation_generic(
                 }
             }
         } else {
-            double *t_tmp = (double *)malloc((size_t)(steps_trans + steps_keep + 2) * sizeof(double));
-            double *x_tmp = (double *)malloc((size_t)(steps_trans + steps_keep + 2) * 3 * sizeof(double));
+            size_t temporary_count = 0;
+            size_t temporary_time_bytes = 0;
+            size_t temporary_state_count = 0;
+            size_t temporary_state_bytes = 0;
+            if (steps_trans > INT_MAX - steps_keep - 2 ||
+                checked_add_size((size_t)steps_trans, (size_t)steps_keep + 2U, &temporary_count) != 0 ||
+                checked_mul_size(temporary_count, sizeof(double), &temporary_time_bytes) != 0 ||
+                checked_mul_size(temporary_count, 3U, &temporary_state_count) != 0 ||
+                checked_mul_size(temporary_state_count, sizeof(double), &temporary_state_bytes) != 0) {
+                free(p); free(fallback); free(maxima); return -2;
+            }
+            double *t_tmp = (double *)malloc(temporary_time_bytes);
+            double *x_tmp = (double *)malloc(temporary_state_bytes);
             if (t_tmp == NULL || x_tmp == NULL) {
                 free(t_tmp);
                 free(x_tmp);
@@ -1008,24 +1606,31 @@ CHAOS_API int chaos_basin_plane_generic(
     int method,
     uint8_t *basin_out
 ) {
-    if (params == NULL || nx < 2 || ny < 2 || row_start < 0 || row_count < 1 ||
-        row_start + row_count > ny || dt <= 0.0 || T_total <= 0.0 || basin_out == NULL) {
+    int steps_total = 0;
+    size_t output_count = 0;
+    if (!valid_system(system_id) || !valid_method(method) ||
+        n_params < 0 || !finite_array(params, n_params) ||
+        n_eq < 0 || n_eq >= 240 || !finite_array(eq_points, 3 * n_eq) ||
+        !isfinite(z0_fixed) || !isfinite(x_min) || !isfinite(x_max) ||
+        !isfinite(y_min) || !isfinite(y_max) || x_min >= x_max || y_min >= y_max ||
+        nx < 2 || ny < 2 || row_start < 0 || row_count < 1 ||
+        row_start > ny - row_count ||
+        checked_mul_size((size_t)row_count, (size_t)nx, &output_count) != 0 ||
+        fixed_step_count(T_total, dt, 0, &steps_total) != 0 || basin_out == NULL) {
         return -1;
     }
     if (is_map_system(system_id) || is_dde_system(system_id) || is_lorenz96_system(system_id)) return -1;
 
     int denom_x = nx - 1;
     int denom_y = ny - 1;
-    int steps_total = (int)(T_total / dt);
-    if (steps_total < 2) steps_total = 2;
     int tail_start = steps_total / 2;
     uint8_t periodic_class = (uint8_t)((n_eq >= 0 && n_eq < 240) ? (2 + n_eq) : 250);
 
     for (int local_y = 0; local_y < row_count; ++local_y) {
         int iy = row_start + local_y;
-        double y0 = y_min + (y_max - y_min) * ((double)iy) / ((double)denom_y);
+        double y0 = convex_interpolate(y_min, y_max, iy, denom_y);
         for (int ix = 0; ix < nx; ++ix) {
-            double x0 = x_min + (x_max - x_min) * ((double)ix) / ((double)denom_x);
+            double x0 = convex_interpolate(x_min, x_max, ix, denom_x);
             double x = x0, y = y0, z = z0_fixed;
             uint8_t basin_class = 1;
 
@@ -1167,7 +1772,7 @@ CHAOS_API int chaos_basin_plane_generic(
                     periodic_class
                 );
             }
-            basin_out[local_y * nx + ix] = basin_class;
+            basin_out[(size_t)local_y * (size_t)nx + (size_t)ix] = basin_class;
         }
     }
     return 0;
@@ -1242,10 +1847,12 @@ static int sprott_eval_polynomial(
     const double *state,
     double *out
 ) {
+    double terms[126];
+    if (dimension < 1 || dimension > 4 || order < 0 || order > 5 ||
+        coefficients == NULL || state == NULL || out == NULL) return -1;
     int monomial_count = sprott_monomial_count(dimension, order);
     int expected = dimension * monomial_count;
-    double terms[126];
-    if (dimension < 1 || dimension > 4 || order < 0 || order > 5) return -1;
+    if (n_coefficients != expected) return -1;
     if (monomial_count > 126) return -1;
     if (sprott_fill_monomials(dimension, order, state, terms, monomial_count) != monomial_count) return -1;
 
@@ -1253,7 +1860,7 @@ static int sprott_eval_polynomial(
         double sum = 0.0;
         for (int col = 0; col < monomial_count; ++col) {
             int coeff_idx = row * monomial_count + col;
-            double coeff = coeff_idx < n_coefficients && coeff_idx < expected ? coefficients[coeff_idx] : 0.0;
+            double coeff = coefficients[coeff_idx];
             sum += coeff * terms[col];
         }
         out[row] = sum;
@@ -1281,13 +1888,21 @@ static int sprott_flow_step(
     double *next
 ) {
     double k1[4], k2[4], k3[4], k4[4], tmp[4];
-    if (method == 0) {
+    if (method == CHAOS_METHOD_EULER) {
         if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, state, k1) != 0) return -1;
         for (int i = 0; i < dimension; ++i) next[i] = state[i] + h * k1[i];
         return 0;
     }
 
     if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, state, k1) != 0) return -1;
+    if (method == CHAOS_METHOD_HEUN) {
+        for (int i = 0; i < dimension; ++i) tmp[i] = state[i] + h * k1[i];
+        if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, tmp, k2) != 0) return -1;
+        for (int i = 0; i < dimension; ++i) {
+            next[i] = state[i] + 0.5 * h * (k1[i] + k2[i]);
+        }
+        return 0;
+    }
     for (int i = 0; i < dimension; ++i) tmp[i] = state[i] + 0.5 * h * k1[i];
     if (sprott_eval_polynomial(dimension, order, coefficients, n_coefficients, tmp, k2) != 0) return -1;
     for (int i = 0; i < dimension; ++i) tmp[i] = state[i] + 0.5 * h * k2[i];
@@ -1315,8 +1930,18 @@ CHAOS_API int sprott_simulate_polynomial(
     double *x_out,
     int *status_out
 ) {
+    int expected_coefficients = 0;
+    if (dimension >= 1 && dimension <= 4 && order >= 2 && order <= 5) {
+        expected_coefficients = dimension * sprott_monomial_count(dimension, order);
+    }
     if (dimension < 1 || dimension > 4 || order < 2 || order > 5 ||
-        coefficients == NULL || initial == NULL || n_steps < 1 || h <= 0.0 ||
+        coefficients == NULL || initial == NULL || n_steps < 1 ||
+        n_steps > INT_MAX - 1 || h <= 0.0 ||
+        n_coefficients != expected_coefficients ||
+        !finite_array(coefficients, n_coefficients) ||
+        !finite_array(initial, dimension) ||
+        !isfinite(h) || !isfinite(divergence_threshold) || divergence_threshold <= 0.0 ||
+        (kind != 0 && kind != 1) || !valid_method(method) ||
         t_out == NULL || x_out == NULL || status_out == NULL) {
         return -1;
     }
@@ -1346,7 +1971,7 @@ CHAOS_API int sprott_simulate_polynomial(
         t_out[step] = ((double)step) * h;
         for (int j = 0; j < dimension; ++j) {
             state[j] = next[j];
-            x_out[step * dimension + j] = state[j];
+            x_out[(size_t)step * (size_t)dimension + (size_t)j] = state[j];
         }
 
         if (sprott_state_invalid(state, dimension, divergence_threshold)) {
@@ -1354,7 +1979,7 @@ CHAOS_API int sprott_simulate_polynomial(
             for (int k = step + 1; k <= n_steps; ++k) {
                 t_out[k] = ((double)k) * h;
                 for (int j = 0; j < dimension; ++j) {
-                    x_out[k * dimension + j] = NAN;
+                    x_out[(size_t)k * (size_t)dimension + (size_t)j] = NAN;
                 }
             }
             return 0;

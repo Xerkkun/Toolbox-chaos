@@ -43,8 +43,18 @@ def estimate_max_lyapunov_two_trajectory(
     separation=1e-7,
     renormalize_every=5,
     divergence_threshold=1e6,
+    time_per_step=1.0,
 ):
+    """Estimate the largest exponent per unit of the independent variable.
+
+    ``time_per_step=1`` yields an exponent per map iteration. Continuous
+    flows must pass their integration step so elapsed time is measured in
+    physical time rather than in calls to ``step_func``.
+    """
     warnings: list[str] = []
+    time_per_step = float(time_per_step)
+    if not np.isfinite(time_per_step) or time_per_step <= 0.0:
+        raise ValueError('time_per_step must be finite and positive')
     x = np.asarray(initial, dtype=float)
     direction = np.zeros_like(x)
     direction[0] = 1.0
@@ -67,23 +77,7 @@ def estimate_max_lyapunov_two_trajectory(
                 return LyapunovEstimate(float('-inf'), 'collapsed', warnings)
             total += np.log(dist / float(separation))
             y = x + float(separation) * delta / dist
-            elapsed += interval
+            elapsed += interval * time_per_step
     if elapsed == 0:
         return LyapunovEstimate(float('nan'), 'insufficient_steps', warnings)
     return LyapunovEstimate(total / elapsed, 'ok', warnings)
-
-
-def lyapunov_spectrum_qr_placeholder(*_args, **_kwargs):
-    return {'status': 'pending', 'method': 'QR spectrum placeholder'}
-
-
-def correlation_dimension_placeholder(*_args, **_kwargs):
-    return {'status': 'pending', 'method': 'correlation dimension placeholder'}
-
-
-def kaplan_yorke_dimension_placeholder(*_args, **_kwargs):
-    return {'status': 'pending', 'method': 'Kaplan-Yorke placeholder'}
-
-
-def zero_one_test_placeholder(*_args, **_kwargs):
-    return {'status': 'pending', 'method': '0-1 test placeholder'}

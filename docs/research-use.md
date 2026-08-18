@@ -8,7 +8,7 @@ Researchers use the phase space visualization panels to:
 - Generate high-resolution 2D and 3D phase portraits of trajectories.
 - Study attractor shapes, projections, and time-evolution of states under varying initial conditions.
 - Visualise time-series signals and analyze dynamical trends (convergence, periodicity, or chaotic fluctuations).
-- Export publication-quality vector and raster graphics using consistent color palettes and layout settings.
+- Export vector and raster graphics with declared color palettes and layout settings.
 
 ## 2. Lyapunov Exponent Estimation
 
@@ -27,8 +27,9 @@ Bifurcation analysis reveals how system dynamics change as a control parameter v
 
 In multistable systems, different initial conditions converge to distinct coexisting attractors (e.g., chaotic attractors, limit cycles, or stable nodes).
 - **Grid Sweeping:** The toolbox sweeps a grid of initial conditions on a user-selected 2D plane.
-- **Basin Maps:** Each pixel on the grid is colored based on the final attractor destination, producing basin of attraction maps. This is an essential aid for researching hidden attractors, where the basin does not intersect any neighborhood of unstable equilibrium points.
-- **Published research cases:** The Wang--Chen preset separates unbounded,
+- **Basin Maps:** Each pixel on the grid is colored according to the finite-time destination classifier selected for that system. These maps support visual study of multistability, sensitivity to initial conditions, and basin boundaries.
+- **Responsibility boundary:** Toolbox Chaos visualizes trajectories, coexistence cases, and finite basin classifications. Localization and scientific validation of hidden attractors belong exclusively to Hidden Attractors FO; a basin image produced by the GUI is not a hiddenness test.
+- **Curated literature presets:** The Wang--Chen preset separates unbounded,
   periodic, and bounded-residual initial conditions. The residual class is not
   automatically labelled chaotic. The Nazarimehr preset treats
   convergence to the full invariant line
@@ -46,9 +47,10 @@ In multistable systems, different initial conditions converge to distinct coexis
 - **Historical Exploration:** The `Sprott Explorer` lets instructors and students load historical Sprott equations locally, providing a modern visual interface for educational exploration without distributing protected dictionary databases.
 - **Equation Catalog:** A registry-backed catalog provides an interactive
   dictionary of chaotic dynamical equations and equilibrium information. The
-  installed interface exposes verified systems. The `Crear sistema` tab also
-  accepts safe expression-based flows and maps through Hidden Attractors FO;
-  those user models remain distinct from curated and scientifically validated
+  installed interface exposes executable registry systems. The `Crear sistema` tab also
+  accepts safe expression-based flows and maps through the Hidden Attractors FO
+  mathematical engine;
+  those user models remain distinct from curated
   catalog entries.
 
 ## 7. Extending the source for research
@@ -66,7 +68,7 @@ make a system numerically available.
 
 ## 8. Bibliographic References
 
-The Fyskode Chaotic Systems Toolbox has been used as a numerical and graphical utility in preparation for dynamical systems research and manuscripts.
+The Fyskode Chaotic Systems Toolbox is a numerical and graphical environment for dynamical-systems teaching, parameter exploration, and preparation of reproducible figures and datasets. Hidden-attractor localization protocols are documented and executed in the separate Hidden Attractors FO project.
 
 - X. Wang and G. Chen, "Constructing a chaotic system with any number of
   equilibria," *Nonlinear Dynamics*, 71, 429--436 (2013),

@@ -3,12 +3,12 @@
 This repository connects to the Fyskode public website to display up-to-date software details.
 
 ## General Information
-- The public website source code resides in `Desktop/Codes/fyskode`.
+- The public website consumes the repository metadata through its configured synchronization source; no workstation path is part of this contract.
 - This repository exposes project facts via `docs/project_metadata.json`.
 - When changes are made here (such as version bumps or new features), the website pulls updates using its synchronization script.
 
 ## Exposed Assets
-- **Metadata**: Exclusively defined in [project_metadata.json](project_metadata.json). No local paths (like `C:/Users` or file-URIs) should ever be stored in this file.
+- **Metadata**: Exclusively defined in [project_metadata.json](project_metadata.json). Personal absolute paths and file URIs must never be stored in this file.
 - **Screenshots**: Place official software screenshots in the [assets/screenshots/](../assets/screenshots/) folder. Use the standard filenames suggested in its README.
 
 ## Excluded Files (Do Not Expose)

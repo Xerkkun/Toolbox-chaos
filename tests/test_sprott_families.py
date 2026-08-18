@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 
 import numpy as np
 
@@ -23,23 +22,16 @@ def test_synthetic_examples_load():
     assert all(item.get('source') == 'synthetic educational example' for item in examples)
 
 
-def test_importer_indexes_without_copying():
-    base = Path.cwd() / '.pytest_tmp' / 'sprott_importer_test'
-    if base.exists():
-        shutil.rmtree(base)
-    source = base / 'local_refs'
-    try:
-        source.mkdir(parents=True)
-        dic = source / 'LOCAL.DIC'
-        dic.write_text('AWMA\n', encoding='utf-8')
-        ignored = source / 'note.txt'
-        ignored.write_text('ignored', encoding='utf-8')
+def test_importer_indexes_without_copying(tmp_path):
+    source = tmp_path / 'local_refs'
+    source.mkdir()
+    dic = source / 'LOCAL.DIC'
+    dic.write_text('AWMA\n', encoding='utf-8')
+    ignored = source / 'note.txt'
+    ignored.write_text('ignored', encoding='utf-8')
 
-        inventory = index_local_reference_folder(source)
-        assert len(inventory) == 1
-        assert inventory[0]['name'] == 'LOCAL.DIC'
-        assert inventory[0]['category'] == 'dictionary'
-        assert Path(inventory[0]['path']).read_text(encoding='utf-8') == 'AWMA\n'
-    finally:
-        if base.exists():
-            shutil.rmtree(base)
+    inventory = index_local_reference_folder(source)
+    assert len(inventory) == 1
+    assert inventory[0]['name'] == 'LOCAL.DIC'
+    assert inventory[0]['category'] == 'dictionary'
+    assert Path(inventory[0]['path']).read_text(encoding='utf-8') == 'AWMA\n'

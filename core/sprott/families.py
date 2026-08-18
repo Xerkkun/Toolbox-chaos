@@ -81,8 +81,12 @@ class PolynomialFlowFamily:
         method = str(method).lower()
         if method == 'euler':
             return y + h * self.rhs(y)
+        if method == 'heun':
+            k1 = self.rhs(y)
+            k2 = self.rhs(y + h * k1)
+            return y + 0.5 * h * (k1 + k2)
         if method != 'rk4':
-            raise ValueError('method must be euler or rk4')
+            raise ValueError('method must be euler, heun or rk4')
         k1 = self.rhs(y)
         k2 = self.rhs(y + 0.5 * h * k1)
         k3 = self.rhs(y + 0.5 * h * k2)

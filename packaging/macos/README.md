@@ -10,4 +10,7 @@ Create the `.app` on a macOS build host:
 
 Then create a `.dmg` using local release tooling. A complete public macOS release requires Apple Developer signing and notarization credentials.
 
-Developer: Maria Fernanda Moreno Lopez (Fer Moreno). License: MIT.
+Developer: Maria Fernanda Moreno Lopez (Fer Moreno). The project's own source
+is MIT-licensed. PySide6/Qt and other bundled dependencies retain their
+separate licenses; the `.app` must include `THIRD_PARTY_NOTICES.md`, the
+LGPLv3/GPLv3 texts, and dependency metadata.

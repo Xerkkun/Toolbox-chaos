@@ -1,17 +1,66 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import shutil
-from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
+
+from core.image_security import confined_png, validate_png_file
+from core.time_policy import utc_now_iso
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 ATTRIBUTION_WARNING = (
     'Imagen generada por Chaos Toolbox a partir de un codigo cargado localmente '
     'por el usuario. No se redistribuye la imagen original de Sprott.'
 )
+
+
+class GallerySecurityError(ValueError):
+    """Raised when a gallery path escapes its configured storage root."""
+
+
+def _is_link_like(path: Path) -> bool:
+    is_junction = getattr(path, 'is_junction', lambda: False)
+    return path.is_symlink() or bool(is_junction())
+
+
+def _confined_entry(
+    path: str | Path,
+    *,
+    base: str | Path | None = None,
+    must_exist: bool = True,
+) -> Path:
+    root = gallery_root(base).expanduser().resolve()
+    candidate = Path(path).expanduser()
+    if must_exist and not candidate.exists():
+        raise GallerySecurityError(f'La entrada de galeria no existe: {candidate}')
+    if candidate.exists() and _is_link_like(candidate):
+        raise GallerySecurityError('Las entradas enlazadas no se admiten en la galeria.')
+    resolved = candidate.resolve(strict=must_exist)
+    if resolved == root or resolved.parent != root:
+        raise GallerySecurityError('La entrada debe ser un subdirectorio directo de la galeria.')
+    return resolved
+
+
+def _confined_entry_file(entry_dir: Path, relative_name: object) -> Path:
+    if not isinstance(relative_name, str) or not relative_name.strip():
+        raise GallerySecurityError('La metadata de galeria contiene una ruta vacia.')
+    candidate = entry_dir / relative_name
+    if not candidate.exists() or _is_link_like(candidate):
+        raise GallerySecurityError('El archivo de galeria no existe o es un enlace.')
+    resolved = candidate.resolve(strict=True)
+    try:
+        resolved.relative_to(entry_dir)
+    except ValueError as exc:
+        raise GallerySecurityError('La metadata intenta leer fuera de la entrada.') from exc
+    if not resolved.is_file():
+        raise GallerySecurityError('La ruta de galeria no identifica un archivo regular.')
+    return resolved
 
 
 def gallery_root(base: str | Path | None = None) -> Path:
@@ -24,8 +73,9 @@ def gallery_root(base: str | Path | None = None) -> Path:
 
 
 def new_entry_dir(base: str | Path | None = None) -> Path:
-    root = gallery_root(base)
-    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    root = gallery_root(base).expanduser().resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    stamp = utc_now_iso().replace('-', '').replace(':', '')[:15] + 'Z'
     path = root / f'{stamp}_{uuid4().hex[:8]}'
     path.mkdir(parents=True, exist_ok=False)
     return path
@@ -44,7 +94,7 @@ def build_metadata(
 ) -> dict:
     metadata = {
         'schema': 1,
-        'date': datetime.now(timezone.utc).isoformat(),
+        'date': utc_now_iso(),
         'code': code,
         'source': source,
         'source_file': source_file,
@@ -69,14 +119,15 @@ def save_gallery_entry(
     metadata: dict,
     base: str | Path | None = None,
 ) -> Path:
+    render_source = validate_png_file(render_path)
+    thumbnail_source = (
+        validate_png_file(thumbnail_path) if thumbnail_path else render_source
+    )
     entry_dir = new_entry_dir(base)
     render_target = entry_dir / 'render.png'
-    shutil.copyfile(Path(render_path), render_target)
+    shutil.copyfile(render_source, render_target)
     thumb_target = entry_dir / 'thumbnail.png'
-    if thumbnail_path:
-        shutil.copyfile(Path(thumbnail_path), thumb_target)
-    else:
-        shutil.copyfile(render_target, thumb_target)
+    shutil.copyfile(thumbnail_source, thumb_target)
     enriched = dict(metadata)
     enriched['render'] = 'render.png'
     enriched['thumbnail'] = 'thumbnail.png'
@@ -85,13 +136,24 @@ def save_gallery_entry(
     return entry_dir
 
 
-def load_gallery_entry(path: str | Path) -> dict:
-    entry_dir = Path(path)
-    with (entry_dir / 'metadata.json').open('r', encoding='utf-8') as handle:
+def load_gallery_entry(
+    path: str | Path, *, base: str | Path | None = None
+) -> dict:
+    entry_dir = _confined_entry(path, base=base)
+    metadata_path = _confined_entry_file(entry_dir, 'metadata.json')
+    if metadata_path.stat().st_size > 1_048_576:
+        raise GallerySecurityError('metadata.json excede el limite de 1 MiB.')
+    with metadata_path.open('r', encoding='utf-8') as handle:
         metadata = json.load(handle)
+    if not isinstance(metadata, dict):
+        raise GallerySecurityError('metadata.json debe contener un objeto JSON.')
+    render_path = confined_png(entry_dir, metadata.get('render', 'render.png'))
+    thumbnail_path = confined_png(
+        entry_dir, metadata.get('thumbnail', 'thumbnail.png')
+    )
     metadata['_entry_dir'] = str(entry_dir)
-    metadata['_render_path'] = str(entry_dir / metadata.get('render', 'render.png'))
-    metadata['_thumbnail_path'] = str(entry_dir / metadata.get('thumbnail', 'thumbnail.png'))
+    metadata['_render_path'] = str(render_path)
+    metadata['_thumbnail_path'] = str(thumbnail_path)
     return metadata
 
 
@@ -104,18 +166,18 @@ def list_gallery_entries(base: str | Path | None = None) -> list[dict]:
         if not path.is_dir() or not (path / 'metadata.json').exists():
             continue
         try:
-            entries.append(load_gallery_entry(path))
-        except Exception:
+            entries.append(load_gallery_entry(path, base=root))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            LOGGER.warning('Se omitió una entrada inválida de la galería %s: %s', path, exc)
             continue
     return entries
 
 
-def delete_gallery_entry(path: str | Path):
-    entry_dir = Path(path)
-    root = gallery_root()
-    try:
-        entry_dir.relative_to(root)
-    except ValueError:
-        pass
-    if entry_dir.exists() and entry_dir.is_dir():
-        shutil.rmtree(entry_dir)
+def delete_gallery_entry(
+    path: str | Path, *, base: str | Path | None = None
+) -> bool:
+    entry_dir = _confined_entry(path, base=base)
+    if not entry_dir.is_dir():
+        raise GallerySecurityError('La entrada de galeria no es un directorio.')
+    shutil.rmtree(entry_dir)
+    return True

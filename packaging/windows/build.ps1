@@ -41,7 +41,11 @@ function Test-BuildRequirements {
     $oldErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        & $PythonPath -c "import PyQt6, numpy, matplotlib, pyqtgraph, PyInstaller" > $null 2>&1
+        & $PythonPath -c "import cyclonedx_py, PySide6, PySide6.QtWebEngineCore, PySide6.QtWebEngineWidgets, numpy, matplotlib, pyqtgraph, PyInstaller" > $null 2>&1
+        if ($LASTEXITCODE -ne 0) { return $false }
+        & $PythonPath (Join-Path $repoRoot "scripts\verify_hafo_runtime.py") > $null 2>&1
+        if ($LASTEXITCODE -ne 0) { return $false }
+        & $PythonPath -m pip check > $null 2>&1
         return $LASTEXITCODE -eq 0
     } finally {
         $ErrorActionPreference = $oldErrorActionPreference
@@ -106,29 +110,26 @@ function Invoke-Checked {
     }
 }
 
-$venvDir = Join-Path $repoRoot ".venv"
+$venvDir = Join-Path $repoRoot ".venv-build"
 $venvPython = Join-Path $venvDir "Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $venvPython)) {
     $venvPython = Join-Path $venvDir "bin\python.exe"
 }
 
 if ((Test-Path -LiteralPath $venvDir) -and -not (Test-VenvPip -PythonPath $venvPython)) {
-    Write-Host ".venv exists but pip is unavailable; using .venv-build for packaging."
-    $venvDir = Join-Path $repoRoot ".venv-build"
-    $venvPython = Join-Path $venvDir "Scripts\python.exe"
-    if (-not (Test-Path -LiteralPath $venvPython)) {
-        $venvPython = Join-Path $venvDir "bin\python.exe"
-    }
+    throw ".venv-build exists but is not a usable Python environment. Recreate that dedicated build environment."
 }
 
 if (-not (Test-VenvPip -PythonPath $venvPython)) {
     $bootstrapPython = Find-Python
     try {
-        Invoke-Checked -FilePath $bootstrapPython -Arguments @("-m", "venv", "--system-site-packages", $venvDir)
+        Invoke-Checked -FilePath $bootstrapPython -Arguments @("-m", "venv", $venvDir)
+        $venvPython = Join-Path $venvDir "Scripts\python.exe"
+        if (-not (Test-Path -LiteralPath $venvPython)) {
+            $venvPython = Join-Path $venvDir "bin\python.exe"
+        }
     } catch {
-        Write-Warning "Could not create $venvDir. Falling back to the available Python interpreter for this build."
-        $venvDir = $null
-        $venvPython = $bootstrapPython
+        throw "Could not create the dedicated build environment at ${venvDir}: $($_.Exception.Message)"
     }
 }
 
@@ -146,8 +147,10 @@ if (-not (Test-VenvPip -PythonPath $venvPython)) {
 
 if (-not $SkipInstall) {
     try {
-        Invoke-Checked -FilePath $venvPython -Arguments @("-m", "pip", "install", "--upgrade", "pip")
-        Invoke-Checked -FilePath $venvPython -Arguments @("-m", "pip", "install", "-r", "requirements-build.txt")
+        Invoke-Checked -FilePath $venvPython -Arguments @(
+            "-m", "pip", "install", "--upgrade", "-r", "requirements-bootstrap.txt"
+        )
+        Invoke-Checked -FilePath $venvPython -Arguments @("-m", "pip", "install", "-c", "requirements-release.txt", ".[build,webengine]")
     } catch {
         if (Test-BuildRequirements -PythonPath $venvPython) {
             Write-Warning "pip install failed, but build requirements are already importable; continuing."
@@ -157,15 +160,36 @@ if (-not $SkipInstall) {
     }
 }
 
+if (-not (Test-BuildRequirements -PythonPath $venvPython)) {
+    throw "Build requirements, HAFO >=1.1,<2 API, or pip dependency consistency are invalid."
+}
+Invoke-Checked -FilePath $venvPython -Arguments @(
+    (Join-Path $repoRoot "scripts\verify_distribution_compliance.py"),
+    "--check-installed",
+    "--require-webengine",
+    "--check-release-pins",
+    "--check-build-pins"
+)
+
 $dllDir = Join-Path $repoRoot "core\bin"
 New-Item -ItemType Directory -Force -Path $dllDir | Out-Null
 
 $compiler = Find-CCompiler
 $source = Join-Path $repoRoot "core\csrc\chaos_core.c"
 $dll = Join-Path $dllDir "chaos_core.dll"
-Invoke-Checked -FilePath $compiler -Arguments @("-O3", "-shared", "-std=c11", $source, "-o", $dll, "-lm")
+Invoke-Checked -FilePath $compiler -Arguments @(
+    "-O3", "-shared", "-std=c11",
+    "-frandom-seed=chaos-core-v2",
+    "-Wl,--no-insert-timestamp,--image-base,0x180000000",
+    "-Wall", "-Wextra", "-Wpedantic", "-Werror",
+    $source, "-o", $dll, "-lm"
+)
 
-Invoke-Checked -FilePath $venvPython -Arguments @("-c", "from core.native import library; library(); print('Native backend OK')")
+Invoke-Checked -FilePath $venvPython -Arguments @(
+    "-c",
+    "import sys; from core.native import validate_precompiled_library; validate_precompiled_library(sys.argv[1]); print('Precompiled native backend OK')",
+    $dll
+)
 
 $pyInstallerWorkApp = Join-Path $repoRoot "build\pyinstaller\Chaos Toolbox"
 $distApp = Join-Path $repoRoot "dist\Chaos Toolbox"
@@ -188,11 +212,46 @@ $pyInstallerArgs = @(
     "--workpath", "build\pyinstaller",
     "packaging\pyinstaller\chaos_toolbox.spec"
 )
-Invoke-Checked -FilePath $venvPython -Arguments (@("-m", "PyInstaller") + $pyInstallerArgs)
+$pyInstallerLog = Join-Path $repoRoot "build\pyinstaller\windows-build.log"
+$oldErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = "Continue"
+    & $venvPython -m PyInstaller @pyInstallerArgs 2>&1 |
+        Tee-Object -FilePath $pyInstallerLog
+    $pyInstallerExitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $oldErrorActionPreference
+}
+if ($pyInstallerExitCode -ne 0) {
+    throw "PyInstaller failed with exit code $pyInstallerExitCode. See $pyInstallerLog."
+}
+$criticalPyInstallerWarnings = Select-String -LiteralPath $pyInstallerLog -Pattern @(
+    'hidden_attractors\.validation',
+    'failed to collect submodules.*hidden_attractors',
+    'collect_submodules.*hidden_attractors'
+) -CaseSensitive:$false
+if ($criticalPyInstallerWarnings) {
+    throw "PyInstaller reported an unsupported HAFO module path. See $pyInstallerLog."
+}
 
 $exePath = Join-Path $repoRoot "dist\Chaos Toolbox\Chaos Toolbox.exe"
 if (-not (Test-Path -LiteralPath $exePath)) {
     throw "PyInstaller finished but $exePath was not created."
 }
+
+$selfTestOutput = Join-Path $repoRoot "build\pyinstaller\windows-self-test.json"
+Invoke-Checked -FilePath $exePath -Arguments @('--self-test-output', $selfTestOutput)
+Invoke-Checked -FilePath $venvPython -Arguments @(
+    (Join-Path $repoRoot 'scripts\validate_self_test_output.py'),
+    $selfTestOutput
+)
+Invoke-Checked -FilePath $venvPython -Arguments @(
+    (Join-Path $repoRoot 'scripts\verify_distribution_compliance.py'),
+    '--artifact',
+    $distApp,
+    '--write-bundle-sbom',
+    $distApp,
+    (Join-Path $repoRoot 'dist\chaos-toolbox-windows-bundle.cdx.json')
+)
 
 Write-Host "Built $exePath"

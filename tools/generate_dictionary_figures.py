@@ -1,5 +1,8 @@
+"""Generate deterministic figures embedded in the Toolbox Chaos dictionary."""
+
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -9,18 +12,58 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import ListedColormap
+from matplotlib.patches import Patch
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core.diagnostics import normalized_fft
-from core.lorenz import SYSTEM_REGISTRY, simulate_system
+from core.lorenz import (
+    SYSTEM_REGISTRY,
+    compute_basin_plane_z_lorenz_xiong,
+    simulate_system,
+)
 
 
 LINE_COLOR = "#d000d8"
 FFT_COLORS = ("#2563eb", "#dc2626", "#16a34a")
+BASIN_RESIDUAL_LABEL = "Acotado residual / no clasificado"
+DOC_FIGURE_DIR = ROOT / "assets" / "doc_figures"
 OUT_DIR = ROOT / "assets" / "doc_figures" / "systems"
+
+LORENZ_BASIN_CASE = {
+    "params": (10.0, 24.4, 8.0 / 3.0),
+    "z0": 1.0,
+    "extent": (-60.0, 60.0, -60.0, 60.0),
+    "resolution": (300, 300),
+    "dt": 0.02,
+    "T": 18.0,
+    "hit_radius": 2.0,
+    "escape_radius": 1.0e3,
+}
+
+LORENZ_BASIN_TRAJECTORIES = (
+    {
+        "initial": (-17.81, -12.88, 1.0),
+        "expected_class": 2,
+        "label": "Converge a E+",
+        "color": "#d62728",
+    },
+    {
+        "initial": (17.81, -12.88, 1.0),
+        "expected_class": 3,
+        "label": "Converge a E-",
+        "color": "#2ca02c",
+    },
+    {
+        "initial": (-0.27, 45.21, 1.0),
+        "expected_class": 1,
+        "label": BASIN_RESIDUAL_LABEL,
+        "color": "#87ceeb",
+    },
+)
 
 CASES = {
     "lorenz": {"dt": 0.01, "T": 40.0},
@@ -200,7 +243,215 @@ def plot_fft_example() -> None:
     plt.close(fig)
 
 
-def main() -> int:
+def compute_lorenz_basin_example() -> np.ndarray:
+    sigma, rho, beta = LORENZ_BASIN_CASE["params"]
+    x_min, x_max, y_min, y_max = LORENZ_BASIN_CASE["extent"]
+    nx, ny = LORENZ_BASIN_CASE["resolution"]
+    basin = compute_basin_plane_z_lorenz_xiong(
+        sigma,
+        rho,
+        beta,
+        LORENZ_BASIN_CASE["z0"],
+        x_min,
+        x_max,
+        y_min,
+        y_max,
+        nx,
+        ny,
+        LORENZ_BASIN_CASE["dt"],
+        LORENZ_BASIN_CASE["T"],
+        LORENZ_BASIN_CASE["hit_radius"],
+        LORENZ_BASIN_CASE["escape_radius"],
+        method_key="rk4",
+    )
+    present = set(int(value) for value in np.unique(basin))
+    expected = {1, 2, 3}
+    if present != expected:
+        raise RuntimeError(
+            "The documented Lorenz basin classes changed: "
+            f"expected {sorted(expected)}, obtained {sorted(present)}."
+        )
+    return basin
+
+
+def classify_lorenz_initial(initial: tuple[float, float, float]) -> int:
+    sigma, rho, beta = LORENZ_BASIN_CASE["params"]
+    x0, y0, z0 = initial
+    epsilon = 1.0e-6
+    basin = compute_basin_plane_z_lorenz_xiong(
+        sigma,
+        rho,
+        beta,
+        z0,
+        x0 - epsilon,
+        x0 + epsilon,
+        y0 - epsilon,
+        y0 + epsilon,
+        2,
+        2,
+        LORENZ_BASIN_CASE["dt"],
+        LORENZ_BASIN_CASE["T"],
+        LORENZ_BASIN_CASE["hit_radius"],
+        LORENZ_BASIN_CASE["escape_radius"],
+        method_key="rk4",
+    )
+    return int(basin[0, 0])
+
+
+def plot_lorenz_basin_example(basin: np.ndarray) -> None:
+    class_colors = (
+        "#000000",
+        "#87ceeb",
+        "#d62728",
+        "#2ca02c",
+        "#1f77b4",
+        "#9467bd",
+    )
+    class_labels = {
+        1: BASIN_RESIDUAL_LABEL,
+        2: "Converge a E+",
+        3: "Converge a E-",
+    }
+    present = sorted(int(value) for value in np.unique(basin))
+
+    fig, ax = plt.subplots(figsize=(5.25, 5.2), dpi=170)
+    ax.imshow(
+        basin,
+        origin="lower",
+        extent=LORENZ_BASIN_CASE["extent"],
+        interpolation="nearest",
+        aspect="auto",
+        cmap=ListedColormap(class_colors),
+        vmin=-0.5,
+        vmax=len(class_colors) - 0.5,
+    )
+    ax.set_title(
+        "Lorenz: clasificación rápida en "
+        rf"$z_0={LORENZ_BASIN_CASE['z0']:.0f}$, "
+        rf"$\rho={LORENZ_BASIN_CASE['params'][1]:.1f}$"
+    )
+    ax.set_xlabel(r"$x_0$")
+    ax.set_ylabel(r"$y_0$")
+    handles = [
+        Patch(
+            facecolor=class_colors[value],
+            edgecolor="black",
+            linewidth=0.4,
+            label=class_labels[value],
+        )
+        for value in present
+    ]
+    ax.legend(
+        handles=handles,
+        loc="upper right",
+        fontsize=8,
+        framealpha=0.90,
+        title="Clasificación",
+        title_fontsize=9,
+    )
+    ax.text(
+        0.01,
+        0.01,
+        f"Horizonte finito T={LORENZ_BASIN_CASE['T']:.0f}; la clase residual no certifica caos.",
+        transform=ax.transAxes,
+        fontsize=6.5,
+        ha="left",
+        va="bottom",
+        color="#111827",
+        bbox={
+            "boxstyle": "round,pad=0.2",
+            "facecolor": "white",
+            "alpha": 0.82,
+            "edgecolor": "0.55",
+        },
+    )
+    fig.tight_layout()
+    fig.savefig(DOC_FIGURE_DIR / "lorenz_basin.png", dpi=170)
+    plt.close(fig)
+
+
+def plot_lorenz_basin_trajectories() -> None:
+    params = LORENZ_BASIN_CASE["params"]
+    fig = plt.figure(figsize=(12.0, 4.25), dpi=170)
+    axes = [fig.add_subplot(1, 3, index + 1, projection="3d") for index in range(3)]
+
+    for ax, case in zip(axes, LORENZ_BASIN_TRAJECTORIES):
+        actual_class = classify_lorenz_initial(case["initial"])
+        if actual_class != case["expected_class"]:
+            raise RuntimeError(
+                f"Initial condition {case['initial']} changed basin class: "
+                f"expected {case['expected_class']}, obtained {actual_class}."
+            )
+        _, trajectory = simulate_system(
+            "lorenz",
+            case["initial"],
+            params,
+            LORENZ_BASIN_CASE["dt"],
+            LORENZ_BASIN_CASE["T"],
+            method_key="rk4",
+        )
+        ax.plot(
+            trajectory[:, 0],
+            trajectory[:, 1],
+            trajectory[:, 2],
+            color=case["color"],
+            linewidth=0.75,
+        )
+        ax.scatter(
+            [case["initial"][0]],
+            [case["initial"][1]],
+            [case["initial"][2]],
+            color="black",
+            s=28,
+            depthshade=False,
+            zorder=4,
+        )
+        x0, y0, z0 = case["initial"]
+        label = case["label"]
+        if actual_class == 1:
+            label = BASIN_RESIDUAL_LABEL.replace(" / ", " /\n")
+        ax.set_title(
+            f"{label}\nIC=({x0:.2f}, {y0:.2f}, {z0:.2f})",
+            fontsize=10,
+            pad=10,
+        )
+        ax.set_xlabel("x", labelpad=3)
+        ax.set_ylabel("y", labelpad=3)
+        ax.set_zlabel("z", labelpad=3)
+        ax.tick_params(labelsize=8, pad=1)
+        ax.view_init(elev=24, azim=-58)
+
+    fig.suptitle(
+        "Lorenz: trayectorias desde clases distintas de la cuenca "
+        rf"($\rho={params[1]:.1f}$, $T={LORENZ_BASIN_CASE['T']:.0f}$)",
+        fontsize=13,
+    )
+    fig.subplots_adjust(left=0.02, right=0.99, bottom=0.04, top=0.80, wspace=0.10)
+    fig.savefig(DOC_FIGURE_DIR / "lorenz_basin_trajectories.png", dpi=170)
+    plt.close(fig)
+
+
+def generate_lorenz_basin_figures() -> None:
+    DOC_FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    basin = compute_lorenz_basin_example()
+    plot_lorenz_basin_example(basin)
+    plot_lorenz_basin_trajectories()
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--lorenz-basin-only",
+        action="store_true",
+        help="Regenerate only the two documented Lorenz basin figures.",
+    )
+    args = parser.parse_args(argv)
+
+    if args.lorenz_basin_only:
+        generate_lorenz_basin_figures()
+        print("generated lorenz_basin and lorenz_basin_trajectories")
+        return 0
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     for key, case in CASES.items():
         meta = SYSTEM_REGISTRY[key]
@@ -213,6 +464,8 @@ def main() -> int:
         print(f"generated {key}")
     plot_fft_example()
     print("generated lorenz_fft")
+    generate_lorenz_basin_figures()
+    print("generated lorenz_basin and lorenz_basin_trajectories")
     return 0
 
 

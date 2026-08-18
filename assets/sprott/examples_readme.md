@@ -66,6 +66,8 @@ This project implements the following special-function families:
 - **`\`**: Sine maps ($D=4, M=18$).
 - **`]`**: Rotational sine maps ($D=4, M=6$).
 - **`^`**: Forced oscillator maps ($D=4, M=9$).
-- **Z**: AND/OR special family ($D=4, M=10$) is recognized but remains pending semantics validation.
+- **Z**: the parser recognizes the 4D, 10-coefficient AND/OR code, but simulation is disabled because no validated public numerical semantics is defined.
 
-All implemented special families are simulated using a robust Python/NumPy backend and can be fully analyzed, visualized, and filtered.
+The enabled special families use the Python/NumPy backend and support the
+documented simulation, visualization, and screening filters. Those filters do
+not prove chaos, attraction, or hiddenness.

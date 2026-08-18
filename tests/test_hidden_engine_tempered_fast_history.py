@@ -43,7 +43,7 @@ def test_tempered_fast_history_bridge_is_lazy_and_forwards_contract_unchanged(
 
     monkeypatch.setattr(hidden_engine, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine, "import_module", fake_import)
 
     assert hidden_engine.engine_status(refresh=True).available
@@ -107,7 +107,7 @@ def test_tempered_fast_history_bridge_reports_missing_optional_capability(
 
     monkeypatch.setattr(hidden_engine, "_ENGINE", None)
     monkeypatch.setattr(hidden_engine, "_ENGINE_STATUS", None)
-    monkeypatch.setattr(hidden_engine, "_development_candidates", lambda: ())
+    monkeypatch.setattr(hidden_engine, "distribution_version", lambda _name: "1.1.0")
     monkeypatch.setattr(hidden_engine, "import_module", fake_import)
 
     with pytest.raises(
@@ -131,7 +131,7 @@ def test_tempered_fast_history_bridge_calls_real_hafo_capability():
     capability = hidden_engine.engine_capability(
         "tempered_fast_multistep_history"
     )
-    assert capability.fractional_status == "experimental"
+    assert capability.fractional_status == "implemented"
     assert capability.backend == "numba/python"
     step = 0.05
     times = step * np.arange(8.0)

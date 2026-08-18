@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError, version as distribution_version
 from pathlib import Path
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # Python 3.10 compatibility
-    import tomli as tomllib
+import tomllib
 
 
 APP_NAME = 'Chaos Toolbox'
@@ -28,6 +25,9 @@ ACADEMIC_NOTICE = (
     'y no como prueba matematica automatica.'
 )
 RELEASE_API_ENV = 'CHAOS_TOOLBOX_RELEASES_API_URL'
+DEFAULT_RELEASE_API_URL = (
+    'https://api.github.com/repos/Xerkkun/toolbox-chaos/releases/latest'
+)
 UPDATE_CHECK_INTERVAL_DAYS = 7
 DOCUMENTATION_ENTRY = 'docs/user-guide.md'
 
@@ -43,10 +43,21 @@ def _project_metadata() -> dict:
 
 
 def project_version() -> str:
+    pyproject = project_root() / 'pyproject.toml'
+    if pyproject.is_file():
+        metadata = _project_metadata()
+        try:
+            return str(metadata['project']['version'])
+        except (KeyError, TypeError) as exc:
+            raise RuntimeError(
+                "pyproject.toml no contiene project.version."
+            ) from exc
     try:
-        return str(_project_metadata()['project']['version'])
-    except Exception:
-        return "0.1.0"
+        return distribution_version(APP_SLUG)
+    except PackageNotFoundError as exc:
+        raise RuntimeError(
+            "No se pudo determinar la version instalada de Chaos Toolbox."
+        ) from exc
 
 
 APP_VERSION = project_version()

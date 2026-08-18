@@ -5,7 +5,7 @@ Este documento detalla las reglas de distribución de **Chaos Toolbox** y explic
 ## 1. Qué se incluye en la Release Pública
 
 La versión pública oficial de Chaos Toolbox (incluyendo el código fuente en GitHub, los archivos ejecutables construidos con PyInstaller y el instalador generado con Inno Setup) contiene exclusivamente:
-- **Código Fuente Propio:** Toda la lógica de la interfaz gráfica en PyQt6 y el cargador de configuraciones.
+- **Código Fuente Propio:** Toda la lógica de la interfaz gráfica en PySide6 y el cargador de configuraciones.
 - **Backend Numérico Propio:** Los archivos de simulación en C y la interfaz de biblioteca nativa (`chaos_core`).
 - **Ejemplos Sintéticos Propios:** Una colección de ecuaciones caóticas de dominio público y ejemplos de prueba diseñados específicamente para validar el funcionamiento del programa de forma autónoma.
 - **Teoría Propia y Guías de Uso:** Explicaciones educativas originales, manuales de uso técnico de la herramienta, y referencias bibliográficas formateadas.
@@ -28,15 +28,39 @@ La herramienta permite y fomenta el uso de los archivos originales del libro de 
 - **Sin copia ni persistencia:** Los archivos leídos permanecen en tu disco local y en ningún momento se copian dentro del programa ni se suben al repositorio.
 - **Resultados locales:** Las imágenes generadas a partir de estos códigos se guardan en tu galería de usuario local (en la carpeta `APPDATA`) con metadatos claros de atribución y aclaración de que son recreaciones locales, no imágenes originales redistribuidas.
 
-## 4. Backend Numérico en C y Autorización
+## 4. Licencias del programa y de sus dependencias
 
-Chaos Toolbox utiliza un backend numérico de simulación rápido desarrollado en C (`core/csrc/chaos_core.c`). Este backend es una reimplementación independiente y optimizada de los métodos de integración numérica. 
+El código propio de Chaos Toolbox se distribuye bajo MIT. Esa licencia no
+relicencia PySide6, Shiboken6, Qt, Python ni las bibliotecas científicas que se
+empaquetan con la aplicación. Las compilaciones comunitarias oficiales usan
+la vía LGPLv3 para los componentes Qt/PySide que la ofrecen.
+
+Cada wheel, sdist, bundle PyInstaller e instalador debe conservar
+`THIRD_PARTY_NOTICES.md`, LGPLv3/GPLv3, los avisos Chromium/WebEngine y los
+metadatos de licencia de las dependencias incluidas. Los bundles nativos
+incluyen además la licencia exacta del runtime Python. La publicación conserva
+un SBOM del entorno Python y otro con hashes de cada archivo del bundle de cada
+plataforma; rechaza deriva de versiones o cualquier resto de la vinculación
+Qt anterior. El responsable de una release binaria conserva el código fuente
+correspondiente a la versión exacta de Qt/PySide distribuida o una oferta
+escrita válida bajo su control. Esta es una política técnica de distribución,
+no un dictamen legal.
+
+## 5. Backend Numérico en C y Autorización
+
+Chaos Toolbox utiliza un backend numérico compilado desarrollado en C
+(`core/csrc/chaos_core.c`). Es una implementación independiente de los métodos
+de integración documentados; este texto no atribuye una ventaja de rendimiento
+sin una medición reproducible para el equipo y caso concretos.
 
 Dado que el backend de simulación es de autoría propia y fue desarrollado de forma independiente para sistemas modernos de 64 bits, **no cuenta con autorización ni tiene como fin** redistribuir los códigos, algoritmos o archivos de datos con copyright del disquete original del libro de Sprott. Por lo tanto, cualquier intento de distribución de los datos originales requiere una licencia y permiso específico del autor original.
 
-## 5. Cómo solicitar permiso para Distribuciones Históricas
+## 6. Material histórico con permiso separado
 
-Si eres una institución educativa, investigador o entusiasta y deseas crear una distribución empaquetada con fines de preservación histórica o de uso offline que incluya los diccionarios originales de Sprott:
-1. Debes contactar directamente al **Prof. Julien C. Sprott** (a través de los medios oficiales listados en su sitio web de la Universidad de Wisconsin-Madison) para solicitar una autorización o verificar los términos de distribución de su obra *Strange Attractors: Creating Patterns in Chaos*.
-2. Una vez obtenido dicho consentimiento, puedes colocar los archivos `.DIC` y otros recursos en la carpeta `external/sprott_site_bookdisk/...` en tu copia local antes de realizar el build.
-3. El script de verificación de liberación (`tools/check_no_sprott_originals_in_release.py`) fallará intencionadamente si intentas compilar la versión oficial. Para realizar un build personalizado histórico con archivos embebidos, deberás modificar el archivo `.spec` y desactivar localmente la comprobación de seguridad bajo tu propia responsabilidad.
+Una institución que quiera preservar o redistribuir material histórico debe
+obtener y documentar por separado los permisos aplicables con el titular de
+los derechos. Esos archivos se mantienen fuera del repositorio, del árbol de
+recursos y del proceso oficial de release de Chaos Toolbox. Incluso con un
+permiso particular, los verificadores de la distribución oficial no se
+desactivan ni se modifica el archivo `.spec` para incluir ese material; una
+colección de preservación autorizada constituye un archivo separado.

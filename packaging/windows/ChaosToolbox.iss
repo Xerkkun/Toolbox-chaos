@@ -26,6 +26,7 @@ RestartApplications=no
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
 LicenseFile=..\..\LICENSE
+InfoBeforeFile=..\..\THIRD_PARTY_NOTICES.md
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked

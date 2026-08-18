@@ -127,7 +127,11 @@ def candidate_passes(record: dict, *, min_finite: int = 512, min_spread: float =
 
 def render_candidate_thumbnail(record: dict, output_dir: str | Path) -> Path:
     os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
-    from PyQt6.QtWidgets import QApplication
+    from core.qt_binding import configure_pyside6
+
+    configure_pyside6()
+
+    from PySide6.QtWidgets import QApplication
     from ui.sprott_canvases import Sprott2DCanvas
 
     output = Path(output_dir)

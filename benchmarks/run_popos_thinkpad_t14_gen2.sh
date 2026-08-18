@@ -139,7 +139,7 @@ fi
 if ((check_only)); then
     [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]] ||
         die "A logged-in graphical session is required for first-paint startup timing."
-    "$check_python" -c "import json, numpy, PyQt6; json.load(open(r'${profile_path}', encoding='utf-8'))"
+    "$check_python" -c "import json, numpy, PySide6; json.load(open(r'${profile_path}', encoding='utf-8'))"
     "$check_python" "$benchmark_script" \
         --toolbox-root "$toolbox_root" \
         --machine-profile "$profile_path" \

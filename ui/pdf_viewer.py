@@ -3,9 +3,13 @@ from __future__ import annotations
 import html
 from pathlib import Path
 
-from PyQt6.QtCore import QUrl
-from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import QUrl
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QPushButton,
@@ -14,8 +18,8 @@ from PyQt6.QtWidgets import (
 )
 
 try:
-    from PyQt6.QtPdf import QPdfDocument
-    from PyQt6.QtPdfWidgets import QPdfView
+    from PySide6.QtPdf import QPdfDocument
+    from PySide6.QtPdfWidgets import QPdfView
     QT_PDF_AVAILABLE = True
 except Exception:
     QPdfDocument = None
@@ -26,7 +30,7 @@ except Exception:
 class PdfViewerWidget(QWidget):
     """A reusable, self-contained PDF viewer widget with robust fallback capabilities
 
-    and explicit diagnostics, designed to render documents via PyQt6.QtPdf
+    and explicit diagnostics, designed to render documents via PySide6.QtPdf
     or fall back gracefully to a QTextBrowser.
     """
 
@@ -122,7 +126,8 @@ class PdfViewerWidget(QWidget):
                 status_parts.append(f'Error: {exc}')
         elif not QT_PDF_AVAILABLE:
             status_parts.append(
-                'Instala PyQt6-Qt6 \u2265 6.4 o PyQt6-QtPdf para el visor embebido'
+                'Instala PySide6-Addons de la misma versión que PySide6 '
+                'para habilitar el visor embebido'
             )
 
         status_label.setText('  \u2502  '.join(status_parts))

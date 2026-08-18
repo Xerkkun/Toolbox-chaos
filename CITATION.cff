@@ -17,5 +17,5 @@ keywords:
   - dynamical systems
   - multistability
   - hidden attractors
-  - PyQt6
+  - PySide6
   - scientific visualization

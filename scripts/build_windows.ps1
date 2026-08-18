@@ -30,14 +30,26 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
     $venvPython = "python"
 }
 
+function Invoke-CheckedPython {
+    param([Parameter(Mandatory = $true)][string[]]$Arguments)
+
+    & $script:venvPython @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "Python failed with exit code ${LASTEXITCODE}: $($Arguments -join ' ')"
+    }
+}
+
 # --- 1. BUILD APP STAGE ---
 if (-not $InstallerOnly) {
     Write-Host "=== Step 1/2: Building Executable (PyInstaller) ===" -ForegroundColor Cyan
-    & $venvPython scripts\prepare_runtime_resources.py
-    & $venvPython scripts\verify_packaging.py
+    Invoke-CheckedPython -Arguments @("scripts\prepare_runtime_resources.py")
+    Invoke-CheckedPython -Arguments @("scripts\verify_packaging.py")
     
     # Pass switch explicitly using colon syntax
     & packaging\windows\build.ps1 -SkipInstall:$SkipInstall
+    if (-not $?) {
+        throw "PyInstaller build script failed."
+    }
 }
 
 # --- 2. BUILD INSTALLER STAGE ---
@@ -63,7 +75,7 @@ if (-not $AppOnly) {
 if (-not $AppOnly -and -not $InstallerOnly) {
     Write-Host "=== Step 3/3: Running Post-Build Verifications ===" -ForegroundColor Cyan
 
-    $appVersion = (& $venvPython -c "from core.app_metadata import APP_VERSION; print(APP_VERSION)").Trim()
+    $appVersion = (Invoke-CheckedPython -Arguments @("-c", "from core.app_metadata import APP_VERSION; print(APP_VERSION)") | Out-String).Trim()
     $expectedInstaller = Join-Path $repoRoot "installer\chaos-toolbox-v$appVersion-windows-x64-setup.exe"
     $expectedExe = Join-Path $repoRoot "dist\Chaos Toolbox\Chaos Toolbox.exe"
 
@@ -83,8 +95,13 @@ if (-not $AppOnly -and -not $InstallerOnly) {
 
     # Verify no forbidden resources are present in the bundle
     Write-Host "Verifying packaging policies and running bundle size report..."
-    & $venvPython scripts\verify_packaging.py
-    & $venvPython scripts\bundle_size_report.py
+    Invoke-CheckedPython -Arguments @("scripts\verify_packaging.py")
+    Invoke-CheckedPython -Arguments @(
+        "scripts\verify_distribution_compliance.py",
+        "--artifact",
+        "dist\Chaos Toolbox"
+    )
+    Invoke-CheckedPython -Arguments @("scripts\bundle_size_report.py")
     
     Write-Host "`nAll post-build verifications passed successfully!" -ForegroundColor Green
 }

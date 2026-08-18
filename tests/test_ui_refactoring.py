@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+import numpy as np
 import pytest
-from PyQt6.QtWidgets import QApplication, QPushButton
+from PySide6.QtWidgets import QApplication, QPushButton
 
 # Setup QApplication offscreen for testing
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 _app = QApplication.instance() or QApplication([])
 
 from ui.main_window import MainWindow
+import ui.sprott_explorer_tab as sprott_explorer_module
 from ui.tab_controls import (
     Tab3DWidget,
     Tab2DWidget,
@@ -20,9 +24,14 @@ from ui.tab_controls import (
     TabSpectrumWidget,
     TabComparisonWidget,
     TabCoexistenceWidget,
+    bifurcation_capability,
 )
-from core.lorenz import SYSTEM_REGISTRY
+from core.lorenz import METHOD_REGISTRY, SYSTEM_REGISTRY
+from ui.canvases import BASIN_RESIDUAL_LABEL, MplBasinCanvas
+from ui.parameter_panels import SystemParameterPanel
 from core.coexistence import load_coexisting_attractors
+from core.sprott.metrics import LyapunovEstimate
+from core.sprott.references import classify_dic_entry
 
 
 def test_mainwindow_construction():
@@ -116,6 +125,30 @@ def test_bifurcation_calculation_button():
     tab.deleteLater()
 
 
+@pytest.mark.parametrize(
+    'system_key', [f'sprott_{letter}' for letter in 'abcdefghijklmnopqrs']
+)
+def test_parameterless_sprott_flows_disable_bifurcation(system_key):
+    metadata = SYSTEM_REGISTRY[system_key]
+    supported, reason = bifurcation_capability(metadata)
+    assert supported is False
+    assert 'parámetro' in reason.lower()
+
+    tab = TabBifurcationWidget()
+    tab._update_bifurcation_defaults(system_key)
+    assert tab.sweep_param_combo.count() == 0
+    assert not tab.btn_run.isEnabled()
+    assert 'parámetro' in tab.lbl_warning.text().lower()
+    tab.deleteLater()
+
+
+@pytest.mark.parametrize('system_key', ['lorenz', 'mackey_glass', 'lorenz96'])
+def test_parameterized_systems_keep_valid_bifurcation_capability(system_key):
+    supported, reason = bifurcation_capability(SYSTEM_REGISTRY[system_key])
+    assert supported is True
+    assert reason == ''
+
+
 def test_basin_calculation_button():
     """Verify Basin tab has its calculation button inside the tab."""
     tab = TabBasinWidget()
@@ -126,6 +159,54 @@ def test_basin_calculation_button():
     )
     assert calc_btn is not None, "Calculation button not found in Basin tab"
     tab.deleteLater()
+
+
+def test_default_basin_class_one_is_residual_not_chaos():
+    canvas = MplBasinCanvas()
+    canvas.plot_basin(
+        np.array([[0, 1]], dtype=float),
+        (0.0, 1.0, 0.0, 1.0),
+        0.0,
+        0.0,
+    )
+    legend = canvas.ax.get_legend()
+    assert legend is not None
+    assert BASIN_RESIDUAL_LABEL in [item.get_text() for item in legend.get_texts()]
+    canvas.deleteLater()
+
+
+@pytest.mark.parametrize('system_key', ['lorenz', 'rossler'])
+def test_basin_tab_uses_residual_label_for_system_specific_legends(
+    monkeypatch, system_key
+):
+    tab = TabBasinWidget()
+    system_index = tab.param_panel.system_combo.findData(system_key)
+    tab.param_panel.system_combo.setCurrentIndex(system_index)
+    tab.last_basin = np.array([[1]], dtype=float)
+    tab.last_basin_extent = (0.0, 1.0, 0.0, 1.0)
+    tab.last_basin_rho = 0.0
+    tab.last_basin_z0 = 0.0
+    tab.last_equilibria = []
+    captured = {}
+    monkeypatch.setattr(
+        tab.canvas,
+        'plot_basin',
+        lambda *_args, **kwargs: captured.update(kwargs),
+    )
+    tab._refresh_canvas()
+    assert captured['class_labels'][1] == BASIN_RESIDUAL_LABEL
+    tab.deleteLater()
+
+
+def test_dictionary_matches_basin_and_current_spectral_contracts():
+    text = (
+        Path(__file__).resolve().parents[1] / 'assets' / 'chaos_dictionary.tex'
+    ).read_text(encoding='utf-8')
+    assert 'Acotado residual / no clasificado' in text
+    assert '\\textbf{Caotico}' not in text
+    assert 'PSD de Welch y espectro de amplitud' in text
+    assert 'U^2/\\mathrm{Hz}' in text
+    assert 'sin \\texttt{fftshift} ni frecuencias negativas' in text
 
 
 def test_no_global_sidebar():
@@ -157,6 +238,110 @@ def test_parameter_panel_system_change():
     assert not panel.param_labels[3].isVisible()
 
     window.deleteLater()
+
+
+def test_parameter_panel_disables_planned_methods_but_keeps_dde_methods_active():
+    panel = SystemParameterPanel()
+    model = panel.method_combo.model()
+    for key, metadata in METHOD_REGISTRY.items():
+        index = panel.method_combo.findData(key)
+        assert index >= 0
+        item = model.item(index)
+        assert item is not None
+        assert item.isEnabled() is bool(metadata['implemented'])
+
+    panel.system_combo.setCurrentIndex(
+        panel.system_combo.findData('mackey_glass')
+    )
+    assert panel.method_combo.isEnabled()
+    panel.deleteLater()
+
+
+def test_sprott_explorer_exposes_real_unit_sphere_projection():
+    window = MainWindow()
+    explorer = window.tab_sprott
+    index = explorer.projection_combo.findText('esfera unitaria')
+    assert index >= 0
+    explorer.projection_combo.setCurrentIndex(index)
+    assert explorer.current_visual_config().projection == 'esfera unitaria'
+    assert explorer.projection_combo.findText('esfera (pendiente)') == -1
+    window.deleteLater()
+
+
+def test_lyapunov_tab_exposes_fixed_rk4_without_editable_method_selector():
+    tab = TabLyapunovWidget()
+    assert not hasattr(tab.param_panel, 'method_combo')
+    assert 'RK4 fijo' in tab.integrator_label.text()
+    tab.deleteLater()
+
+
+def test_sprott_z_is_reference_only_while_y_remains_operational():
+    window = MainWindow()
+    explorer = window.tab_sprott
+    y_entry = {
+        'code': 'Y' + 'M' * 10, 'source_name': 'test.dic', 'line': 1,
+        **classify_dic_entry('Y' + 'M' * 10),
+    }
+    z_entry = {
+        'code': 'Z' + 'M' * 10, 'source_name': 'test.dic', 'line': 2,
+        **classify_dic_entry('Z' + 'M' * 10),
+    }
+    explorer.local_dic_visible_entries = [y_entry, z_entry]
+    explorer.show_selected_local_dic(0)
+    assert explorer.local_dic_sim_button.isEnabled()
+    assert explorer.local_dic_style_button.isEnabled()
+    explorer.show_selected_local_dic(1)
+    assert not explorer.local_dic_sim_button.isEnabled()
+    assert not explorer.local_dic_style_button.isEnabled()
+    assert 'No simulable' in explorer.local_dic_sim_button.toolTip()
+    window.deleteLater()
+
+
+def test_sprott_search_attempt_preserves_structured_lyapunov_context(monkeypatch):
+    window = MainWindow()
+    explorer = window.tab_sprott
+    trajectory = np.column_stack((
+        np.linspace(0.0, 1.0, 80), np.linspace(1.0, 2.0, 80)
+    ))
+    result = {'post_transient': trajectory}
+    classification = {'state': 'candidate_chaotic', 'reason': 'test'}
+    monkeypatch.setattr(
+        sprott_explorer_module,
+        'quick_lyapunov_estimate',
+        lambda *_args, **_kwargs: LyapunovEstimate(0.125, 'ok', []),
+    )
+    explorer._record_search_attempt(1, 'EMMMM', result, classification)
+    assert explorer.search_attempts[-1]['lyapunov'] == '0.125'
+
+    monkeypatch.setattr(
+        sprott_explorer_module,
+        'quick_lyapunov_estimate',
+        lambda *_args, **_kwargs: LyapunovEstimate(
+            float('nan'), 'not_available_special_family', ['index dependent']
+        ),
+    )
+    explorer._record_search_attempt(2, 'YMMMM', result, classification)
+    text = explorer.search_attempts[-1]['lyapunov']
+    assert 'not_available_special_family' in text
+    assert 'index dependent' in text
+
+    def fail(*_args, **_kwargs):
+        raise RuntimeError('diagnostic failed')
+
+    monkeypatch.setattr(sprott_explorer_module, 'quick_lyapunov_estimate', fail)
+    explorer._record_search_attempt(3, 'EMMMM', result, classification)
+    assert 'diagnostic failed' in explorer.search_attempts[-1]['lyapunov']
+    window.deleteLater()
+
+
+def test_reproducible_examples_use_each_tabs_parameter_panel():
+    text = (
+        Path(__file__).resolve().parents[1] / 'docs' / 'reproducible-examples.md'
+    ).read_text(encoding='utf-8')
+    assert 'left sidebar' not in text.lower()
+    for tab_name in ('Atractor 3D', 'Lyapunov', 'Bifurcación', 'Cuenca de atracción'):
+        assert f'Open the **{tab_name}** tab.' in text
+    assert text.count('In the left parameter panel of that tab') == 5
 
 
 def test_coexistence_yaml_loading():
@@ -224,7 +409,7 @@ def test_high_dimension_widgets():
 
 def test_bifurcation_widget_run_no_coex(monkeypatch):
     """Verify TabBifurcationWidget runs bifurcation calculation correctly for system without coexistence."""
-    from PyQt6.QtWidgets import QMessageBox
+    from PySide6.QtWidgets import QMessageBox
     monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
     monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
 
@@ -246,7 +431,7 @@ def test_bifurcation_widget_run_no_coex(monkeypatch):
 
 def test_bifurcation_widget_run_with_coex(monkeypatch):
     """Verify TabBifurcationWidget runs bifurcation calculation correctly for system with coexistence."""
-    from PyQt6.QtWidgets import QMessageBox
+    from PySide6.QtWidgets import QMessageBox
     monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
     monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
 
@@ -272,7 +457,7 @@ def test_bifurcation_widget_run_with_coex(monkeypatch):
 
 def test_coexistence_widget_simulations(monkeypatch):
     """Verify TabCoexistenceWidget loads cases and runs simulations correctly."""
-    from PyQt6.QtWidgets import QMessageBox
+    from PySide6.QtWidgets import QMessageBox
     monkeypatch.setattr(QMessageBox, 'critical', lambda *args, **kwargs: None)
     monkeypatch.setattr(QMessageBox, 'information', lambda *args, **kwargs: None)
     monkeypatch.setattr(QMessageBox, 'warning', lambda *args, **kwargs: None)

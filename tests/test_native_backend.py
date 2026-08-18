@@ -12,10 +12,13 @@ the CI suite passes even on environments without gcc/clang.
 """
 from __future__ import annotations
 
+import hashlib
 import multiprocessing as mp
 import os
 import platform
 import shutil
+import struct
+import subprocess
 import sys
 from pathlib import Path
 
@@ -65,6 +68,86 @@ def test_native_library_compiles_and_loads():
     assert lib_path.exists(), f"Compiled library not found at {lib_path}"
     assert lib_path.name == _shared_library_name()
     print(f"\n[native] Library loaded: {lib_path}")
+
+
+@pytest.mark.skipif(
+    not (sys.platform.startswith('win') and _HAS_COMPILER),
+    reason='Windows compiler required for deterministic PE build test',
+)
+def test_windows_native_build_is_byte_reproducible(tmp_path):
+    from core.native import _compile_command, validate_precompiled_library
+
+    compiler = shutil.which('gcc') or shutil.which('clang')
+    source = ROOT / 'core' / 'csrc' / 'chaos_core.c'
+    outputs = []
+    for name in ('first', 'second'):
+        directory = tmp_path / name
+        directory.mkdir()
+        output = directory / 'chaos_core.dll'
+        command = _compile_command(source, output, compiler)
+        assert command is not None
+        subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
+        validate_precompiled_library(output)
+        outputs.append(output)
+
+    digests = [hashlib.sha256(path.read_bytes()).hexdigest() for path in outputs]
+    assert digests[0] == digests[1]
+
+    image = outputs[0].read_bytes()
+    assert image[:2] == b'MZ'
+    pe_offset = struct.unpack_from('<I', image, 0x3C)[0]
+    assert image[pe_offset : pe_offset + 4] == b'PE\0\0'
+    assert struct.unpack_from('<I', image, pe_offset + 8)[0] == 0
+    optional_header = pe_offset + 24
+    assert struct.unpack_from('<H', image, optional_header)[0] == 0x20B
+    assert struct.unpack_from('<Q', image, optional_header + 24)[0] == 0x180000000
+    dll_characteristics = struct.unpack_from('<H', image, optional_header + 70)[0]
+    assert dll_characteristics & 0x20  # HIGH_ENTROPY_VA
+    assert dll_characteristics & 0x40  # DYNAMIC_BASE / ASLR
+    assert dll_characteristics & 0x100  # NX_COMPAT
+
+
+@_SKIP_NO_COMPILER
+def test_precompiled_library_validator_accepts_matching_abi_and_exports():
+    from core.native import _ensure_library, validate_precompiled_library
+
+    library_path = _ensure_library()
+    assert validate_precompiled_library(library_path) == library_path.resolve()
+
+
+def test_precompiled_library_validator_rejects_non_library(tmp_path):
+    from core.native import (
+        NativeChaosError,
+        _shared_library_name,
+        validate_precompiled_library,
+    )
+
+    invalid_library = tmp_path / _shared_library_name()
+    invalid_library.write_bytes(b'')
+    with pytest.raises(NativeChaosError, match='vacia o no es un archivo'):
+        validate_precompiled_library(invalid_library)
+
+    invalid_library.write_bytes(b'not-a-native-library')
+    with pytest.raises(NativeChaosError, match='ABI .* simbolos requeridos'):
+        validate_precompiled_library(invalid_library)
+
+
+def test_native_probe_suppresses_windows_bad_image_dialogs(tmp_path, monkeypatch):
+    import core.native as native_module
+
+    captured: dict[str, object] = {}
+
+    def fake_run(arguments, **kwargs):
+        captured['arguments'] = arguments
+        captured['kwargs'] = kwargs
+        return subprocess.CompletedProcess(arguments, returncode=1)
+
+    monkeypatch.setattr(native_module.subprocess, 'run', fake_run)
+    assert not native_module._probe_cached_library(tmp_path / 'invalid.dll')
+
+    probe = captured['arguments'][4]
+    assert 'SetErrorMode(0x0001|0x8000)' in probe
+    assert probe.index('SetErrorMode') < probe.index('ctypes.CDLL')
 
 
 @_SKIP_NO_COMPILER

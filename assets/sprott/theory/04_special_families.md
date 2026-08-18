@@ -36,4 +36,7 @@ Las familias especiales implementan dinámicas discontinuas o de base trigonomé
   $$w_{n+1} = \frac{n - 1000}{N_{\max} - 1000}$$
 
 - **Familia `Z` (Lógica AND/OR):**
-  Esta familia de 10 coeficientes permanece registrada como `pending_semantics_validation`. Su comportamiento lógico en el motor actual no está plenamente validado científicamente, por lo que no es simulable.
+  El parser reconoce la familia de 10 coeficientes, pero el simulador la
+  mantiene deshabilitada: el contrato público actual no especifica una
+  semántica numérica validada. La interfaz comunica esta limitación en lugar de
+  producir una trayectoria ambigua.

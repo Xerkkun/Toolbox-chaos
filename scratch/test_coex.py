@@ -1,34 +1,47 @@
-import os
-import sys
-# Set Qt offscreen platform
-os.environ['QT_QPA_PLATFORM'] = 'offscreen'
-from PyQt6.QtWidgets import QApplication, QMessageBox
-app = QApplication.instance() or QApplication([])
+"""Manual offscreen smoke check for the coexistence tab.
 
-# Mock QMessageBox.critical and information
-QMessageBox.critical = lambda parent, title, text, *args, **kwargs: print(f"CRITICAL DIALOG: {title} - {text}")
-QMessageBox.information = lambda parent, title, text, *args, **kwargs: print(f"INFO DIALOG: {title} - {text}")
+Importing this module does not create a QApplication, patch Qt, or simulate.
+"""
 
-from ui.tab_controls import TabCoexistenceWidget
 
-print("Initializing TabCoexistenceWidget...")
-tab = TabCoexistenceWidget()
+def main() -> int:
+    import os
 
-print("Number of cases loaded:", len(tab.cases))
-print("Case combo items count:", tab.case_combo.count())
+    os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+    from core.qt_binding import configure_pyside6
 
-if tab.case_combo.count() > 0:
-    tab.case_combo.setCurrentIndex(0)
-    print("Selected case:", tab.current_case().get('system_name'))
-    print("Selected case attractors:", len(tab.current_case().get('attractors', [])))
-    print("Attractor combo items count:", tab.attractor_combo.count())
-    
-    print("\nSimulating one...")
-    tab.simulate_one()
-    print("Simulated one successfully!")
-    
-    print("\nSimulating all...")
-    tab.simulate_all()
-    print("Simulated all successfully!")
+    configure_pyside6()
 
-print("\nDone!")
+    from PySide6.QtWidgets import QApplication, QMessageBox
+
+    from ui.tab_controls import TabCoexistenceWidget
+
+    app = QApplication.instance() or QApplication([])
+    original_critical = QMessageBox.critical
+    original_information = QMessageBox.information
+    try:
+        QMessageBox.critical = staticmethod(
+            lambda parent, title, message, *args, **kwargs: print(
+                f"CRITICAL DIALOG: {title} - {message}"
+            )
+        )
+        QMessageBox.information = staticmethod(
+            lambda parent, title, message, *args, **kwargs: print(
+                f"INFO DIALOG: {title} - {message}"
+            )
+        )
+        tab = TabCoexistenceWidget()
+        print('cases', len(tab.cases), 'items', tab.case_combo.count())
+        if tab.case_combo.count() > 0:
+            tab.case_combo.setCurrentIndex(0)
+            tab.simulate_one()
+            tab.simulate_all()
+    finally:
+        QMessageBox.critical = original_critical
+        QMessageBox.information = original_information
+        app.processEvents()
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

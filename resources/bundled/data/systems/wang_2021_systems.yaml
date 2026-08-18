@@ -89,7 +89,8 @@
     - - -13.854577906833995
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: rossler
   name: Rössler system
   chapter: 1
@@ -155,7 +156,8 @@
     - - -4.596071993601125e-06
       - -5.428025934278885
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: chua
   name: Chua circuit, piecewise-linear form
   chapter: 1
@@ -243,7 +245,8 @@
     - - -6.072592218698242
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: chen
   name: Chen system
   chapter: 1
@@ -329,7 +332,8 @@
     - - -18.427963911565122
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: unified_lorenz_chen
   name: Unified Lorenz-Chen system
   chapter: 1
@@ -414,7 +418,8 @@
     - - -13.854577906833995
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_a
   name: Sprott A system
   chapter: 1
@@ -431,7 +436,8 @@
     kaplan_yorke_dimension: 3.000'
   reported_equilibria: Ninguno
   computed_equilibria: []
-  status: pendiente
+  runtime_status: executable
+  equilibrium_scan_status: no_root_returned
 - system_id: sprott_b
   name: Sprott B system
   chapter: 1
@@ -494,7 +500,8 @@
     - - -1.353209964177248
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_c
   name: Sprott C system
   chapter: 1
@@ -557,7 +564,8 @@
     - - -0.9999999999821627
       - 0.0
     local_type: nonhyperbolic
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_d
   name: Sprott D system
   chapter: 1
@@ -597,7 +605,8 @@
     - - 0.0
       - 0.0
     local_type: nonhyperbolic
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_e
   name: Sprott E system
   chapter: 1
@@ -637,7 +646,8 @@
     - - -1.0000000001702898
       - 0.0
     local_type: nonhyperbolic
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_f
   name: Sprott F system
   chapter: 1
@@ -677,7 +687,8 @@
     - - -1.0
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_g
   name: Sprott G system
   chapter: 1
@@ -740,7 +751,8 @@
     - - -0.4485237198128751
       - -1.7791267853445842
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_h
   name: Sprott H system
   chapter: 1
@@ -780,7 +792,8 @@
     - - -1.0
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_i
   name: Sprott I system
   chapter: 1
@@ -820,7 +833,8 @@
     - - -0.786017332363991
       - -0.28536831569365245
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_j
   name: Sprott J system
   chapter: 1
@@ -860,7 +874,8 @@
     - - -2.3145962122767516
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_k
   name: Sprott K system
   chapter: 1
@@ -900,7 +915,8 @@
     - - -1.0
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_l
   name: Sprott L system
   chapter: 1
@@ -940,7 +956,8 @@
     - - -1.4332852913582421
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_m
   name: Sprott M system
   chapter: 1
@@ -1003,7 +1020,8 @@
     - - -0.9536825781261227
       - -1.587818069953688
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_n
   name: Sprott N system
   chapter: 1
@@ -1043,7 +1061,8 @@
     - - -2.3145962122679324
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_o
   name: Sprott O system
   chapter: 1
@@ -1106,7 +1125,8 @@
     - - -0.7157365121312177
       - -1.3436380613414
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_p
   name: Sprott P system
   chapter: 1
@@ -1169,7 +1189,8 @@
     - - -1.1914101339378236
       - -1.0921235212659597
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_q
   name: Sprott Q system
   chapter: 1
@@ -1209,7 +1230,8 @@
     - - -1.0
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_r
   name: Sprott R system
   chapter: 1
@@ -1249,7 +1271,8 @@
     - - -1.2321220388327125
       - 0.0
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: sprott_s
   name: Sprott S system
   chapter: 1
@@ -1312,7 +1335,8 @@
     - - -0.30376088337506346
       - -2.2100528928923246
     local_type: saddle_focus
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: roots_found
 - system_id: wang_chen_stable_equilibrium
   name: Wang-Chen system with one stable equilibrium
   chapter: 3
@@ -1353,7 +1377,8 @@
     - - -0.9606852615181612
       - 0.0
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: wei_extended_sprott_e
   name: Wei extended Sprott E system
   chapter: 3
@@ -1394,7 +1419,8 @@
     - - -1.0340195508659582
       - 0.0
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: lao
   name: Lao system
   chapter: 3
@@ -1434,7 +1460,8 @@
     - - -1.978325764250757
       - 0.0
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: kingni
   name: Kingni system
   chapter: 3
@@ -1475,7 +1502,8 @@
     - - -0.7678519460303331
       - 0.0
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: line_equilibrium_to_one_stable
   name: Controlled LE1 system
   chapter: 3
@@ -1516,7 +1544,8 @@
     - - -0.49999999999995803
       - -0.8660254037844143
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: yang_chen
   name: Yang-Chen system
   chapter: 3
@@ -1604,7 +1633,8 @@
     - - -37.61223128850172
       - 0.0
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: yang_wei
   name: Yang-Wei system
   chapter: 3
@@ -1668,7 +1698,8 @@
     - - -20.97780588562837
       - 0.0
     local_type: stable_focus
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: roots_found
 - system_id: sprott_a_no_equilibrium
   name: Sprott A no-equilibrium system
   chapter: 4
@@ -1686,7 +1717,8 @@
     kaplan_yorke_dimension: 3.0'
   reported_equilibria: Ninguno
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: wei_no_equilibrium
   name: Wei no-equilibrium system
   chapter: 4
@@ -1708,7 +1740,8 @@
     kaplan_yorke_dimension: 2.0528'
   reported_equilibria: Ninguno para d > 0
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: wang_chen_no_equilibrium
   name: Wang-Chen no-equilibrium system
   chapter: 4
@@ -1724,7 +1757,8 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Ninguno para a < 0
   computed_equilibria: []
-  status: completo
+  runtime_status: executable
+  equilibrium_scan_status: no_root_returned
 - system_id: maaita
   name: Maaita cubic no-equilibrium system
   chapter: 4
@@ -1740,7 +1774,8 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Ninguno para a > 0
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: akgul
   name: Akgul no-equilibrium system
   chapter: 4
@@ -1761,7 +1796,8 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Complejos solamente
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: pham_modified_le5
   name: Pham modified Jafari LE5 system
   chapter: 4
@@ -1777,7 +1813,8 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Ninguno para a != 0
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: pham_modified_le6
   name: Pham modified Jafari LE6 system
   chapter: 4
@@ -1793,7 +1830,8 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Ninguno para a != 0
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: pham_special_hidden
   name: Pham special hidden-attractor system
   chapter: 4
@@ -1810,7 +1848,8 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Ninguno para a != 0 y c = 0
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: pham_akgul_boostable
   name: Pham-Akgul no-equilibrium system with boostable variable
   chapter: 4
@@ -1832,7 +1871,8 @@
     kaplan_yorke_dimension: 2.0038'
   reported_equilibria: Ninguno real para b < 1
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: jafari_multiscroll_no_equilibrium
   name: Jafari multiscroll chaotic sea without equilibrium
   chapter: 4
@@ -1849,7 +1889,8 @@
   reported_dynamics: 'attractor_type: conservative_chaotic_sea'
   reported_equilibria: Ninguno
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned
 - system_id: hu_multiscroll_i
   name: Hu System I, sine improved Sprott A
   chapter: 4
@@ -1866,4 +1907,5 @@
   reported_dynamics: 'attractor_type: hidden_candidate'
   reported_equilibria: Ninguno
   computed_equilibria: []
-  status: completo
+  runtime_status: reference_only
+  equilibrium_scan_status: no_root_returned

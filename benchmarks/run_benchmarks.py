@@ -367,7 +367,7 @@ def _artifact_manifest(path: Path | None, *, bundle_parent: bool = False) -> dic
 def _dependency_versions() -> dict[str, str | None]:
     distributions = {
         "numpy": "numpy",
-        "PyQt6": "PyQt6",
+        "PySide6": "PySide6",
         "matplotlib": "matplotlib",
         "pyqtgraph": "pyqtgraph",
         "PyYAML": "PyYAML",

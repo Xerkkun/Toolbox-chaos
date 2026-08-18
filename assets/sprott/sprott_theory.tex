@@ -44,7 +44,7 @@
 
 El módulo \textbf{Explorador Sprott} es una reimplementación educativa e independiente inspirada en el trabajo pionero de Julien C. Sprott, especialmente en su obra clásica \emph{Strange Attractors: Creating Patterns in Chaos} (1993) \cite{sprott1993book}. 
 
-Chaos Toolbox no redistribuye ejecutables, diccionarios de configuraciones originales (\code{BOOKFIGS.DIC}, \code{SELECTED.DIC}, etc.) ni código fuente original con copyright del disquete de Sprott, conforme a su política de distribución pública \cite{docsrelease}. La simulación se ejecuta a través de un backend numérico nativo optimizado desarrollado en C.
+Chaos Toolbox no redistribuye ejecutables, diccionarios de configuraciones originales (\code{BOOKFIGS.DIC}, \code{SELECTED.DIC}, etc.) ni código fuente original con copyright del disquete de Sprott, conforme a su política de distribución pública \cite{docsrelease}. La simulación se ejecuta a través de un backend numérico nativo compilado en C.
 
 ---
 
@@ -91,11 +91,15 @@ Los flujos continuos interpretan el polinomio como el campo vectorial de derivad
 \[
 \dot{x}_i = f_i(x) = \sum_{j=1}^{N_m} c_{ij} m_j(x), \qquad i = 1, \ldots, D.
 \]
-La aproximación de la trayectoria se realiza mediante discretización temporal con paso $h$. La toolbox proporciona dos esquemas numéricos:
+La aproximación de la trayectoria se realiza mediante discretización temporal con paso $h$. La toolbox proporciona tres esquemas numéricos:
 \begin{itemize}
   \item \textbf{Euler explícito:}
         \[
         x_{k+1} = x_k + h f(x_k).
+        \]
+  \item \textbf{Heun o Euler mejorado:}
+        \[
+        x_{k+1}=x_k+\frac{h}{2}\left[f(x_k)+f\bigl(x_k+h f(x_k)\bigr)\right].
         \]
   \item \textbf{Runge-Kutta de 4º orden (RK4):}
         \[
@@ -108,7 +112,7 @@ La aproximación de la trayectoria se realiza mediante discretización temporal 
         \end{aligned}
         \]
 \end{itemize}
-RK4 reduce drásticamente el error de truncamiento local acumulado y estabiliza integraciones numéricas complejas.
+Para campos suficientemente suaves, Heun y RK4 tienen errores locales de orden superior al de Euler. Esta propiedad no garantiza estabilidad para cualquier paso o sistema: la convergencia debe comprobarse reduciendo $h$ y comparando resultados bajo el mismo contrato.
 
 ---
 
@@ -209,7 +213,10 @@ w_{n+1} &= \frac{n - 1000}{N_{\max} - 1000}.
 \]
 
 \subsection{Familia \code{Z} (AND/OR Lógica)}
-Se reconoce como familia de lógica AND/OR, pero su comportamiento se encuentra marcado como \code{pending\_semantics\_validation} en el simulador actual.
+El código se conserva únicamente como referencia de la familia lógica AND/OR.
+Su semántica numérica pública no está validada, por lo que la familia \code{Z}
+no forma parte del selector operativo ni puede simularse. La familia \code{Y},
+en cambio, sí dispone de una implementación operativa de valores absolutos.
 
 ---
 
@@ -238,7 +245,7 @@ El algoritmo de búsqueda rápida en \code{core/sprott/search.py} evalúa trayec
 
 \section{9. Lyapunov, dimensión de Kaplan--Yorke y límites de la evidencia}
 
-Un análisis dinámico exhaustivo estima los exponentes de Lyapunov $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_D$. En flujos tridimensionales, el caos se caracteriza por un espectro $(\lambda_1, 0, \lambda_3)$ donde $\lambda_1 > 0$ y $\lambda_1 + \lambda_3 < 0$ (disipación global).
+Un análisis dinámico exhaustivo estima los exponentes de Lyapunov $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_D$. En flujos tridimensionales, una trayectoria caótica disipativa suele presentar un espectro $(\lambda_1, 0, \lambda_3)$ donde $\lambda_1 > 0$ y $\lambda_1 + \lambda_3 < 0$. Esta suma negativa diagnostica contracción media o asintótica a lo largo de la órbita y de la ventana estudiadas; no demuestra por sí sola contracción global en todo el espacio de fases.
 
 A partir del espectro se calcula la \textbf{dimensión de Kaplan-Yorke} ($D_{KY}$):
 \[

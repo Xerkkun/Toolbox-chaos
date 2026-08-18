@@ -6,7 +6,7 @@ This directory is reserved for minimal reproducibility examples to include in th
 
 Current reproducibility entry points:
 
-- Run the desktop app from source: `python main.py`.
+- Run the installed desktop app: `chaos-toolbox`.
 - Prepare runtime resources: `python scripts\prepare_runtime_resources.py`.
 - Verify package: `python scripts\verify_packaging.py`.
 - Run focused tests: `python -m pytest tests\test_packaging_metadata.py tests\test_ui_refactoring.py -q`.

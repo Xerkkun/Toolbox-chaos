@@ -14,7 +14,11 @@ if str(REPO_ROOT) not in sys.path:
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 
-from PyQt6.QtWidgets import QApplication
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtWidgets import QApplication
 
 from core.sprott.catalog import examples_path, load_synthetic_examples
 from core.sprott.search import simulate_candidate

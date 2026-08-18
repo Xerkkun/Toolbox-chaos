@@ -17,9 +17,10 @@ export MKL_NUM_THREADS="${MKL_NUM_THREADS:-1}"
 export NUMEXPR_NUM_THREADS="${NUMEXPR_NUM_THREADS:-1}"
 export VECLIB_MAXIMUM_THREADS="${VECLIB_MAXIMUM_THREADS:-1}"
 
-if ! "$PYTHON_BIN" -c "import PyQt6, numpy, matplotlib, pyqtgraph" >/dev/null 2>&1; then
+if ! "$PYTHON_BIN" -c "import PySide6, numpy, matplotlib, pyqtgraph" >/dev/null 2>&1; then
     "$PYTHON_BIN" -m pip install -r requirements.txt
 fi
 
+"$PYTHON_BIN" scripts/verify_distribution_compliance.py --check-installed
 "$PYTHON_BIN" -c "from core.native import library; library(); print('Backend nativo listo para multiproceso.')"
 exec "$PYTHON_BIN" main.py

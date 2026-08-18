@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -26,17 +29,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      # Linux: PyQt6 needs a virtual display driver and system Qt libs
+      - name: Gate compatible public HAFO release
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install packaging && python scripts/verify_hafo_release.py
+
+      # Linux: PySide6 needs a virtual display driver and system Qt libs
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
         run: |
@@ -56,8 +62,11 @@ jobs:
             libxcb-xfixes0 \
             xvfb
 
-      - name: Install Python runtime dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - name: Install Toolbox and runtime dependencies
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install ".[test]" && python -m pip check
+
+      - name: Verify PySide6-only runtime environment
+        run: python scripts/verify_distribution_compliance.py --check-installed
 
       - name: Verify installed package versions
         shell: python
@@ -65,10 +74,11 @@ jobs:
           import importlib.metadata as meta, sys
 
           required = {
-              "PyQt6":       (6, 7),
+              "PySide6-Essentials": (6, 7),
               "numpy":       (1, 26),
               "matplotlib":  (3, 8),
               "pyqtgraph":   (0, 13),
+              "hidden-attractors-fo": (1, 1),
           }
 
           failed = []
@@ -94,7 +104,7 @@ jobs:
         shell: python
         run: |
           import sys
-          required = (3, 10)
+          required = (3, 11)
           actual = sys.version_info[:2]
           print(f"Python {sys.version}")
           if actual < required:
@@ -119,12 +129,36 @@ jobs:
       QT_QPA_PLATFORM: offscreen   # headless Qt — no display server needed
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+
+      - name: Install Windows native compiler
+        if: runner.os == 'Windows'
+        id: msys2
+        uses: msys2/setup-msys2@40677d36a502eb2cf0fb808cc9dec31bf6152638 # v2.28.0
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-gcc
+
+      - name: Expose Windows native compiler to host processes
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: |
+          $ucrt64Bin = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin'
+          $gcc = Join-Path $ucrt64Bin 'gcc.exe'
+          if (-not (Test-Path -LiteralPath $gcc -PathType Leaf)) {
+            throw "MSYS2 UCRT64 gcc was not found at $gcc"
+          }
+          $ucrt64Bin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $env:PATH = "$ucrt64Bin;$env:PATH"
+          & $gcc --version
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -144,62 +178,41 @@ jobs:
             libxcb-xinerama0 \
             libxcb-xfixes0
 
-      - name: Install runtime dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - name: Install Toolbox and test dependencies
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install ".[test,webengine]" && python -m pip check
 
-      - name: Install test dependencies
-        run: python -m pip install pytest
+      - name: Verify full PySide6 test environment
+        run: python scripts/verify_distribution_compliance.py --check-installed --require-webengine
 
-      - name: Build native C backend
-        id: build_c
-        continue-on-error: true
+      - name: Strict C11 compile gate (Windows UCRT64)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci
+          gcc -O2 -shared -std=c11 \
+            -frandom-seed=chaos-core-v2 \
+            -Wl,--no-insert-timestamp,--image-base,0x180000000 \
+            -Wall -Wextra -Wpedantic -Werror \
+            core/csrc/chaos_core.c -o build/ci/chaos_core.dll -lm
+          test -s build/ci/chaos_core.dll
+
+      - name: Strict C11 compile gate (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          set -e
-          mkdir -p core/bin
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            LIB_OUT="core/bin/chaos_core.dll"
-            if command -v gcc &>/dev/null; then
-              gcc -O2 -shared -std=c11 core/csrc/chaos_core.c -o "$LIB_OUT" -lm
-              echo "status=built" >> $GITHUB_OUTPUT
-              echo "[C backend] Built Windows DLL with gcc: $LIB_OUT"
-            else
-              echo "status=no_compiler" >> $GITHUB_OUTPUT
-              echo "[C backend] No gcc found on Windows — tests will run in Python fallback mode"
-            fi
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            LIB_OUT="core/bin/libchaos_core.dylib"
-            if command -v gcc &>/dev/null || command -v clang &>/dev/null; then
-              CC=$(command -v gcc || command -v clang)
-              $CC -O2 -shared -fPIC -std=c11 core/csrc/chaos_core.c -o "$LIB_OUT" -lm
-              echo "status=built" >> $GITHUB_OUTPUT
-              echo "[C backend] Built macOS dylib: $LIB_OUT"
-            else
-              echo "status=no_compiler" >> $GITHUB_OUTPUT
-              echo "[C backend] No compiler found on macOS"
-            fi
+          set -euo pipefail
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            LIB_OUT="${RUNNER_TEMP}/libchaos_core.dylib"
+            CC="$(command -v clang || command -v gcc)"
           else
-            LIB_OUT="core/bin/libchaos_core.so"
-            if command -v gcc &>/dev/null || command -v clang &>/dev/null; then
-              CC=$(command -v gcc || command -v clang)
-              $CC -O2 -shared -fPIC -std=c11 core/csrc/chaos_core.c -o "$LIB_OUT" -lm
-              echo "status=built" >> $GITHUB_OUTPUT
-              echo "[C backend] Built Linux .so: $LIB_OUT"
-            else
-              echo "status=no_compiler" >> $GITHUB_OUTPUT
-              echo "[C backend] No compiler found on Linux"
-            fi
+            LIB_OUT="${RUNNER_TEMP}/libchaos_core.so"
+            CC="$(command -v gcc || command -v clang)"
           fi
-
-      - name: Report C backend build status
-        shell: bash
-        run: |
-          STATUS="${{ steps.build_c.outputs.status }}"
-          if [[ "$STATUS" == "built" ]]; then
-            echo "[C backend] Native library available -- C-path tests will run."
-          else
-            echo "[C backend] No compiler -- C-path tests will be SKIPPED (expected on some runners)."
-          fi
+          "$CC" -O2 -shared -fPIC -std=c11 \
+            -Wall -Wextra -Wpedantic -Werror \
+            core/csrc/chaos_core.c -o "$LIB_OUT" -lm
+          test -s "$LIB_OUT"
 
       - name: Prepare runtime resources
         run: python scripts/prepare_runtime_resources.py
@@ -216,12 +229,69 @@ jobs:
       - name: Run native backend and multiprocessing tests (verbose)
         run: python -m pytest tests/test_native_backend.py -v --tb=short
 
+      - name: Build and probe installed wheel
+        run: python -m pytest tests/test_closure_contracts.py -q -k built_wheel_installs_entrypoint_metadata_and_resources
+
       - name: Upload test results on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pytest-logs-${{ matrix.os }}-py${{ matrix.python-version }}
           path: |
             .pytest_tmp/
             *.log
           retention-days: 7
+
+  webengine-capability:
+    name: Qt WebEngine capability / Ubuntu / Python 3.11
+    runs-on: ubuntu-latest
+    needs: deps-check
+    env:
+      QTWEBENGINE_CHROMIUM_FLAGS: --no-sandbox
+      CHAOS_TEST_WEBENGINE_RUNTIME: "1"
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install virtual-display dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 libgl1 libegl1 libdbus-1-3 libnss3 \
+            libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+            libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 \
+            libxcomposite1 libxdamage1 libxrandr2 libxtst6 xvfb
+
+      - name: Install Toolbox with WebEngine
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install ".[test,webengine]" && python -m pip check
+
+      - name: Verify PySide6 WebEngine environment
+        run: python scripts/verify_distribution_compliance.py --check-installed --require-webengine
+
+      - name: Import WebEngine and create a page
+        run: xvfb-run -a env QT_QPA_PLATFORM=xcb python -m pytest tests/test_closure_contracts.py -q -k "webengine_extra_imports or webengine_bootstrap or webengine_runtime_creates"
+
+  native-sanitizers:
+    name: Native C11 sanitizers / Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Compile with strict warnings and ASan/UBSan
+        run: |
+          set -euo pipefail
+          gcc -O1 -g -std=c11 -Wall -Wextra -Wpedantic -Werror \
+            -fsanitize=address,undefined -fno-omit-frame-pointer \
+            core/csrc/chaos_core.c tests/native_sanitizer_harness.c \
+            -o "${RUNNER_TEMP}/native-sanitizer-harness" -lm
+
+      - name: Run native sanitizer harness
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: "${RUNNER_TEMP}/native-sanitizer-harness"

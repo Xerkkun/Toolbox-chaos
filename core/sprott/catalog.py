@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 
 from core.paths import sprott_asset_path
+from core.time_policy import utc_now_iso
 
 
 def repo_root() -> Path:
@@ -47,7 +47,7 @@ def save_favorite(entry: dict, path: str | Path | None = None) -> Path:
     target.parent.mkdir(parents=True, exist_ok=True)
     favorites = load_favorites(target)
     record = dict(entry)
-    record.setdefault('date', datetime.now(timezone.utc).isoformat())
+    record.setdefault('date', utc_now_iso())
     record.setdefault('source', 'user favorite')
     favorites.append(record)
     with target.open('w', encoding='utf-8') as handle:

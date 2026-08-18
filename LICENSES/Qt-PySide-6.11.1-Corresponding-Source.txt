@@ -1,0 +1,27 @@
+Qt and PySide corresponding-source manifest
+============================================
+
+Resolved Qt for Python version: 6.11.1
+
+Qt source archive
+-----------------
+File: qt-everywhere-src-6.11.1.tar.xz
+Size: 1017723080 bytes
+SHA-256: 252acef8c5ae68074d91cadba2ee4a83465051bbb970dd26e8f0daa0f3904e03
+URL: https://download.qt.io/official_releases/qt/6.11/6.11.1/single/qt-everywhere-src-6.11.1.tar.xz
+
+PySide source archive
+---------------------
+File: pyside-setup-everywhere-src-6.11.1.tar.xz
+Size: 17963432 bytes
+SHA-256: 6ffd9835bb0dd2c56f061d62f1616bb1707cfc0202b80e3165d6be087f3965e2
+URL: https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.11.1-src/pyside-setup-everywhere-src-6.11.1.tar.xz
+
+The release workflow downloads these exact upstream archives, checks both
+size and SHA-256, and stages them as release evidence. A temporary CI artifact
+is not a substitute for durable delivery: before public binary publication,
+release maintainers must attach both verified archives and this manifest to
+the same persistent release record as the binaries.
+
+This manifest records an engineering distribution control. It is not a
+written source offer and is not legal advice.

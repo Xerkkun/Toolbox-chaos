@@ -4,7 +4,7 @@ All notable changes to Fyskode Chaotic Systems Toolbox are documented here. The 
 
 ## Added
 
-- PyQt6 desktop application for simulating, analyzing, and visualizing chaotic dynamical systems.
+- PySide6 desktop application for simulating, analyzing, and visualizing chaotic dynamical systems.
 - Closed, registry-backed catalog of classical chaotic systems (Lorenz, Rossler, Chua, Chen, Henon, etc.).
 - Numerical diagnostics: Lyapunov exponent estimation, Fast Fourier Transform (FFT) spectra, bifurcation sweeps, and coexisting attractors basins where supported.
 - Sprott Explorer educational module to load and recreate local `.DIC` files without redistributing copyrighted assets.
@@ -14,7 +14,7 @@ All notable changes to Fyskode Chaotic Systems Toolbox are documented here. The 
 
 ## Changed
 
-- Optimized packaging configuration to build compact, whitelist-based runtime resource bundles.
+- Packaging configuration with an explicit allowlist of runtime resources.
 
 ## Fixed
 

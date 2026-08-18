@@ -1,0 +1,3 @@
+# Build-tool bootstrap used by CI and official package scripts.
+# This is a build constraint, not an application runtime dependency.
+pip==26.2.1

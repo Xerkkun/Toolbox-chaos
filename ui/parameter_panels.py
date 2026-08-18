@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtWidgets import (
+from core.qt_binding import configure_pyside6
+
+configure_pyside6()
+
+from PySide6.QtCore import Signal
+from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QFormLayout,
@@ -21,8 +25,8 @@ class SystemParameterPanel(QWidget):
     and solver method configuration.
     """
 
-    changed = pyqtSignal()
-    system_changed = pyqtSignal(str)
+    changed = Signal()
+    system_changed = Signal(str)
 
     def __init__(
         self,
@@ -71,6 +75,11 @@ class SystemParameterPanel(QWidget):
                 self.method_combo.addItem(
                     f"{meta['label']}{suffix}", userData=key
                 )
+                item = self.method_combo.model().item(self.method_combo.count() - 1)
+                if item is not None:
+                    item.setEnabled(bool(meta['implemented']))
+                    if not meta['implemented']:
+                        item.setToolTip('Método anunciado, todavía no implementado.')
             self.method_combo.setCurrentIndex(
                 max(0, self.method_combo.findData('rk4'))
             )
@@ -194,7 +203,20 @@ class SystemParameterPanel(QWidget):
 
         meta = SYSTEM_REGISTRY[key]
         state = 'implementado' if meta['implemented'] else 'pendiente'
-        self.model_status.setText(f"{meta['description']} ({state})")
+        method_note = ''
+        if self.show_method:
+            direct_iteration = meta.get('kind') == 'map'
+            if direct_iteration:
+                self.method_combo.blockSignals(True)
+                self.method_combo.setCurrentIndex(
+                    max(0, self.method_combo.findData('euler'))
+                )
+                self.method_combo.setEnabled(False)
+                self.method_combo.blockSignals(False)
+                method_note = '; iteración directa del mapa'
+            else:
+                self.method_combo.setEnabled(True)
+        self.model_status.setText(f"{meta['description']} ({state}{method_note})")
 
         params, initial = system_defaults(key)
         param_labels = meta.get('param_labels', ())

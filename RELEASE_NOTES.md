@@ -1,6 +1,6 @@
 # Release Notes - Fyskode Chaotic Systems Toolbox 0.1.0
 
-Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for simulating, analyzing, and exploring chaotic dynamical systems.
+Fyskode Chaotic Systems Toolbox is a PySide6 desktop application for simulating, analyzing, and exploring chaotic dynamical systems.
 
 ## Added
 - Closed, registry-backed catalog of classical chaotic systems.
@@ -10,7 +10,7 @@ Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for simulating, a
 - Integrated PDF dictionary viewer and updater interface.
 
 ## Changed
-- Optimized build script to assemble a compact runtime bundle under `resources/bundled`.
+- Build script with an explicit runtime-resource manifest under `resources/bundled`.
 
 ## Fixed
 - Path resolution for relative executables.

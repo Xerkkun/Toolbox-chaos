@@ -10,22 +10,21 @@ Because the toolbox is designed primarily as a desktop GUI application, there ar
 
 ### Example A: Simulating the Lorenz Attractor
 1. Launch the toolbox from source (`python main.py`) or run the installed executable.
-2. In the system catalog panel (left sidebar), select **Lorenz** under the classical systems category.
-3. Click the **Cargar parámetros por defecto** (Load Defaults) button. This loads:
+2. Open the **Atractor 3D** tab.
+3. In the left parameter panel of that tab, choose **Lorenz** in the **Sistema** selector. This loads:
    - Parameters: $\sigma = 10$, $\beta = 8/3$, $\rho = 28$
-   - Initial conditions: $x_0 = 1$, $y_0 = 1$, $z_0 = 1$
-   - Solver parameters: step size $h = 0.01$, integration time $T = 50$
-4. Click the **Simular** (Simulate) button.
-5. **Expected Output:** A 3D phase space trajectory of the Lorenz butterfly attractor will render on the canvas. You can rotate, zoom, and pan the 3D attractor.
-6. **Export:** Click the **Exportar Figura** button in the canvas controls to save a `.png` of the current view to your designated results folder.
+   - Initial conditions: $x_0 = y_0 = z_0 = 0.1$
+   - Solver parameters: step size $dt = 0.01$, integration time $T = 40$
+4. Click **Generar atractor 3D**.
+5. **Expected output:** A finite-time 3D Lorenz trajectory renders on the canvas. You can rotate, zoom, and pan the view.
+6. **Export:** Click **Guardar gráfica...** and choose the destination and supported image format.
 
 ### Example B: Lyapunov Exponent Estimation for the Chen System
-1. In the system catalog panel, select **Chen**.
-2. Click **Cargar parámetros por defecto** to initialize parameters ($a=35, b=3, c=28$) and initial conditions ($x_0=-10, y_0=0, z_0=37$).
-3. Navigate to the **Exponentes de Lyapunov** tab in the diagnostic panels.
-4. Set the integration duration to a longer span (e.g., $N = 10000$ steps) to allow the QR orthonormalization method to converge.
-5. Click **Calcular Exponentes**.
-6. **Expected Output:** The calculated spectrum will converge to approximately:
+1. Open the **Lyapunov** tab.
+2. In the left parameter panel of that tab, choose **Chen** in the **Sistema** selector. This loads parameters ($a=35, b=3, c=28$) and initial conditions ($x_0=y_0=z_0=0.1$).
+3. Set `dt`, **Burn-in time**, **Tiempo final**, and **QR cada N pasos**. The integrator is fixed to RK4; keep both time values exact integer multiples of `dt`.
+4. Click **Calcular exponentes de Lyapunov**.
+5. **Interpretation:** A sufficiently resolved finite-time spectrum is commonly expected to show:
    - $\lambda_1 > 0$ (finite-time evidence of expansion)
    - $\lambda_2 \approx 0$ (direction of the flow)
    - $\lambda_3 < 0$ (strong phase volume contraction)
@@ -35,19 +34,18 @@ interpreting this sign pattern. It is a numerical diagnostic, not an automatic
 proof of asymptotic chaos.
 
 ### Example C: Bifurcation sweep of the Rössler Attractor
-1. Select **Rossler** from the system catalog.
-2. Load defaults ($a = 0.2$, $b = 0.2$, $c = 5.7$).
-3. Open the **Bifurcaciones** tab.
-4. Select parameter $c$ as the sweep variable, setting the range from $2.0$ to $6.0$.
-5. Select coordinate $z$ or $x$ as the projection variable.
-6. Click **Iniciar Barrido** (Start Sweep).
-7. **Expected Output:** A bifurcation diagram plotting the local maxima/minima of the trajectory against the parameter $c$, revealing periodic windows and chaotic bands.
+1. Open the **Bifurcación** tab.
+2. In the left parameter panel of that tab, choose **Rossler** in the **Sistema** selector. This loads defaults ($a = 0.2$, $b = 0.2$, $c = 5.7$).
+3. Select parameter $c$ as the sweep variable, setting the range from $2.0$ to $6.0$.
+4. Select coordinate $z$ or $x$ as the projection variable.
+5. Click **Calcular bifurcación**.
+6. **Expected output:** The diagram plots detected local maxima of the selected coordinate against $c$. Apparent bands and windows are finite-resolution screening evidence and depend on the declared transitory, useful time, step, and sampling density.
 
 ### Example D: Wang--Chen multistable basin
 
-1. Select **Wang-Chen (equilibrios variables)**.
-2. Keep \(a=0.218\), RK4, \(h=0.01\), and open **Cuencas**.
-3. Use the reference preset:
+1. Open the **Cuenca de atracción** tab.
+2. In the left parameter panel of that tab, choose **Wang-Chen (equilibrios variables)** in the **Sistema** selector.
+3. Keep \(a=0.218\), RK4, and \(h=0.01\), then use the reference preset:
    \(z_0=0.4716\), \(x_0\in[-1,10]\), and
    \(y_0\in[-25,10]\).
 4. Set \(T=200\). Increase the grid resolution only after a lower-resolution
@@ -65,9 +63,9 @@ consistent with \(-xz\). The toolbox follows the chapter's
 
 ### Example E: Nazarimehr basin with a line of equilibria
 
-1. Select **Nazarimehr (línea de equilibrios)**.
-2. Keep \(k=-0.2\), RK4, \(h=0.01\), and open **Cuencas**.
-3. Use \(z_0=0\), \(x_0\in[-2,4]\), \(y_0\in[-2,2]\), and \(T=200\).
+1. Open the **Cuenca de atracción** tab.
+2. In the left parameter panel of that tab, choose **Nazarimehr (línea de equilibrios)** in the **Sistema** selector.
+3. Keep \(k=-0.2\), RK4, and \(h=0.01\); use \(z_0=0\), \(x_0\in[-2,4]\), \(y_0\in[-2,2]\), and \(T=200\).
 4. **Expected topology:** a narrow wedge converging to
    \(E^*=\{(x,0,0):x\in\mathbb{R}\}\), surrounded by a bounded-residual
    region. The source reports the following chaotic seed:
@@ -88,7 +86,7 @@ The repository contains automated scripts that act as developer-level reproducib
    python scripts\verify_public_release_clean.py
    ```
 
-2. **Execute smoke test suite (validates PyQt6 window rendering and core math flow):**
+2. **Execute smoke test suite (validates PySide6 window rendering and core math flow):**
    ```powershell
    python scripts\smoke_test.py
    ```
@@ -102,4 +100,6 @@ The repository contains automated scripts that act as developer-level reproducib
    python -m pytest tests/test_research_basin_systems.py -v
    ```
 
-*Note: Headless environments must execute command-line tests with the environment variable `QT_QPA_PLATFORM=offscreen` set.*
+*Note: Headless environments can execute ordinary Qt tests with
+`QT_QPA_PLATFORM=offscreen`. Qt WebEngine construction requires a viable
+display platform and is exercised separately under a virtual display in CI.*

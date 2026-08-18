@@ -38,8 +38,14 @@ if ($Workers -gt 0) {
     $env:CHAOS_WORKERS = [string]$Workers
 }
 
-& $python -c "import PyQt6, PyQt6.QtWebEngineWidgets, numpy, matplotlib, pyqtgraph"
+& $python -c "import PySide6, PySide6.QtWebEngineWidgets, numpy, matplotlib, pyqtgraph"
 if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
+& $python scripts\verify_distribution_compliance.py --check-installed --require-webengine
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Recrea .venv-webengine: debe contener solo PySide6 y sus componentes WebEngine."
     exit $LASTEXITCODE
 }
 

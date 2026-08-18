@@ -1,30 +1,55 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "chaos-toolbox"
 version = "0.1.0"
 description = "Desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration."
 readme = "README.md"
-requires-python = ">=3.10"
-license = { text = "MIT" }
+requires-python = ">=3.11"
+license = "MIT"
+license-files = [
+  "LICENSE",
+  "NOTICE.md",
+  "THIRD_PARTY_NOTICES.md",
+  "LICENSES/*.txt"
+]
 authors = [
   { name = "Maria Fernanda Moreno Lopez" }
 ]
 maintainers = [
   { name = "Maria Fernanda Moreno Lopez" }
 ]
-keywords = ["chaos", "dynamical-systems", "pyqt", "numerical-analysis", "attractors"]
+keywords = ["chaos", "dynamical-systems", "pyside", "numerical-analysis", "attractors"]
 dependencies = [
-  "PyQt6>=6.7",
+  "PySide6-Essentials>=6.7",
+  "PySide6-Addons>=6.7",
   "numpy>=1.26",
   "matplotlib>=3.8",
   "pyqtgraph>=0.13",
   "pyyaml>=6.0",
-  "tomli>=2.0; python_version < '3.11'"
+  "Pillow>=10",
+  "packaging>=24",
+  "hidden-attractors-fo>=1.1,<2"
 ]
+
+[project.gui-scripts]
+chaos-toolbox = "main:main_entry"
 
 [project.optional-dependencies]
 build = [
   "pyinstaller>=6",
-  "pypdf>=4"
+  "pypdf>=4",
+  "cyclonedx-bom>=7,<8"
+]
+test = [
+  "pytest>=8",
+  "build>=1.2",
+  "wheel>=0.43"
+]
+webengine = [
+  "PySide6-Addons>=6.7"
 ]
 
 [project.urls]
@@ -37,3 +62,34 @@ license = "MIT"
 release_api_url_env = "CHAOS_TOOLBOX_RELEASES_API_URL"
 update_check_interval_days = 7
 artifact_name_pattern = "chaos-toolbox-v{version}-{platform}"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core", "core.*", "ui", "ui.*"]
+exclude = ["tests*", "scratch*", "tools*", "build*", "dist*"]
+
+[tool.setuptools.package-data]
+core = ["csrc/*.c", "csrc/*.def"]
+
+[tool.setuptools.data-files]
+"share/chaos-toolbox" = ["README.md", "LICENSE", "NOTICE.md", "THIRD_PARTY_NOTICES.md", "AUTHORS.md", "RELEASE_NOTES.md"]
+"share/chaos-toolbox/LICENSES" = ["LICENSES/LGPL-3.0-only.txt", "LICENSES/GPL-3.0-only.txt", "LICENSES/Chromium-BSD-3-Clause.txt", "LICENSES/QtWebEngine-Third-Party-NOTICE.txt", "LICENSES/Qt-PySide-6.11.1-Corresponding-Source.txt", "LICENSES/Qt-6.11.1-Security-Inventory.txt"]
+"share/chaos-toolbox/docs" = ["docs/user-guide.md", "docs/installation.md", "docs/troubleshooting.md", "docs/license.md", "docs/distribution_policy.md", "docs/custom_systems.md"]
+"share/chaos-toolbox/resources/bundled/data" = ["resources/bundled/data/*.yaml"]
+"share/chaos-toolbox/resources/bundled/data/systems" = ["resources/bundled/data/systems/*.yaml"]
+"share/chaos-toolbox/resources/bundled/data/wang2021" = ["resources/bundled/data/wang2021/*"]
+"share/chaos-toolbox/resources/bundled/docs" = ["resources/bundled/docs/*.pdf"]
+"share/chaos-toolbox/resources/bundled/icons" = ["resources/bundled/icons/*.svg"]
+"share/chaos-toolbox/resources/bundled/sprott" = ["resources/bundled/sprott/*.md"]
+"share/chaos-toolbox/resources/bundled/sprott/examples" = ["resources/bundled/sprott/examples/*.json"]
+"share/chaos-toolbox/resources/bundled/sprott/examples/thumbnails" = ["resources/bundled/sprott/examples/thumbnails/*.png"]
+"share/chaos-toolbox/resources/bundled/sprott/images" = ["resources/bundled/sprott/images/*.md", "resources/bundled/sprott/images/*.png"]
+"share/chaos-toolbox/resources/bundled/sprott/images/generated" = ["resources/bundled/sprott/images/generated/*.png"]
+"share/chaos-toolbox/resources/bundled/sprott/theory" = ["resources/bundled/sprott/theory/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

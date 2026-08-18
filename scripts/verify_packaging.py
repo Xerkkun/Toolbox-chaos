@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 import sys
+import tomllib
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from core.app_metadata import APP_DEVELOPER, APP_LICENSE, APP_VERSION
 from core.paths import bundled_doc_path, sprott_asset_path
+from scripts.verify_distribution_compliance import verify_source_contract
 
 
 FORBIDDEN_BUNDLE_PATTERNS = (
@@ -29,8 +31,33 @@ def _read(path: Path) -> str:
 
 
 def verify() -> None:
-    pyproject = _read(ROOT / 'pyproject.toml')
-    _check(f'version = "{APP_VERSION}"' in pyproject, 'pyproject.toml is not the version source of truth.')
+    verify_source_contract()
+    pyproject_text = _read(ROOT / 'pyproject.toml')
+    pyproject = tomllib.loads(pyproject_text)
+    project = pyproject.get('project', {})
+    _check(project.get('version') == APP_VERSION, 'pyproject.toml is not the version source of truth.')
+    _check(project.get('license') == APP_LICENSE, 'pyproject.toml does not declare the MIT SPDX license.')
+    _check(
+        set(project.get('license-files', []))
+        == {'LICENSE', 'NOTICE.md', 'THIRD_PARTY_NOTICES.md', 'LICENSES/*.txt'},
+        'pyproject.toml does not declare the reviewed PEP 639 license files.',
+    )
+    authors = [item.get('name') for item in project.get('authors', [])]
+    _check(APP_DEVELOPER in authors, 'pyproject.toml does not declare the application developer.')
+    _check(project.get('requires-python') == '>=3.11', 'Toolbox Chaos must require Python >=3.11, matching HAFO 1.1.')
+    dependencies = project.get('dependencies', [])
+    _check('hidden-attractors-fo>=1.1,<2' in dependencies, 'HAFO must be a normal, bounded runtime dependency.')
+    _check(project.get('gui-scripts', {}).get('chaos-toolbox') == 'main:main_entry', 'The installable GUI entry point is missing.')
+    setuptools = pyproject.get('tool', {}).get('setuptools', {})
+    _check(
+        'license-files' not in setuptools,
+        'Legacy tool.setuptools.license-files shadows PEP 639 metadata.',
+    )
+    _check(setuptools.get('py-modules') == ['main'], 'The main module is not packaged explicitly.')
+    _check('share/chaos-toolbox/docs' in setuptools.get('data-files', {}), 'Operational documentation is not installed by the wheel.')
+    _check('share/chaos-toolbox/resources/bundled/docs' in setuptools.get('data-files', {}), 'Bundled runtime data is not installed by the wheel.')
+    package_data = setuptools.get('package-data', {}).get('core', [])
+    _check('csrc/*.def' in package_data, 'The canonical Python/C system-ID table is not packaged.')
 
     license_text = _read(ROOT / 'LICENSE')
     _check('MIT License' in license_text and 'Permission is hereby granted' in license_text, 'LICENSE is not MIT.')
@@ -38,22 +65,48 @@ def verify() -> None:
     changelog = ROOT / 'CHANGELOG.md'
     _check(changelog.exists(), 'CHANGELOG.md is missing.')
 
-    for doc in (
-        'README.md',
-        'docs/installation.md',
-        'docs/packaging.md',
-        'docs/updates.md',
-        'docs/versioning.md',
-        'docs/license.md',
-        'docs/custom_systems_future.md',
-    ):
-        text = _read(ROOT / doc)
-        _check(APP_VERSION in text, f'{doc} does not mention version {APP_VERSION}.')
-        _check(APP_LICENSE in text, f'{doc} does not mention license {APP_LICENSE}.')
-        _check(APP_DEVELOPER in text, f'{doc} does not mention developer {APP_DEVELOPER}.')
-    custom_text = _read(ROOT / 'docs' / 'custom_systems_future.md')
-    _check('does not implement' in custom_text, 'custom systems doc must not promise current support.')
-    _check('.DIC' in custom_text and 'not redistributed' in custom_text, 'custom systems doc must preserve local .DIC exception.')
+    custom_text = _read(ROOT / 'docs' / 'custom_systems.md')
+    _check('editor' in custom_text.lower() and 'Hidden Attractors FO' in custom_text, 'The custom-system guide does not describe the current editor contract.')
+
+    hidden_bridge = _read(ROOT / 'core' / 'hidden_engine.py')
+    _check('_development_candidates' not in hidden_bridge, 'The HAFO bridge still searches sibling checkouts.')
+    _check('sys.path.insert' not in hidden_bridge, 'The HAFO bridge mutates sys.path.')
+    _check('hidden-attractors-fo' in hidden_bridge and '>=1.1,<2' in hidden_bridge, 'The HAFO bridge does not enforce the declared compatibility range.')
+
+    paths_source = _read(ROOT / 'core' / 'paths.py')
+    _check("'share' / 'chaos-toolbox'" in paths_source, 'Installed-wheel resource lookup is missing.')
+
+    spec_text = _read(ROOT / 'packaging' / 'pyinstaller' / 'chaos_toolbox.spec')
+    _check(
+        "collect_data_files('hidden_attractors')" in spec_text
+        and "collect_dynamic_libs('hidden_attractors')" in spec_text,
+        'PyInstaller does not collect the supported HAFO package surface.',
+    )
+    _check(
+        "collect_all('hidden_attractors')" not in spec_text
+        and 'hidden_attractors.validation' not in spec_text,
+        'PyInstaller still scans unsupported HAFO submodules.',
+    )
+    _check(
+        "copy_metadata('chaos-toolbox', recursive=True)" in spec_text
+        and "copy_metadata('PySide6-Addons', recursive=True)" in spec_text,
+        'PyInstaller does not collect the recursive runtime metadata closure.',
+    )
+    _check(
+        'validate_precompiled_library(native_library)' in spec_text,
+        'PyInstaller does not validate the precompiled native backend.',
+    )
+    _check(
+        "'pyqtgraph.opengl'" in spec_text
+        and "'numba.np.ufunc.tbbpool'" in spec_text,
+        'PyInstaller does not exclude unused pyqtgraph/Numba surfaces.',
+    )
+    _check("'system_ids.def'" in spec_text, 'PyInstaller does not collect the canonical system-ID table.')
+    _check("'THIRD_PARTY_NOTICES.md'" in spec_text, 'PyInstaller omits third-party notices.')
+    _check("'LGPL-3.0-only.txt'" in spec_text and "'GPL-3.0-only.txt'" in spec_text, 'PyInstaller omits LGPL/GPL license texts.')
+
+    release_gate = _read(ROOT / 'scripts' / 'verify_hafo_release.py')
+    _check('hidden-attractors-fo' in release_gate and "Version('1.1')" in release_gate, 'The HAFO public-release gate is missing or incompatible.')
 
     for doc_name in ('chaos_dictionary.pdf', 'sprott_theory.pdf', 'sprott_explorer_guide.pdf'):
         _check(bundled_doc_path(doc_name).exists(), f'Bundled PDF missing: {doc_name}')
@@ -78,6 +131,22 @@ def verify() -> None:
     ]
     for script in scripts:
         _check(script.exists(), f'Documented build command is missing: {script}')
+    for build_script in (
+        ROOT / 'packaging' / 'windows' / 'build.ps1',
+        ROOT / 'scripts' / 'build_macos.sh',
+        ROOT / 'scripts' / 'build_linux.sh',
+    ):
+        _check(
+            'validate_precompiled_library(sys.argv[1])' in _read(build_script),
+            f'Build does not explicitly validate its precompiled native library: {build_script}',
+        )
+    installer_builder = _read(ROOT / 'scripts' / 'build_windows_installer.ps1')
+    _check(
+        'Get-FreeSubstDrive' in installer_builder
+        and 'Invoke-InnoCompiler' in installer_builder
+        and 'subst.exe $substDrive /D' in installer_builder,
+        'Windows installer build lacks automatic long-path shortening and cleanup.',
+    )
 
     scan_targets = [
         ROOT / 'packaging',

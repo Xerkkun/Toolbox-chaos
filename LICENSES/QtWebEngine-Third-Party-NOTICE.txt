@@ -1,0 +1,16 @@
+Qt WebEngine 6.11.1 third-party notice
+=======================================
+
+Qt WebEngine embeds Chromium and other third-party open-source components.
+The versioned component/license inventory for Qt 6.11.1 is maintained by Qt:
+
+https://doc.qt.io/qt-6/qtwebengine-licensing.html
+
+The Chromium license is reproduced in Chromium-BSD-3-Clause.txt. The full
+component-specific license texts remain part of the corresponding Qt
+WebEngine sources identified by
+Qt-PySide-6.11.1-Corresponding-Source.txt. Native bundles preserve
+qtwebengine_resources.pak because Qt WebEngine requires it at runtime; this
+project does not claim that the binary resource is a human-readable notice.
+This file is an engineering inventory aid and does not replace any
+component-specific license text or corresponding-source obligation.

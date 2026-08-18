@@ -17,9 +17,13 @@ Hidden Attractors FO
   system contracts, solvers, analysis, validation, provenance
 ```
 
-The bridge loads lazily so the desktop window can start even when the optional engine is unavailable. The GUI displays the availability result instead of silently falling back to scientifically different behavior.
+`hidden-attractors-fo>=1.1,<2` is a normal runtime dependency. The bridge loads
+it lazily so an incomplete or incompatible installation can be reported in the
+desktop diagnostics instead of aborting during module import. Engine-backed
+actions are disabled with that explicit error; there is no alternate solver or
+checkout-path fallback.
 
-## First implemented slice
+## Exposed engine capabilities
 
 - safe expression-defined flows and maps;
 - structured simulation results;
@@ -27,11 +31,14 @@ The bridge loads lazily so the desktop window can start even when the optional e
 - JSON import/export;
 - shared Welch PSD and amplitude-spectrum calculations;
 - explicit trajectory-only evidence boundary;
+- integer-order alignment and covariant-vector adapters where the engine advertises them;
+- multi-term Caputo and tempered-history adapters with explicit capability errors;
 - integration and UI tests.
 
-## Release requirement
-
-The development checkout can discover the sibling repository. This is not a distribution strategy. Before shipping this feature, Hidden Attractors FO must publish a version containing the required API, Toolbox Chaos must declare the compatible dependency range, and the pair must pass installation and execution in a clean environment on every supported platform.
+Source, wheel, and frozen-application builds resolve the installed Python
+distribution. PyInstaller explicitly collects the engine modules and package
+metadata. A missing capability fails with its name and version contract rather
+than importing code from another checkout.
 
 ## Migration rule
 

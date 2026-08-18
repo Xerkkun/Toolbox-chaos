@@ -1,6 +1,6 @@
 # Project Identity
 
-Fyskode Chaotic Systems Toolbox is a PyQt6 desktop application for exploring chaotic dynamical systems through numerical simulation, visualization, and diagnostic analysis.
+Fyskode Chaotic Systems Toolbox is a PySide6 desktop application for exploring chaotic dynamical systems through numerical simulation, visualization, and diagnostic analysis.
 
 This document records the author identity, project brand, and pseudonym conventions used across legal, academic, and technical contexts for Fyskode Chaotic Systems Toolbox.
 

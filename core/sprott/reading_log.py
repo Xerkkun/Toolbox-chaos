@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
 from pathlib import Path
+import tempfile
+
+from core.time_policy import utc_now_iso
 
 
 # Marcas válidas para una entrada de lectura
@@ -56,6 +58,10 @@ MARK_COLOR_PRIORITY: tuple[str, ...] = (
 )
 
 
+class ReadingLogError(RuntimeError):
+    """Raised when the local reading log cannot be read or persisted safely."""
+
+
 def reading_log_path() -> Path:
     """Ruta del JSON de marcas de lectura, fuera del repositorio."""
     if os.name == 'nt':
@@ -65,24 +71,47 @@ def reading_log_path() -> Path:
 
 
 def load_reading_log(path: str | Path | None = None) -> dict:
-    """Carga el log completo. Devuelve dict vacío si no existe o hay error."""
+    """Carga el log completo sin ocultar corrupción o errores de lectura."""
     target = Path(path) if path else reading_log_path()
     if not target.exists():
         return {}
-    with target.open('r', encoding='utf-8') as handle:
-        try:
+    try:
+        with target.open('r', encoding='utf-8') as handle:
             data = json.load(handle)
-        except Exception:
-            return {}
-    return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError, UnicodeError) as exc:
+        raise ReadingLogError(f'No se pudo leer el diario local: {exc}') from exc
+    if not isinstance(data, dict):
+        raise ReadingLogError('El diario local debe contener un objeto JSON.')
+    return data
 
 
 def save_reading_log(log: dict, path: str | Path | None = None) -> Path:
-    """Sobreescribe el JSON del log. Crea el directorio si no existe."""
+    """Persiste el JSON mediante reemplazo atómico en el mismo directorio."""
+    if not isinstance(log, dict):
+        raise TypeError('log debe ser un diccionario.')
     target = Path(path) if path else reading_log_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open('w', encoding='utf-8') as handle:
-        json.dump(log, handle, indent=2, ensure_ascii=False)
+    descriptor: int | None = None
+    temporary_path: Path | None = None
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f'.{target.name}.', suffix='.tmp', dir=target.parent
+        )
+        temporary_path = Path(temporary_name)
+        with os.fdopen(descriptor, 'w', encoding='utf-8') as handle:
+            descriptor = None  # fdopen owns and closes the descriptor.
+            json.dump(log, handle, indent=2, ensure_ascii=False)
+            handle.write('\n')
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, target)
+    except (OSError, TypeError, ValueError) as exc:
+        raise ReadingLogError(f'No se pudo guardar el diario local: {exc}') from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
     return target
 
 
@@ -117,7 +146,7 @@ def set_mark(log: dict, key: str, mark: str, active: bool) -> dict:
     elif not active and mark in marks:
         marks.remove(mark)
     entry['marks'] = marks
-    entry['last_updated'] = datetime.now(timezone.utc).isoformat()
+    entry['last_updated'] = utc_now_iso()
     log[key] = entry
     return log
 
@@ -126,7 +155,7 @@ def set_note(log: dict, key: str, note: str) -> dict:
     """Guarda una nota de texto libre para la entrada."""
     entry = get_entry(log, key)
     entry['note'] = str(note)
-    entry['last_updated'] = datetime.now(timezone.utc).isoformat()
+    entry['last_updated'] = utc_now_iso()
     log[key] = entry
     return log
 
@@ -137,7 +166,7 @@ def set_code(log: dict, key: str, code: str, source_name: str, line: int) -> dic
     entry['code'] = str(code)
     entry['source_name'] = str(source_name)
     entry['line'] = int(line)
-    entry['last_updated'] = datetime.now(timezone.utc).isoformat()
+    entry['last_updated'] = utc_now_iso()
     log[key] = entry
     return log
 

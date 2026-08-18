@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import random
-
 import numpy as np
 
 from .codes import SprottCode, coefficient_count, decode_code, encode_coefficients
 from .families import PolynomialFlowFamily, PolynomialMapFamily
-from .metrics import detect_divergence, detect_fixed_point, estimate_max_lyapunov_two_trajectory
+from .metrics import (
+    LyapunovEstimate,
+    detect_divergence,
+    detect_fixed_point,
+    estimate_max_lyapunov_two_trajectory,
+)
 from core.native import NativeChaosError, sprott_simulate_polynomial_native
-
-
-def _rng_choice(rng, seq):
-    return seq[int(rng.integers(0, len(seq)))] if hasattr(rng, 'integers') else rng.choice(seq)
 
 
 def generate_random_code(kind='map', dimension=2, order=2, rng=None) -> str:
@@ -70,6 +69,9 @@ def simulate_candidate(code, n_iter=2000, transient=200, h=0.01, method='rk4', d
     trajectory = None
     times = None
     
+    method = str(method).lower()
+    if method not in {'euler', 'heun', 'rk4'}:
+        raise ValueError('method must be euler, heun or rk4')
     if backend == 'c' and code_obj.kind in ('map', 'flow'):
         try:
             step_h = 1.0 if code_obj.kind == 'map' else float(h)
@@ -81,7 +83,7 @@ def simulate_candidate(code, n_iter=2000, transient=200, h=0.01, method='rk4', d
                 initial,
                 int(n_iter),
                 step_h,
-                method_key='euler' if method == 'euler' else 'rk4',
+                method_key=method,
                 divergence_threshold=divergence_threshold,
             )
             backend_used = 'c'
@@ -137,10 +139,29 @@ def classify_candidate(trajectory, *, divergence_threshold=1e6, fixed_tol=1e-6):
     return {'state': 'candidate_chaotic', 'reason': 'bounded non-collapsed trajectory; requires stronger diagnostics'}
 
 
-def quick_lyapunov_estimate(code, steps=1000):
+def quick_lyapunov_estimate(code, steps=1000, *, h=0.01, method='rk4'):
     code_obj = decode_code(code) if isinstance(code, str) else code
-    family = family_from_code(code_obj)
     initial = np.full(code_obj.dimension, 0.1, dtype=float)
+    if code_obj.kind == 'special':
+        return LyapunovEstimate(
+            float('nan'),
+            'not_available_special_family',
+            [
+                'El estimador rápido de dos trayectorias no está validado para '
+                'familias especiales dependientes del índice n/Nmax.'
+            ],
+        )
+    family = family_from_code(code_obj)
     if code_obj.kind == 'map':
-        return estimate_max_lyapunov_two_trajectory(family.step, initial, steps=steps)
-    return estimate_max_lyapunov_two_trajectory(lambda state: family.step(state, h=0.01, method='rk4'), initial, steps=steps)
+        return estimate_max_lyapunov_two_trajectory(
+            family.step, initial, steps=steps, time_per_step=1.0
+        )
+    h = float(h)
+    if not np.isfinite(h) or h <= 0.0:
+        raise ValueError('h must be finite and positive for a flow')
+    return estimate_max_lyapunov_two_trajectory(
+        lambda state: family.step(state, h=h, method=method),
+        initial,
+        steps=steps,
+        time_per_step=h,
+    )

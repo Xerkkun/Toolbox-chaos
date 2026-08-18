@@ -35,20 +35,26 @@ if ($Workers -gt 0) {
     $env:CHAOS_WORKERS = [string]$Workers
 }
 
-& $python -c "import PyQt6, numpy, matplotlib, pyqtgraph" 2>$null
+& $python -c "import PySide6, numpy, matplotlib, pyqtgraph" 2>$null
 if ($LASTEXITCODE -ne 0) {
     & $python -m pip install -r requirements.txt
 }
 
-& $python -c "import PyQt6, numpy, matplotlib, pyqtgraph" 2>$null
+& $python -c "import PySide6, numpy, matplotlib, pyqtgraph" 2>$null
 if ($LASTEXITCODE -ne 0 -and $python -ne "python") {
     Write-Host "El entorno .venv local no tiene las dependencias de la app; usando python del sistema."
     $python = "python"
-    & $python -c "import PyQt6, numpy, matplotlib, pyqtgraph"
+    & $python -c "import PySide6, numpy, matplotlib, pyqtgraph"
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "No se pudieron cargar PyQt6, numpy, matplotlib y pyqtgraph. Instala requirements.txt en el Python elegido."
+    Write-Error "No se pudieron cargar PySide6, numpy, matplotlib y pyqtgraph. Instala requirements.txt en el Python elegido."
+    exit $LASTEXITCODE
+}
+
+& $python scripts\verify_distribution_compliance.py --check-installed
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "El entorno contiene una vinculacion Qt heredada o una instalacion PySide6 incompleta. Recrea el entorno antes de ejecutar."
     exit $LASTEXITCODE
 }
 
