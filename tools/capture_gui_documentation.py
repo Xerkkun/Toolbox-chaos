@@ -32,9 +32,24 @@ configure_pyside6()
 from PySide6.QtCore import QCoreApplication  # noqa: E402
 from PySide6.QtGui import QFont, QFontDatabase  # noqa: E402
 from PySide6.QtTest import QTest  # noqa: E402
-from PySide6.QtWidgets import QApplication  # noqa: E402
+from PySide6.QtWidgets import QApplication, QMessageBox  # noqa: E402
 
 from ui.main_window import MainWindow  # noqa: E402
+
+# Documentation captures must be deterministic and must not start a network
+# request or mutate the user's update-check settings while the window is open.
+MainWindow._maybe_check_updates_on_startup = lambda self: None
+
+
+def _capture_dialog(parent, title, message, *args, **kwargs):
+    """Keep an offscreen documentation run from blocking on modal dialogs."""
+    print(f"dialog[{title}]: {message}", flush=True)
+    return QMessageBox.StandardButton.Ok
+
+
+QMessageBox.information = staticmethod(_capture_dialog)
+QMessageBox.warning = staticmethod(_capture_dialog)
+QMessageBox.critical = staticmethod(_capture_dialog)
 
 
 def settle(app: QApplication, cycles: int = 16) -> None:
@@ -99,20 +114,26 @@ def main() -> int:
     window.tab_lyap_widget.canvas.draw()
     capture(app, window, window.tab_lyap_widget, "gui_lyapunov.png")
 
-    # A moderate-density Lorenz rho sweep keeps documentation generation fast
-    # while still executing the same Poincare-event calculation as the GUI.
-    window.tab_bif_widget.bif_n.setValue(100)
-    window.tab_bif_widget.bif_trans.setValue(40.0)
-    window.tab_bif_widget.bif_keep.setValue(60.0)
-    window.tab_bif_widget.max_points.setValue(80)
+    # The logistic map gives a dense, fast and pedagogically familiar diagram
+    # while exercising the same GUI sweep controls used by the full catalog.
+    logistic_index = window.tab_bif_widget.param_panel.system_combo.findData('logistic')
+    if logistic_index < 0:
+        raise RuntimeError('The logistic map is unavailable in the bifurcation selector')
+    window.tab_bif_widget.param_panel.system_combo.setCurrentIndex(logistic_index)
+    window.tab_bif_widget.bif_n.setValue(200)
+    window.tab_bif_widget.bif_trans.setValue(600.0)
+    window.tab_bif_widget.bif_keep.setValue(500.0)
+    window.tab_bif_widget.max_points.setValue(250)
     window.tab_bif_widget.run_bifurcation()
+    if window.tab_bif_widget.lbl_warning.text().startswith('Error:'):
+        raise RuntimeError(window.tab_bif_widget.lbl_warning.text())
     window.tab_bif_widget.canvas.draw()
     capture(app, window, window.tab_bif_widget, "gui_bifurcation.png")
 
     # Compute the current default Lorenz x0-y0 basin at the documented 60x60
     # resolution and retain its equilibrium overlay.
-    window.tab_basin_widget.nx.setValue(60)
-    window.tab_basin_widget.ny.setValue(60)
+    window.tab_basin_widget.nx.setValue(40)
+    window.tab_basin_widget.ny.setValue(40)
     window.tab_basin_widget.run_basin()
     if window.tab_basin_widget.last_basin is None:
         raise RuntimeError("Basin capture did not produce a classification grid")

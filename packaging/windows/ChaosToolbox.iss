@@ -31,6 +31,12 @@ InfoBeforeFile=..\..\THIRD_PARTY_NOTICES.md
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
+[InstallDelete]
+; Replace the bundled runtime atomically so upgrades cannot retain modules from
+; an older Python or Qt binding. User settings and exported results live outside
+; {app} and are not affected.
+Type: filesandordirs; Name: "{app}\_internal"
+
 [Files]
 Source: "..\..\dist\Chaos Toolbox\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 

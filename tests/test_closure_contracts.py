@@ -23,6 +23,7 @@ from core.lorenz import (
     SYSTEM_REGISTRY,
     bifurcation_generic,
     bifurcation_generic_python,
+    simulate_system,
     simulate_system_python,
 )
 from core.qt_capabilities import create_webengine_view, prepare_webengine
@@ -369,6 +370,38 @@ def test_special_bifurcation_metadata_and_public_index_validation():
             'lorenz', [0.1, 0.1, 0.1], [10.0, 28.0, 8.0 / 3.0],
             1.7, 20.0, 21.0, 2, 0.01, 0.0, 0.02, 1,
         )
+
+
+@pytest.mark.parametrize(
+    ('system_key', 'initial', 'params', 'param_idx', 'lower', 'upper'),
+    (
+        ('logistic', [0.2], [3.9], 0, 3.7, 3.9),
+        ('henon', [0.1, 0.1], [1.4, 0.3], 0, 1.2, 1.4),
+    ),
+)
+def test_low_dimensional_map_initials_are_padded_for_native_simulation_and_bifurcation(
+    system_key, initial, params, param_idx, lower, upper
+):
+    padded = [*initial, *([0.0] * (3 - len(initial)))]
+    time_active, states_active = simulate_system(
+        system_key, initial, params, 1.0, 8.0, method_key='euler'
+    )
+    time_padded, states_padded = simulate_system(
+        system_key, padded, params, 1.0, 8.0, method_key='euler'
+    )
+    assert np.array_equal(time_active, time_padded)
+    assert np.array_equal(states_active, states_padded)
+
+    parameter_active, values_active = bifurcation_generic(
+        system_key, initial, params, param_idx, lower, upper, 3,
+        1.0, 3.0, 5.0, 4, observed_var_idx=0,
+    )
+    parameter_padded, values_padded = bifurcation_generic(
+        system_key, padded, params, param_idx, lower, upper, 3,
+        1.0, 3.0, 5.0, 4, observed_var_idx=0,
+    )
+    assert np.array_equal(parameter_active, parameter_padded)
+    assert np.array_equal(values_active, values_padded)
 
 
 def test_extreme_finite_ranges_use_convex_interpolation_without_overflow():

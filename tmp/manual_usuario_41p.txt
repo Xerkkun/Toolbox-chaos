@@ -1,0 +1,1603 @@
+Manual de usuario de Toolbox Chaos
+Instalación, simulación, análisis y exportación reproducible de sistemas dinámicos
+
+Fyskode Chaotic Systems Toolbox 0.1.0
+
+
+
+
+   Instalación y uso de Toolbox Chaos
+   Este documento enseña a operar la interfaz gráfica desde la instalación hasta la exportación de
+   resultados. Las explicaciones matemáticas extensas se encuentran en el Manual teórico pedagógico
+   (manual_teorico_pedagogico.pdf); el tratamiento especializado de códigos compactos se encuentra
+   en el Manual pedagógico del Explorador Sprott (manual_explorador_sprott.pdf).
+
+
+
+
+Maria Fernanda Moreno Lopez (Fer Moreno)
+https://search.fyskode.com/toolbox_chaos
+Agosto de 2026
+Toolbox Chaos                                                                                   Manual de usuario
+
+
+
+Índice
+
+1. Instalación y organización de la interfaz                                                                        1
+
+2. Simulación de Lorenz y reutilización de resultados                                                               4
+
+3. Análisis del comportamiento dinámico                                                                             9
+
+4. Sistemas personalizados y Explorador Sprott                                                                     14
+
+5. Recetario ampliado de experimentos reproducibles                                                                17
+   5.1. Mapa de las trece pestañas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         18
+   5.2. Receta 1. Lorenz como sesión transversal . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         19
+   5.3. Receta 2. Mapa logístico y resolución de una bifurcación . . . . . . . . . . . . . . . . . . . .           21
+   5.4. Receta 3. Hénon: iteración directa y retrato bidimensional . . . . . . . . . . . . . . . . . . .           22
+   5.5. Receta 4. Rössler y comparación de integradores . . . . . . . . . . . . . . . . . . . . . . . .            24
+   5.6. Receta 5. Chua: simetría y condición inicial . . . . . . . . . . . . . . . . . . . . . . . . . . .         25
+   5.7. Receta 6. Duffing–Ueda: paso temporal y muestreo del forzamiento . . . . . . . . . . . . . .               27
+   5.8. Receta 7. Mackey–Glass: historia retardada y ventana larga . . . . . . . . . . . . . . . . . .             28
+   5.9. Receta 8. Lorenz–96: una proyección de un estado de ocho variables . . . . . . . . . . . . .               30
+   5.10. Receta 9. Genesio–Tesi en el editor sin código . . . . . . . . . . . . . . . . . . . . . . . . . .        31
+   5.11. Receta 10. Código Sprott, estilo y paquete de exportación . . . . . . . . . . . . . . . . . . .           33
+   5.12. Plantilla de bitácora reproducible . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      35
+
+6. Exportación, interpretación y ampliación del software                                                           36
+
+
+
+
+Fyskode                                                 i                                                       v0.1.0
+Toolbox Chaos                                                                                  Manual de usuario
+
+
+
+1 Instalación y organización de la interfaz
+
+Toolbox Chaos organiza el trabajo en trece pestañas. El proyecto se presenta públicamente con ese nombre,
+mientras que la barra de título y el acceso directo muestran Chaos Toolbox; ambas denominaciones identifican
+la misma aplicación gráfica. Varias pestañas comparten el selector de sistema, parámetros, condiciones
+iniciales y paso temporal; otras reúnen laboratorios especializados. El uso se explica a partir de una trayectoria
+de Lorenz que se conserva para generar distintas representaciones. A partir de ese cálculo se introducen los
+barridos de parámetros, las cuencas de atracción, los exponentes de Lyapunov, la coexistencia y la definición
+de modelos propios.
+Los nombres de controles aparecen en letra sans serif cursiva, por ejemplo Generar atractor 3D. Cuando
+el texto indica pulse, se refiere a activar ese control en la interfaz. Los nombres de archivos y comandos
+aparecen en letra monoespaciada.
+
+
+    Operaciones descritas en el manual
+    La persona usuaria podrá reproducir una simulación, conservar sus parámetros, generar figuras
+    comparables, distinguir entre una visualización y una conclusión científica, y preparar un paquete
+    mínimo de datos para compartir su experimento.
+
+
+Antes de instalar conviene distinguir los tres documentos que acompañan el software. Esta separación evita
+interrumpir un procedimiento de uso con una demostración extensa y, al mismo tiempo, permite continuar
+el estudio cuando una gráfica necesita fundamento adicional.
+
+ Documento                      Contenido principal
+ Manual de usuario (este        ¿Qué control debo usar y en qué orden para obtener, guardar y repetir un
+ archivo)                       resultado?
+ Manual teórico pedagógico      ¿Qué significan matemáticamente las trayectorias, atractores, espectros,
+ (manual_teorico_pedag          bifurcaciones, cuencas, autovalores y exponentes de Lyapunov?
+ ogico.pdf)
+ Manual pedagógico del          ¿Cómo se decodifican, simulan, interpretan y documentan los códigos com-
+ Explorador Sprott              pactos inspirados en Sprott?
+ (manual_explorador_sp
+ rott.pdf)
+
+Instalación en Windows.
+El instalador de Windows integra la aplicación, el entorno de Python y las bibliotecas necesarias para
+ejecutar la distribución empaquetada. En una instalación normal no es necesario instalar Python ni un
+compilador por separado.
+
+ 1. Abra la página de versiones: https://github.com/Xerkkun/Toolbox-chaos/releases.
+ 2. Descargue chaos-toolbox-v0.1.0-windows-x64-setup.exe.
+ 3. Compruebe que el archivo provenga de la página anterior. Si la publicación incluye una suma SHA-256,
+    compárela antes de ejecutar el instalador.
+ 4. Ejecute el archivo, acepte la ubicación propuesta o elija otra carpeta y complete el asistente.
+ 5. Abra Chaos Toolbox desde el menú Inicio o el acceso directo creado por el instalador.
+
+
+Fyskode                                                 1                                                  v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+
+   Advertencias de reputación en Windows
+   Windows puede mostrar una advertencia de reputación cuando un ejecutable no tiene una firma
+   reconocida por el equipo. No omita la comprobación de origen: continúe solamente con el instalador
+   obtenido desde la URL oficial indicada arriba y, cuando esté disponible, verifique su suma de
+   comprobación.
+
+
+
+Instalación con Python.
+Esta ruta es útil para docencia, desarrollo o entornos donde se administran paquetes de Python. Requiere
+Python 3.11 o posterior.
+Desde PyPI:
+
+python -m pip install --upgrade pip
+python -m pip install chaos-toolbox
+chaos-toolbox
+
+Página explícita del paquete: https://pypi.org/project/chaos-toolbox/.
+Desde el repositorio:
+
+git clone https://github.com/Xerkkun/Toolbox-chaos.git
+cd Toolbox-chaos
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install .
+chaos-toolbox
+
+La instalación normal declara e instala la versión compatible de hidden-attractors-fo; este paquete
+funciona como motor matemático. La persona usuaria opera Toolbox Chaos y no necesita abrir ni modificar
+el motor para seguir los laboratorios de este manual.
+
+Inicio de la aplicación.
+La ventana debe mostrar la barra de menús Archivo y Ayuda, trece pestañas y una barra de estado inferior.
+En Atractor 3D, el selector inicial debe incluir Lorenz [listo]. Si la aplicación abre pero el área gráfica está
+vacía, no es un error: pulse Generar atractor 3D para iniciar el primer cálculo.
+
+Pestañas y funciones de la interfaz.
+
+
+   Pestaña                 Producto principal               Cuándo usarla
+   Atractor 3D             Trayectoria tridimensional       Primer reconocimiento geométrico de un flujo
+                                                            o de una trayectoria con tres componentes.
+   Retratos 2D             Proyecciones por pares           Comparar planos de fase y revelar estructura
+                                                            que puede ocultarse en una vista 3D.
+   Series temporales       Estado contra tiempo o           Examinar transitorios, amplitud, alternancia,
+                           iteración                        saturación y escalas temporales.
+
+
+
+Fyskode                                                2                                                 v0.1.0
+Toolbox Chaos                                                                            Manual de usuario
+
+
+
+  Pestaña               Producto principal               Cuándo usarla
+  Comparar metodos      Tres series por integrador       Comprobar sensibilidad numérica entre Euler,
+                                                         Heun y RK4 con el mismo contrato.
+  Espectro              PSD de Welch o espectro de       Localizar componentes dominantes y
+                        amplitud                         comparar contenido frecuencial después de
+                                                         retirar un transitorio.
+  Lyapunov              Espectro finito y curvas de      Estimar separación de perturbaciones en flujos
+                        convergencia                     ODE enteros de tres dimensiones registrados.
+  Bifurcación           Barrido de un parámetro          Reconocer cambios cualitativos, ventanas y
+                                                         coexistencia al variar un parámetro.
+  Cuenca de atracción   Clasificación de una malla de    Estudiar sensibilidad al estado inicial y
+                        condiciones iniciales            fronteras entre destinos calculados.
+  Autovalores           Equilibrios y plano complejo     Revisar estabilidad local de equilibrios de
+                                                         flujos ODE compatibles.
+  Coexistencia          Atractores reportados para       Reproducir casos catalogados y enviarlos a
+                        un mismo conjunto de             otras pestañas.
+                        parámetros
+  Manuales              Usuario, teoría y Explorador     Consultar dentro de la aplicación los tres
+                        Sprott                           documentos pedagógicos que acompañan el
+                                                         trabajo.
+  Crear sistema         Trayectoria de un flujo o        Probar ecuaciones propias mediante el
+                        mapa definido sin código         analizador restringido y guardar la definición
+                        Python                           en JSON.
+  Explorador Sprott     Decodificación, simulación,      Recuperar con fines didácticos el método de
+                        estilo y galería de códigos      exploración de Sprott y extenderlo con
+                        compactos                        herramientas actuales.
+
+
+
+
+Fyskode                                              3                                               v0.1.0
+Toolbox Chaos                                                                             Manual de usuario
+
+
+
+
+Figura 1: Ventana completa de Toolbox Chaos. Las pestañas forman una ruta de trabajo común y el panel
+izquierdo conserva el sistema, los parámetros y el contrato numérico de la vista activa.
+
+
+   Datos locales y trayectoria compartida
+   Las pestañas con el panel Modelo e integrador mantienen sus propios valores. Seleccionar un sistema
+   carga los valores predeterminados de esa pestaña. En cambio, los botones Usar última trayectoria
+   recuperan explícitamente la trayectoria compartida más reciente; no vuelven a simularla.
+
+
+
+2 Simulación de Lorenz y reutilización de resultados
+
+El primer ejercicio genera una trayectoria reproducible con los valores predeterminados y permite reconocer
+la relación entre el modelo, el integrador, las condiciones iniciales y la malla temporal.
+
+1. Abra Atractor 3D.
+2. En Sistema, elija Lorenz [listo].
+3. En Método, elija Runge–Kutta 4 [C].
+4. Confirme los parámetros σ = 10, ρ = 28 y β = 2.666667.
+5. Confirme x(0) = y(0) = z(0) = 0.1, dt = 0.01 y Tiempo total T = 40.
+6. Elija un Color atractor. Active Superponer proyecciones si desea ver sombras geométricas sobre los planos
+   coordenados.
+7. Pulse Generar atractor 3D.
+
+
+
+Fyskode                                             4                                                 v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+La barra inferior debe informar que se generó el atractor y el área derecha debe mostrar los dos lóbulos
+característicos. El punto inicial y el final ayudan a seguir el sentido de la trayectoria.
+
+
+
+
+Figura 2: Pestaña Atractor 3D después de calcular el sistema de Lorenz con RK4. El panel izquierdo conserva
+el contrato numérico necesario para repetir la figura.
+
+
+   Límites de la visualización del atractor
+   Una curva con forma de atractor no demuestra por sí sola caos ni atracción. Más adelante se
+   comparará el integrador, se retirará el transitorio y se revisará la convergencia de los exponentes de
+   Lyapunov.
+
+
+
+Retratos 2D, series temporales y espectro.
+La simulación de Lorenz calculada en la sección anterior queda disponible como última trayectoria. Reutilizarla
+permite comparar visualizaciones sin introducir diferencias por una nueva ejecución.
+En Retratos 2D, pulse Usar última trayectoria. En Proyecciones 2D puede conservar únicamente las parejas
+que necesite; para tres variables se ofrecen x-y, x-z y y-z. El selector Color modifica la presentación, no los
+datos. Cuando la composición sea adecuada, Guardar gráfica... exporta el panel. Conviene distinguir este
+recorrido de Generar retratos 2D: ese segundo control calcula una trayectoria nueva con los valores locales de
+la pestaña, mientras que Usar última trayectoria dibuja los datos ya compartidos.
+
+
+
+
+Fyskode                                               5                                                  v0.1.0
+Toolbox Chaos                                                                                 Manual de usuario
+
+
+
+
+Figura 3: Retratos de fase del mismo experimento de Lorenz en tres planos. Las proyecciones no son
+trayectorias diferentes: son vistas del mismo conjunto de estados.
+
+
+Continúe en Series temporales y pulse Usar última trayectoria. Las vistas separadas de x(t), y(t) y z(t) permiten
+reconocer el tramo inicial de adaptación y compararlo con el resto de la simulación. Los selectores de color
+ayudan a distinguir variables sin alterar la trayectoria; Guardar gráfica... conserva la composición mostrada.
+
+
+
+
+Fyskode                                                6                                                  v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+
+
+Figura 4: Series temporales de Lorenz. La vista extendida en el eje horizontal permite reconocer el transitorio
+inicial y la evolución irregular posterior.
+
+
+La misma trayectoria puede examinarse por variable de estado en Espectro. Después de pulsar Usar última
+trayectoria, seleccione en Método la opción PSD de Welch (recomendado) y ajuste Descartar transitorio (s) para
+excluir el arranque. Durante la primera lectura es razonable dejar Frecuencia mínima (0=auto) y Frecuencia
+máxima (0=auto) en cero. Calcular FFT/PSD vuelve a calcular desde el panel de la pestaña y Guardar gráfica...
+exporta la salida. Cuando la pregunta requiera amplitudes de la transformada rápida de Fourier en lugar de
+densidad espectral de potencia, repita la observación con Espectro de amplitud.
+
+
+
+
+Fyskode                                               7                                                  v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+
+
+Figura 5: PSD de Welch para cada variable del sistema de Lorenz. La pestaña también ofrece el espectro de
+amplitud de una FFT unilateral.
+
+
+   Estabilidad del contenido espectral
+   ¿Los máximos espectrales se conservan al aumentar el tiempo total? Si una característica desaparece
+   al cambiar la longitud de la señal o el transitorio descartado, descríbala como dependiente del
+   contrato numérico y no como propiedad confirmada del sistema.
+
+
+
+Comparación de integradores.
+En sistemas caóticos, dos trayectorias numéricas pueden separarse aunque los métodos sean correctos. La
+comparación sirve para estudiar el efecto de la discretización, no para exigir coincidencia punto por punto
+durante tiempos largos. Abra Comparar metodos, seleccione Lorenz [listo] y reproduzca los parámetros,
+condiciones iniciales, dt y Tiempo total T del laboratorio. En Integradores a comparar, active Euler explícito,
+Heun / Euler mejorado (RK2) y Runge–Kutta 4, asigne colores distintos y pulse Comparar integradores. Una
+segunda ejecución con dt menor permite comparar cuánto tiempo permanecen próximas las curvas y si se
+conserva la escala global de cada variable.
+
+
+
+
+Fyskode                                               8                                                  v0.1.0
+Toolbox Chaos                                                                                   Manual de usuario
+
+
+
+
+Figura 6: Comparación de Euler, Heun y RK4 para las tres variables de Lorenz. La separación tardía debe
+interpretarse junto con el paso, el horizonte y la sensibilidad dinámica.
+
+
+    Datos necesarios para reproducir la simulación
+   Anote siempre sistema, parámetros, estado inicial, método, dt, tiempo total, versión del programa y
+   fecha de ejecución. Una figura sin ese contrato no permite repetir el cálculo.
+
+
+
+3 Análisis del comportamiento dinámico
+
+Una trayectoria permite reconocer la evolución de un estado inicial, pero muchas preguntas de investigación
+requieren relacionar varias trayectorias, parámetros o escalas locales. Las siguientes herramientas se presentan
+en un orden deliberado: primero se estudia el cambio producido por un parámetro, después la dependencia
+respecto al estado inicial y, finalmente, se combinan diagnósticos globales y locales.
+
+Diagrama de bifurcación.
+La pestaña Bifurcación barre un parámetro del sistema, descarta un transitorio y conserva eventos o últimos
+valores de la variable observada. Es una herramienta para localizar regiones que merecen simulaciones más
+detalladas.
+Para el ejercicio, seleccione Logistico [listo], elija r como Parámetro de bifurcación y x como Variable observada.
+Mínimo, Máximo y N (Parámetros) determinan el intervalo y su muestreo; conviene empezar con pocos
+parámetros y aumentar la resolución solo después de confirmar que el intervalo es informativo. Antes de
+pulsar Calcular bifurcación, revise dt integrador, Transitorio descartado, Tiempo útil y Máx cruces por param.
+En la primera ejecución mantenga desactivado Usar continuación; si lo activa, el estado final de un valor
+alimenta al siguiente. Registre esa decisión y guarde la salida con Guardar gráfica....
+
+Fyskode                                                 9                                                   v0.1.0
+Toolbox Chaos                                                                               Manual de usuario
+
+
+
+
+Figura 7: Diagrama de bifurcación del mapa logístico. Cada columna reúne las iteraciones conservadas
+después del transitorio para un valor del parámetro r.
+
+
+Los controles que modifican el muestreo, el transitorio y la continuidad del barrido se resumen a continuación.
+
+ Control                          Efecto operativo
+ N (Parámetros)                   Aumenta la resolución horizontal y el costo total del barrido.
+ Transitorio descartado           Reduce la influencia del arranque; un valor insuficiente puede mezclar
+                                  adaptación y comportamiento persistente.
+ Tiempo útil                      Aumenta la ventana usada para detectar eventos o conservar valores.
+ Máx cruces por param             Limita la densidad vertical almacenada para cada parámetro.
+ Usar continuación                Explora una rama dependiente de la dirección del barrido; compárela con
+                                  ejecuciones desde condiciones iniciales fijas.
+
+Cuenca de atracción.
+La pestaña Cuenca de atracción construye una malla de condiciones iniciales en el plano (x0 , y0 ) y mantiene
+z0 fijo. Cada celda recibe la clase detectada por el clasificador disponible para el sistema.
+Al seleccionar un sistema compatible, revise primero los valores cargados en Región y resolución. Los campos
+x0 mín, x0 máx, y0 mín, y0 máx y z0 fijo fijan el plano que se estudiará. Una malla inicial con Nx (ancho) y
+Ny (alto) bajos permite verificar la región sin asumir de entrada un costo elevado; después puede aumentarse
+la resolución. Revise también dt integrador y Tiempo total, active Superponer equilibrios cuando necesite
+ubicar los puntos compatibles y pulse Calcular cuenca. La leyenda y el cuadro Equilibrios deben leerse antes
+de exportar la figura.
+
+
+
+
+Fyskode                                               10                                                v0.1.0
+Toolbox Chaos                                                                                 Manual de usuario
+
+
+
+
+Figura 8: Cuenca de Lorenz en un plano de condiciones iniciales. La leyenda expresa clases numéricas
+calculadas dentro del horizonte elegido.
+
+
+   Resolución y clasificación de la cuenca
+   Una celda clasificada como acotada o residual no certifica caos. Una frontera aparente también puede
+   cambiar con la resolución, el paso temporal, el tiempo total o el criterio del clasificador. Para estudiar
+   una zona fronteriza, amplíe la región local y repita con una malla más fina.
+
+
+
+Exponentes de Lyapunov.
+La pestaña Lyapunov calcula un espectro finito mediante QR–Benettin para flujos ODE enteros de tres
+dimensiones registrados. Muestra las estimaciones acumuladas y su evolución temporal.
+Seleccione Lorenz [listo] y conserve los parámetros y el estado inicial del laboratorio base. El panel identifica
+RK4 fijo (estado y sistema variacional); dt integrador determina el paso, Burn-in time separa el transitorio
+previo a la medición, Tiempo final fija el horizonte medido y QR cada N pasos controla la reortonormalización.
+Después de pulsar Calcular exponentes de Lyapunov, observe conjuntamente los valores finales y sus curvas de
+convergencia. Antes de reportar cifras, repita con mayor tiempo final y con un paso menor.
+
+
+
+
+Fyskode                                               11                                                   v0.1.0
+Toolbox Chaos                                                                              Manual de usuario
+
+
+
+
+Figura 9: Espectro finito de Lyapunov de Lorenz y evolución de cada estimación. El pie de la interfaz
+conserva método, paso, burn-in, tiempo de medición e intervalo QR.
+
+
+    Convergencia del cálculo de Lyapunov
+    Un exponente máximo positivo es evidencia numérica de separación local dentro del cálculo realizado.
+    La estabilidad de sus dígitos frente a cambios razonables de dt, burn-in, horizonte e intervalo QR es
+    más informativa que un único valor aislado.
+
+
+
+Equilibrios y autovalores.
+Abra Autovalores, seleccione un flujo ODE compatible, revise sus parámetros y pulse Calcular equilibrios y
+autovalores. En Equilibrio, la opción Todos permite comparar los puntos; una selección específica centra la
+figura y el resumen textual en un solo equilibrio. La posición de los autovalores en el plano complejo resume
+el comportamiento lineal local, cuyas condiciones y límites se desarrollan en el Manual teórico pedagógico
+(manual_teorico_pedagogico.pdf). Una vez registrada la selección, use Guardar gráfica....
+
+
+
+
+Fyskode                                              12                                                v0.1.0
+Toolbox Chaos                                                                               Manual de usuario
+
+
+
+
+Figura 10: Equilibrios y autovalores en el plano complejo. El texto inferior reporta coordenadas, valores y
+clasificación local calculada.
+
+
+La pestaña no sustituye un análisis global: dos sistemas con la misma estabilidad local pueden tener
+comportamientos alejados del equilibrio muy diferentes.
+
+Atractores coexistentes.
+Coexistencia reúne casos reportados con varias condiciones iniciales para un mismo conjunto de parámetros.
+El propósito es repetir el caso de referencia y comparar destinos sin transcribir manualmente todos los
+valores.
+Elija un Caso reportado y lea primero Bibliografía y notas; después seleccione un Atractor y ajuste dt y Tiempo
+T si el protocolo lo requiere. Los cálculos toman automáticamente el conjunto de parámetros registrado para
+el caso, por lo que no hace falta transferirlo mediante una acción adicional. Simular atractor seleccionado
+calcula una condición inicial, mientras que Simular todos los atractores superpone las trayectorias del caso.
+Calcular cuenca para este caso inicia la clasificación asociada. Si la pregunta continúa en otra herramienta,
+Enviar a Atractor 3D, Enviar a Cuencas y Enviar a Bifurcación trasladan el caso; los valores deben revisarse en
+la pestaña de destino antes de ejecutar.
+
+
+
+
+Fyskode                                               13                                                v0.1.0
+Toolbox Chaos                                                                                    Manual de usuario
+
+
+
+
+Figura 11: Caso de coexistencia con varias trayectorias calculadas a partir de condiciones iniciales distintas
+y el mismo conjunto de parámetros.
+
+
+   Límite de una prueba de coexistencia
+   La coexistencia numérica observada respalda la multestabilidad del caso calculado, pero no establece
+   por sí sola una clasificación global de todos los destinos. Conserve las condiciones iniciales, el horizonte,
+   el método y las pruebas de refinamiento antes de formular una conclusión más amplia.
+
+
+
+4 Sistemas personalizados y Explorador Sprott
+
+El trabajo con modelos registrados puede extenderse en dos direcciones complementarias. Crear sistema
+permite ensayar ecuaciones propias sin escribir un script, mientras que Explorador Sprott conduce desde
+códigos compactos hasta ecuaciones, simulaciones y figuras. La pestaña Manuales sostiene la interpretación
+durante ambas rutas sin interrumpir el experimento.
+
+Definición del sistema Genesio–Tesi en Crear sistema.
+Crear sistema acepta variables, parámetros y una ecuación por variable. El analizador restringido no ejecuta
+importaciones ni código Python arbitrario. La simulación se realiza con el motor matemático Hidden
+Attractors FO.
+Para introducir los parámetros y las ecuaciones del sistema, abra Crear sistema y capture exactamente los
+siguientes valores:
+
+
+
+
+Fyskode                                                 14                                                   v0.1.0
+Toolbox Chaos                                                                               Manual de usuario
+
+
+
+ Campo literal                       Contenido del laboratorio
+ Nombre                              Genesio-Tesi
+ Tipo                                Flujo continuo
+ Variables (separadas por coma)      x,y,z
+ Parametros (nombre=valor)           a=1.2, b=2.92, c=6.0; una asignación por línea.
+ Ecuaciones (una por variable)       y; z; -c*x-b*y-a*z+x**2; una expresión por línea y en el mismo
+                                     orden que las variables.
+ Estado inicial                      0.2,0.2,0.2
+ Metodo del flujo                    rk4
+ Paso h                              0.005000
+ Duracion                            500.0000
+ Muestras transitorias               5000
+ Umbral de divergencia               1000000.00
+
+1. Pulse Validar definicion. Corrija cualquier discrepancia entre el número de variables, ecuaciones y valores
+   iniciales.
+2. Pulse Simular y graficar. La barra de resultado debe informar el estado, los pasos completados y el motor
+   utilizado.
+3. Pulse Guardar JSON para conservar la definición. Use Abrir JSON en otra sesión para recuperarla.
+4. Después de simular, abra Retratos 2D, Series temporales o Espectro y pulse Usar última trayectoria.
+
+
+
+
+Figura 12: Sistema de Genesio–Tesi introducido en Crear sistema. La captura muestra la definición, el
+contrato numérico y la trayectoria resultante en la misma ventana.
+
+
+Fyskode                                              15                                                 v0.1.0
+Toolbox Chaos                                                                               Manual de usuario
+
+
+La trayectoria de un sistema personalizado puede reutilizarse en las vistas 2D, temporales y espectrales.
+Sin embargo, la definición no se convierte automáticamente en un sistema del catálogo: el editor no infiere
+equilibrios, Jacobiano, caos ni atracción global, ni activa de manera automática los barridos, cuencas o el
+análisis de Lyapunov del catálogo.
+
+Uso inicial del Explorador Sprott.
+El Explorador Sprott es un laboratorio didáctico para recuperar y modernizar el método de códigos compactos
+presentado por Julien C. Sprott en Strange Attractors: Creating Patterns in Chaos. Incluye ejemplos sintéticos
+públicos, decodificación, simulación, estilos, exportación y una galería local.
+La primera ruta comienza en Inicio con 1. Probar ejemplo. El programa conduce a Ejemplos, donde un ejemplo
+recomendado puede ejecutarse con Simular con estilo recomendado; conviene leer su objetivo de aprendizaje
+antes de modificar la apariencia. Codigos permite escribir o pegar un código y usar Decodificar para revisar
+familia, dimensión, orden, coeficientes y ecuaciones. Con esa lectura previa, Exploracion ofrece un Preset,
+Generar codigo y Simular y graficar. El estilo se actualiza con Aplicar estilo; la figura, los metadatos y los
+datos se conservan respectivamente mediante Exportar imagen actual, Exportar metadatos JSON y Exportar
+datos CSV. Los resultados seleccionados pueden añadirse a Galeria, pero deben conservar el código y la
+configuración, no solamente la imagen.
+
+
+
+
+Figura 13: Ventana del Explorador Sprott en Exploracion. El panel reúne el código, el contrato de simulación
+y el estilo visual, mientras el lienzo muestra la trayectoria calculada.
+
+
+
+
+Fyskode                                              16                                                 v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+
+
+Figura 14: Ejemplo sintético público de una proyección x-y de un mapa 4D, con una paleta continua
+gobernada por w. El color y la proyección son decisiones de visualización que deben registrarse junto con el
+código.
+
+
+Toolbox Chaos no redistribuye los archivos históricos de Sprott, sus figuras, ejecutables ni diccionarios
+originales. La persona usuaria puede obtener estos materiales desde las páginas oficiales y cargar localmente
+sus propios archivos .DIC; la aplicación los lee en su ubicación y no los copia al repositorio.
+La página del libro es https://sprott.physics.wisc.edu/SA.HTM y el manuscrito en línea se encuentra
+en https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM. El paquete editorial del disco
+puede consultarse en https://sprott.physics.wisc.edu/fractals/bookdisk/SADISK.ZIP; su directorio
+oficial es https://sprott.physics.wisc.edu/fractals/bookdisk/.
+Para aprender la gramática, el fundamento algebraico de las familias, el significado de los filtros y el modo de
+lectura del libro, continúe en el Manual pedagógico del Explorador Sprott (manual_explorador_sprott.pdf).
+
+Manuales y ayuda integrada.
+Manuales reúne tres subpestañas. Usuario abre este manual de operación; Teoría y diccionario presenta la
+secuencia formativa de conceptos, definiciones, ecuaciones e interpretación de gráficas; y Explorador Sprott
+abre el manual especializado en códigos compactos, simulación y lectura del libro. Esta organización permite
+consultar el nivel de explicación requerido sin salir de la aplicación. Los mismos documentos pueden abrirse
+como archivos independientes mediante el Manual teórico pedagógico (manual_teorico_pedagogico.pdf)y
+el Manual pedagógico del Explorador Sprott (manual_explorador_sprott.pdf).
+El menú Ayuda reúne Documentacion, que abre directamente el Manual de usuario; Buscar actualizaciones,
+que realiza una comprobación manual cuando existe una fuente configurada; Revisar actualizaciones automati-
+camente, que controla la comprobación periódica; y Acerca de, donde se muestran versión, autoría, licencia
+y créditos de dependencias. Los otros dos documentos se eligen en la pestaña Manuales. En Archivo, Abrir
+carpeta de resultados abre la ubicación predeterminada de resultados del usuario.
+
+
+5 Recetario ampliado de experimentos reproducibles
+
+Este recetario convierte una secuencia de controles en un experimento que otra persona puede repetir. Cada
+receta separa siete componentes: la pregunta, el modelo y sus valores exactos, la ruta por la interfaz, la
+
+
+Fyskode                                               17                                                 v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+salida esperada, la lectura de la gráfica, una prueba de refinamiento y el límite de la evidencia. El orden no
+es decorativo. Si se guarda primero una imagen y se reconstruye el contrato después, es fácil omitir el estado
+inicial, el transitorio o una decisión de muestreo que cambió el resultado.
+Los nombres de pestañas y campos se reproducen literalmente y se destacan tipográficamente; las acciones
+visibles se presentan como botones. Los valores indicados pertenecen a la implementación actual. Al trabajar
+con otra versión, anote cualquier diferencia en la bitácora en vez de ajustar silenciosamente el protocolo.
+
+
+   Regla de trabajo para todo el recetario
+   Asigne un identificador a la corrida antes de calcular, cambie una sola familia de controles durante
+   la prueba de refinamiento y conserve por separado la salida base y la refinada. En las pestañas
+   generales, Guardar gráfica... guarda la figura, pero no crea por sí solo un archivo lateral con todos los
+   parámetros. Complete por ello la plantilla de bitácora de la sección 5.12.
+
+
+
+5.1 Mapa de las trece pestañas
+
+La tabla siguiente permite elegir la herramienta por la pregunta que se desea responder. También señala el
+límite operativo que debe quedar escrito en el informe.
+
+    Pestaña              Pregunta operativa         Acción o producto             Límite que debe
+                                                    principal                     registrarse
+    Atractor 3D          ¿Qué geometría             Generar atractor 3D y         Una curva finita no
+                         muestra una trayectoria    Guardar gráfica....           demuestra caos,
+                         de tres componentes?                                     atracción ni estabilidad
+                                                                                  numérica.
+    Retratos 2D          ¿Qué estructura            Simulación local o Usar       Una proyección puede
+                         conservan las              última trayectoria; panel     superponer estados
+                         proyecciones por pares?    de proyecciones.              distintos y ocultar
+                                                                                  otras coordenadas.
+    Series temporales    ¿Cómo cambian las          Simulación local o            La ventana finita puede
+                         variables con el tiempo    reutilización de la última    mezclar transitorio y
+                         o la iteración?            trayectoria.                  régimen posterior.
+    Comparar             ¿Qué cambia al usar        Comparar integradores.        En caos no se exige
+    metodos              Euler, Heun o RK4 con                                    coincidencia punto a
+                         el mismo paso?                                           punto durante tiempos
+                                                                                  largos.
+    Espectro             ¿Qué bandas o              PSD de Welch                  Los máximos dependen
+                         frecuencias aparecen en    (recomendado) o Espectro      del transitorio, la
+                         la muestra?                de amplitud.                  duración y la frecuencia
+                                                                                  de muestreo.
+    Lyapunov             ¿Cómo evolucionan          Espectro QR–Benettin          Sólo admite flujos ODE
+                         estimaciones finitas de    con RK4 fijo.                 enteros registrados de
+                         separación local?                                        tres dimensiones; un
+                                                                                  signo aislado no es una
+                                                                                  prueba.
+
+
+
+
+Fyskode                                               18                                                  v0.1.0
+Toolbox Chaos                                                                          Manual de usuario
+
+
+
+    Pestaña             Pregunta operativa        Acción o producto          Límite que debe
+                                                  principal                  registrarse
+    Bifurcación         ¿Cómo cambia una          Barrido con transitorio,La resolución, el
+                        observable al barrer un   ventana útil y          sentido del barrido y la
+                        parámetro?                continuación opcional.  clasificación numérica
+                                                                          condicionan la figura.
+    Cuenca de           ¿Qué destino calcula    Clasificación en el plano La malla y el horizonte
+    atracción           cada condición inicial  (x0 , y0 ) con z0 fijo.   no certifican destinos
+                        de una malla?                                     globales ni fronteras
+                                                                          exactas.
+    Autovalores         ¿Qué predice la         Equilibrios y autovalores La estabilidad local no
+                        linealización cerca de  en el plano complejo.     describe por sí sola la
+                        un equilibrio?                                    dinámica alejada del
+                                                                          equilibrio.
+    Coexistencia        ¿Qué ocurre con varias Simulación de uno o        Reproducir coexistencia
+                        condiciones iniciales y todos los casos           no clasifica todos los
+                        los mismos parámetros? catalogados.               destinos posibles.
+    Manuales            ¿Qué fundamento o       Tres manuales integrados: La explicación no
+                        procedimiento hace      usuario, teoría y         sustituye el registro de
+                        falta consultar?        Explorador Sprott.        la corrida concreta.
+    Crear sistema       ¿Qué trayectoria        Validación restringida,   No infiere
+                        produce una definición simulación y archivo       automáticamente
+                        algebraica propia?      JSON.                     equilibrios, Jacobiano,
+                                                                          caos, atracción global
+                                                                          ni cuencas.
+    Explorador Sprott   ¿Qué sistema            Decodificación,           Los filtros rápidos
+                        representa un código    simulación, búsqueda,     producen candidatos;
+                        compacto y cómo se      estilo, galería y         no son certificadores de
+                        explora?                exportaciones.            caos o atracción.
+
+
+5.2 Receta 1. Lorenz como sesión transversal
+
+   Pregunta
+   ¿La geometría de dos lóbulos, la irregularidad temporal, el contenido espectral y la estimación de
+   Lyapunov describen de manera compatible una misma corrida de Lorenz?
+
+
+
+Valores exactos.
+Use Lorenz [listo], σ = 10, ρ = 28, β = 2.666667, x(0) = y(0) = z(0) = 0.1, Runge–Kutta 4 [C], dt=0.01 y
+Tiempo total T=40. Para la PSD descarte 5 unidades de tiempo y deje ambos límites de frecuencia en cero.
+Para Lyapunov use dt integrador=0.01, Burn-in time=5, Tiempo final=40 y QR cada N pasos=10.
+
+Secuencia de controles.
+ 1. Abra Atractor 3D, capture el contrato anterior y pulse Generar atractor 3D. Guarde la figura como
+    r01_lorenz_atractor_base.png.
+
+
+Fyskode                                            19                                              v0.1.0
+Toolbox Chaos                                                                            Manual de usuario
+
+
+2. Abra Retratos 2D, seleccione también Lorenz [listo] y pulse Usar última trayectoria. Conserve los planos
+   x-y, x-z y y-z; guarde r01_lorenz_retratos_base.png.
+3. En Series temporales, seleccione Lorenz y pulse Usar última trayectoria. Guarde r01_lorenz_series_ba
+   se.png.
+4. En Espectro, seleccione PSD de Welch (recomendado), escriba 5 en Descartar transitorio (s), deje los
+   límites automáticos en cero y pulse Usar última trayectoria. Guarde r01_lorenz_psd_base.png.
+5. En Lyapunov, seleccione Lorenz, capture los cuatro valores indicados, pulse Calcular exponentes de
+   Lyapunov y guarde r01_lorenz_lyapunov_base.png.
+
+
+   Salida esperada y lectura de las gráficas
+   La vista 3D debe organizarse alrededor de dos lóbulos; los retratos 2D muestran proyecciones
+   diferentes de los mismos estados y las series alternan episodios asociados a ambos lóbulos. Una PSD
+   distribuida en varias frecuencias es compatible con una señal no puramente periódica. En Lyapunov
+   importa la curva de convergencia además del valor final: registre los tres exponentes mostrados y si
+   el máximo conserva su signo durante la parte tardía de la ventana.
+
+
+
+
+Figura 15: Lectura conjunta de Lorenz: la geometría tridimensional identifica los dos lóbulos y las series
+temporales muestran cuándo la trayectoria cambia de uno a otro. Los ejes y el pie contienen la información
+descriptiva; la imagen no lleva encabezado interno.
+
+
+Prueba de refinamiento.
+Repita la trayectoria con dt=0.005 y Tiempo total T=40; regenere las tres representaciones desde esa nueva
+corrida. Para Lyapunov use dt integrador=0.005, Burn-in time=5, Tiempo final=80 y QR cada N pasos=10.
+Compare extensión, rangos, lóbulos, bandas espectrales y tendencia de los exponentes, no la coincidencia
+punto a punto de las trayectorias tardías.
+
+
+
+
+Fyskode                                            20                                                v0.1.0
+Toolbox Chaos                                                                             Manual de usuario
+
+
+
+   Qué no demuestra
+   La conocida forma de mariposa no prueba por sí sola caos; una PSD ancha tampoco prueba atracción.
+   Un exponente máximo positivo es evidencia numérica dentro del contrato usado, no una demostración
+   matemática ni una garantía de convergencia entre plataformas.
+
+
+
+Archivos y metadatos que deben guardarse.
+Conserve las cinco figuras base, sus versiones con sufijo _dt0005, y r01_lorenz_bitacora.txt. En la
+bitácora anote versión, plataforma, parámetros, estado inicial, método, ambos pasos, tiempos, transitorio de
+la PSD, controles de Lyapunov, nombres de salida y los valores numéricos reportados por la interfaz.
+
+
+5.3 Receta 2. Mapa logístico y resolución de una bifurcación
+
+   Pregunta
+   ¿Qué cambios cualitativos aparecen en los valores tardíos de xn+1 = rxn (1 − xn ) cuando r recorre el
+   intervalo de 2.5 a 4.0?
+
+
+
+Valores exactos.
+En Bifurcación seleccione Logistico [listo], x(0) = 0.2, Parámetro de bifurcación=r, Variable observada=x,
+Mínimo=2.5, Máximo=4.0, N (Parámetros)=350, dt integrador=1, Transitorio descartado=600, Tiempo útil=500
+y Máx cruces por param=250. Mantenga desactivado Usar continuación en la corrida base.
+
+Secuencia de controles.
+ 1. Confirme que el selector del mapa deshabilita el integrador: una iteración pertenece al modelo y no es
+    un paso de una EDO.
+ 2. Capture los valores del barrido y pulse Calcular bifurcación.
+ 3. Lea primero el eje horizontal y confirme que cubre 2.5–4.0; después examine cuántos valores tardíos
+    aparecen para cada parámetro.
+ 4. Guarde r02_logistico_bif_base.png.
+
+
+   Salida esperada y lectura de la gráfica
+   La figura debe pasar de una rama a duplicaciones sucesivas, regiones densas y ventanas más ordenadas.
+   Una columna representa una muestra tardía para un valor de r; su densidad vertical no es una
+   probabilidad y puede estar limitada por Máx cruces por param. Distinga una ventana visible de la
+   afirmación de que se conoce su periodo exacto.
+
+
+
+
+Fyskode                                              21                                               v0.1.0
+Toolbox Chaos                                                                              Manual de usuario
+
+
+
+
+Figura 16: Barrido reproducible del mapa logístico. Una sola altura por parámetro indica un estado asintótico
+fijo; dos, cuatro y más alturas revelan duplicaciones de periodo; las bandas densas deben contrastarse con
+series y refinamiento.
+
+
+Prueba de refinamiento.
+Repita sin continuación con N (Parámetros)=700, Transitorio descartado=1000, Tiempo útil=800 y Máx cruces
+por param=500. Guarde r02_logistico_bif_refinada.png. Después, si desea estudiar dependencia de
+rama, active Usar continuación y guarde esa corrida con el sufijo _continuacion; no la mezcle con la prueba
+de resolución.
+
+
+   Qué no demuestra
+   Un diagrama discreto no demuestra que cada banda sea caótica, ni localiza con precisión infinita
+   los parámetros críticos. La resolución horizontal, el transitorio y la cantidad de valores guardados
+   condicionan las estructuras pequeñas.
+
+
+
+Archivos y metadatos que deben guardarse.
+Guarde las dos figuras principales, la comparación opcional de continuación y r02_logistico_bitacora.txt.
+Registre ecuación, x(0), intervalo, número de parámetros, transitorio, ventana útil, límite por columna,
+estado de continuación y dirección del barrido.
+
+
+5.4 Receta 3. Hénon: iteración directa y retrato bidimensional
+
+   Pregunta
+   ¿Cómo se organiza en el plano x-y la órbita del mapa de Hénon y qué aspectos permanecen al
+   aumentar el número de iteraciones?
+
+
+
+
+Fyskode                                              22                                                v0.1.0
+Toolbox Chaos                                                                              Manual de usuario
+
+
+Valores exactos.
+Use Henon [listo], a = 1.4, b = 0.3, x(0) = 0.1, y(0) = 0.1, dt=1 y Tiempo total T=5000. El campo de método
+debe quedar deshabilitado por tratarse de un mapa. La tercera condición inicial no forma parte del estado
+2D.
+
+Secuencia de controles.
+ 1. Abra Retratos 2D, seleccione Hénon y confirme los valores.
+ 2. En Proyecciones 2D, conserve Plano x-y.
+ 3. Pulse Generar retratos 2D y guarde r03_henon_xy_base.png.
+ 4. Abra Series temporales, seleccione Hénon y pulse Usar última trayectoria; guarde r03_henon_series_bas
+    e.png.
+
+
+   Salida esperada y lectura de las gráficas
+   El plano debe mostrar un conjunto plegado y delgado en lugar de una curva cerrada simple. Las series
+   de xn y yn permiten comprobar que cada punto procede de la iteración anterior. La pestaña 3D no
+   está disponible para este sistema porque su dimensión registrada es dos; no complete artificialmente
+   una tercera coordenada.
+
+
+
+
+Figura 17: El retrato de Hénon conserva la geometría de las iteraciones después del transitorio, mientras las
+series separan el orden temporal que se pierde en la nube del plano.
+
+
+Prueba de refinamiento.
+En un mapa no se reduce dt: refine la longitud. Repita con Tiempo total T=10000 y los demás valores
+intactos. Compare el soporte, los rangos y las zonas de mayor densidad visual. Como prueba separada
+de sensibilidad, use x(0) = 0.100001, y(0) = 0.1; etiquete esa salida como perturbación inicial y no como
+refinamiento temporal.
+
+
+
+
+Fyskode                                              23                                                v0.1.0
+Toolbox Chaos                                                                             Manual de usuario
+
+
+
+   Qué no demuestra
+   La forma plegada no calcula una dimensión fractal ni prueba ergodicidad, invariancia o caos. El
+   panel incluye el arranque de la órbita y no ofrece en esta pestaña un control independiente para
+   retirarlo.
+
+
+
+Archivos y metadatos que deben guardarse.
+Conserve r03_henon_xy_base.png, r03_henon_xy_n10000.png, las series y, si se ejecutó, la perturbación.
+Registre que T se interpreta como número de iteraciones porque dt = 1, además de parámetros, estado
+inicial y cantidad total de puntos.
+
+
+5.5 Receta 4. Rössler y comparación de integradores
+
+   Pregunta
+   ¿Qué rasgos globales del flujo de Rössler son estables frente a Euler, Heun y RK4, y en qué momento
+   dejan de coincidir sus trayectorias?
+
+
+
+Valores exactos.
+En Comparar metodos seleccione Rossler [listo], a = 0.2, b = 0.2, c = 5.7, (x(0), y(0), z(0)) = (0.1, 0, 0),
+dt=0.01 y Tiempo total T=80. Active Euler explícito, Heun / Euler mejorado (RK2) y Runge–Kutta 4; asigne
+un color distinto a cada método.
+
+Secuencia de controles.
+1. Confirme que los tres integradores están activos y pulse Comparar integradores.
+2. Guarde r04_rossler_metodos_dt001.png.
+3. Abra Retratos 2D, capture el mismo modelo con Runge–Kutta 4 [C], dt = 0.01, T = 80, genere los retratos
+   y guarde r04_rossler_retratos_rk4.png.
+
+
+   Salida esperada y lectura de las gráficas
+   Las series deben mostrar oscilaciones que crecen alrededor de una región y una excursión de retorno;
+   en el plano aparece la geometría espiral característica. Las curvas pueden separarse en fase con el
+   tiempo. Compare amplitudes, rangos, periodo aproximado de las vueltas y presencia de la excursión,
+   en lugar de pedir superposición tardía exacta.
+
+
+
+
+Fyskode                                             24                                                v0.1.0
+Toolbox Chaos                                                                              Manual de usuario
+
+
+
+
+Figura 18: Rössler en espacio de fases y en el tiempo. La espiral casi plana explica por qué distintas
+proyecciones pueden parecer regulares aunque las excursiones de la tercera coordenada introduzcan otra
+escala dinámica.
+
+
+Prueba de refinamiento.
+Repita la comparación con dt=0.005 y Tiempo total T=80. Guarde r04_rossler_metodos_dt0005.png.
+Compruebe si Heun y RK4 conservan durante más tiempo la escala y la fase, y registre si Euler presenta
+sesgo o inestabilidad. No elimine una salida inesperada: consérvela como parte del diagnóstico.
+
+
+   Qué no demuestra
+   La concordancia visual entre métodos no estima automáticamente el error global; la divergencia
+   tardía tampoco prueba que un método sea incorrecto. Hace falta una secuencia de pasos y observables
+   cuantitativas para sostener convergencia.
+
+
+
+Archivos y metadatos que deben guardarse.
+Guarde las dos comparaciones, el retrato RK4 y r04_rossler_bitacora.txt. Anote versión, ecuaciones
+de referencia, parámetros, estado inicial, métodos activados, colores, pasos, horizonte y el primer intervalo
+temporal en que las curvas dejan de ser visualmente próximas.
+
+
+5.6 Receta 5. Chua: simetría y condición inicial
+
+   Pregunta
+   ¿Dos condiciones iniciales simétricas, con exactamente los mismos parámetros de Chua, producen
+   trayectorias reflejadas y una geometría de doble scroll durante el horizonte simulado?
+
+
+
+Valores exactos.
+En Atractor 3D elija Chua. Use α = 15.6, β = 28, m0 = −1.143, m1 = −0.714, con (0.1, 0, 0) en la primera
+corrida y (−0.1, 0, 0) en la segunda. Seleccione RK4, dt=0.01 y Tiempo T=80.
+
+
+Fyskode                                              25                                                v0.1.0
+Toolbox Chaos                                                                                 Manual de usuario
+
+
+Secuencia de controles.
+ 1. Introduzca los parámetros y la condición inicial (0.1, 0, 0), pulse Generar atractor 3D y guarde r05_chua
+    _ic_positiva.png.
+ 2. Cambie únicamente la condición inicial a (−0.1, 0, 0), repita la simulación y guarde r05_chua_ic_nega
+    tiva.png.
+ 3. Abra Series temporales y conserve las componentes de ambas corridas con nombres que identifiquen
+    claramente el signo del inicio.
+ 4. Compare (x, y, z) de una corrida con (−x, −y, −z) de la otra. La simetría del campo vectorial permite
+    comprobar numéricamente el reflejo sin confundirlo con dos sistemas diferentes.
+
+   Salida esperada y lectura de las gráficas
+   Las dos corridas deben ser finitas, recorrer una geometría de doble scroll y aparecer como reflejos
+   dentro del error numérico. Lea la comparación como una verificación de simetría y de sensibilidad de
+   la trayectoria concreta al signo del inicio. No la use, por sí sola, para afirmar que existen dos destinos
+   asintóticos distintos.
+
+
+
+
+Figura 19: Chua con trayectoria tridimensional y componentes temporales. La figura permite comprobar
+doble scroll, finitud y escalas; la pareja de condiciones iniciales de la receta debe analizarse además mediante
+el error de simetría.
+
+
+Prueba de refinamiento.
+Repita ambas corridas con dt=0.005 y Tiempo T=80. Después ejecute una tercera pareja con dt=0.01 y
+Tiempo T=160 para separar el efecto del paso del efecto del horizonte. Compare la región visitada, la simetría
+y las estadísticas globales, no la coincidencia puntual a tiempos tardíos.
+
+   Qué no demuestra
+   Esta reproducción muestra dos trayectorias simétricas para el protocolo declarado. No demuestra
+   caos por sí sola, no establece coexistencia de destinos asintóticos y no calcula una frontera completa
+   de cuencas.
+
+
+Fyskode                                               26                                                   v0.1.0
+Toolbox Chaos                                                                              Manual de usuario
+
+
+Archivos y metadatos que deben guardarse.
+Conserve las figuras y series de las dos corridas, las pruebas de refinamiento y r05_chua_bitacora.txt.
+Incluya parámetros, ambas condiciones iniciales, método, dt, T , norma del error de simetría y nombres de
+archivo.
+
+
+5.7 Receta 6. Duffing–Ueda: paso temporal y muestreo del forzamiento
+
+   Pregunta
+   ¿El paso temporal resuelve suficientemente el periodo del forzamiento y se conservan la envolvente y
+   las bandas espectrales de la respuesta Duffing–Ueda?
+
+
+
+Valores exactos.
+En Series temporales seleccione Duffing-Ueda [listo], δ = 0.2, α = −1, β = 1, γ = 0.3, ω = 1.2,
+(x(0), y(0), θ(0)) = (0.1, 0, 0), Runge–Kutta 4 [C], dt=0.01 y Tiempo total T=200. El periodo de forza-
+miento es
+                                                2π
+                                          Pf =      = 5.235988 . . . ,
+                                                ω
+por lo que la malla base contiene aproximadamente 523.6 muestras por periodo.
+
+Secuencia de controles.
+ 1. Pulse Generar series temporales y guarde r06_duffing_series_dt001.png.
+ 2. Abra Retratos 2D, seleccione Duffing–Ueda y pulse Usar última trayectoria. Conserve el plano x-y y guarde
+    r06_duffing_xy_dt001.png.
+ 3. Abra Espectro, seleccione PSD de Welch (recomendado), escriba 50 en Descartar transitorio (s), deje los
+    límites de frecuencia en cero y pulse Usar última trayectoria. Guarde r06_duffing_psd_dt001.png.
+
+
+   Salida esperada y lectura de las gráficas
+   La tercera variable debe crecer como fase extendida porque θ̇ = ω; la fuerza usa cos θ, de modo que
+   el fenómeno físico asociado sigue siendo periódico. Lea en x(t) y y(t) la amplitud, los cambios de
+   pozo y la regularidad de los ciclos. En la PSD, la frecuencia de forzamiento en ciclos por unidad de
+   tiempo es ff = ω/(2π) ≈ 0.190986; anote bandas cercanas y sus armónicos sin suponer que todo
+   máximo procede directamente del forzamiento.
+
+
+
+
+Fyskode                                              27                                                v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+
+
+Figura 20: Respuesta forzada de Duffing–Ueda. El retrato proyectado resume la región visitada y las series
+permiten reconocer el periodo del forzamiento, el transitorio y los cambios al refinar el paso.
+
+
+Prueba de refinamiento.
+Repita con dt=0.005 y Tiempo total T=200; ahora hay unas 1047.2 muestras por periodo. Mantenga el
+mismo descarte de 50 y compare rangos, envolvente del plano x-y y posiciones de los máximos espectrales.
+La interfaz general no ofrece un control estroboscópico dedicado; no describa estas series como una sección
+de Poincaré muestreada una vez por periodo.
+
+
+   Qué no demuestra
+   Resolver el forzamiento con muchas muestras no demuestra caos ni convergencia global. Una rampa de
+   θ tampoco es divergencia física del oscilador: es la fase no reducida módulo 2π que usa la formulación
+   autónoma extendida.
+
+
+
+Archivos y metadatos que deben guardarse.
+Guarde las seis figuras base/refinadas y r06_duffing_muestreo.txt. Registre Pf , ff , muestras por periodo,
+parámetros, estado inicial, método, paso, horizonte, transitorio de la PSD y si se observaron cambios de
+pozo.
+
+
+5.8 Receta 7. Mackey–Glass: historia retardada y ventana larga
+
+   Pregunta
+   ¿La oscilación de Mackey–Glass y su contenido espectral permanecen al refinar la interpolación
+   temporal de una historia con retardo τ = 17?
+
+
+
+Valores exactos.
+En Series temporales seleccione Mackey-Glass [listo], β = 0.2, γ = 0.1, n = 10, τ = 17, x(0) = 1.2, Runge–Kutta
+4 [C], dt=0.1 y Tiempo total T=500. Deje en cero los dos campos iniciales mostrados con guion: el backend
+
+
+Fyskode                                               28                                                 v0.1.0
+Toolbox Chaos                                                                             Manual de usuario
+
+
+construye la historia previa como constante igual a x(0). Para RK4 usa interpolación cúbica causal por
+tramos.
+
+Secuencia de controles.
+ 1. Pulse Generar series temporales y guarde r07_mackey_series_dt01.png.
+ 2. Identifique los tres canales devueltos por la implementación: valor actual, valor retardado y derivada.
+    Los guiones de la interfaz no son dos condiciones iniciales independientes.
+ 3. Abra Espectro, seleccione PSD de Welch (recomendado), establezca Descartar transitorio (s)=100, deje los
+    límites automáticos y pulse Usar última trayectoria. Guarde r07_mackey_psd_dt01.png.
+
+
+   Salida esperada y lectura de las gráficas
+   Después de la historia inicial deben aparecer oscilaciones acotadas cuya amplitud y separación entre
+   máximos pueden variar. Compare el canal actual con el retardado para reconocer el desplazamiento
+   de τ . La PSD resume la ventana posterior a t = 100; una combinación de bandas no sustituye el
+   análisis de la ecuación diferencial funcional.
+
+
+
+
+Figura 21: Mackey–Glass requiere leer una ventana larga: la proyección organiza estados retardados y la
+serie temporal muestra si el horizonte contiene suficientes oscilaciones para sostener la interpretación.
+
+
+Prueba de refinamiento.
+Repita con dt=0.05 y Tiempo total T=500, sin cambiar historia, parámetros ni método. Vuelva a descartar
+100 en la PSD. Compare rangos, tiempos aproximados de máximos y ubicación de bandas. Si difieren
+materialmente, pruebe dt = 0.025 antes de interpretar la corrida.
+
+
+   Qué no demuestra
+   Una señal irregular no demuestra caos en el espacio de historias, ni una sola historia inicial prueba
+   atracción global. La representación de tres canales es una vista de una dinámica con memoria, no
+   una EDO autónoma tridimensional ordinaria.
+
+
+Fyskode                                             29                                                v0.1.0
+Toolbox Chaos                                                                                 Manual de usuario
+
+
+Archivos y metadatos que deben guardarse.
+Conserve las series y PSD para ambos pasos y r07_mackey_bitacora.txt. Incluya la historia constante,
+x(0), β, γ, n, τ , interpolación asociada a RK4, pasos, horizonte, transitorio, versión y cualquier advertencia
+de memoria o no finitud.
+
+
+5.9 Receta 8. Lorenz–96: una proyección de un estado de ocho variables
+
+   Pregunta
+   ¿Qué evolución muestran las tres primeras componentes de Lorenz–96 cuando una perturbación
+   pequeña rompe el estado uniforme de un anillo con J = 8?
+
+
+
+Valores exactos.
+Use Lorenz-96 [listo], F = 8, J = 8, (X1 (0), X2 (0), X3 (0)) = (8.01, 8, 8), Runge–Kutta 4 [C], dt=0.01 y Tiempo
+total T=40. El backend inicializa las restantes componentes del anillo con F y devuelve a la interfaz sólo
+X1 , X2 , X3 .
+
+Secuencia de controles.
+ 1. Abra Atractor 3D, capture los valores y pulse Generar atractor 3D. Guarde r08_lorenz96_proyeccion3
+    d_base.png.
+ 2. Abra Retratos 2D, seleccione Lorenz–96 y pulse Usar última trayectoria. Guarde r08_lorenz96_retrato
+    s_base.png.
+ 3. En Series temporales, seleccione Lorenz–96, pulse Usar última trayectoria y guarde r08_lorenz96_serie
+    s_base.png.
+
+
+   Salida esperada y lectura de las gráficas
+   La perturbación inicial debe propagarse y las tres componentes mostradas dejan de permanecer
+   exactamente en el nivel uniforme. Lea la vista 3D y los planos como proyecciones de una trayectoria
+   de ocho variables. La cercanía o cruce de dos puntos en (X1 , X2 , X3 ) no implica que los ocho estados
+   completos sean iguales.
+
+
+
+
+Fyskode                                                30                                                  v0.1.0
+Toolbox Chaos                                                                                   Manual de usuario
+
+
+
+
+Figura 22: Proyección de Lorenz–96. Sólo tres componentes se muestran en la salida gráfica actual; el pie
+recuerda que el estado integrado sigue teniendo ocho variables y que una proyección no equivale al sistema
+completo.
+
+
+Prueba de refinamiento.
+Repita con dt=0.005 y Tiempo total T=40. Compare rangos, estructura proyectada y escalas temporales.
+Como experimento distinto, no como refinamiento, puede cambiar J; tal cambio modifica la dimensión del
+modelo y requiere una nueva bitácora.
+
+
+    Qué no demuestra
+    La proyección de tres componentes no caracteriza el atractor completo de Lorenz–96, no calcula
+    transporte en el anillo y no demuestra extensividad del caos. Tampoco debe llamarse “atractor 3D”
+    al objeto completo de dimensión ocho.
+
+
+
+Archivos y metadatos que deben guardarse.
+Guarde las seis figuras base/refinadas y r08_lorenz96_bitacora.txt. Registre F , J, las tres entradas
+visibles, la regla de inicialización de las cinco restantes, método, paso, horizonte y las coordenadas proyectadas.
+
+
+5.10 Receta 9. Genesio–Tesi en el editor sin código
+
+    Pregunta
+   ¿Puede el editor restringido validar, simular y conservar una definición de Genesio–Tesi sin ejecutar
+   código Python arbitrario?
+
+
+
+Valores exactos.
+En Crear sistema capture los campos siguientes.
+
+
+
+
+Fyskode                                                 31                                                  v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+
+ Campo                                   Valor
+ Nombre                                  Genesio-Tesi
+ Tipo                                    Flujo continuo
+ Variables (separadas por coma)          x,y,z
+ Parametros (nombre=valor)               a=1.2, b=2.92, c=6.0, una asignación por línea
+ Ecuaciones (una por variable)           y; z; -c*x-b*y-a*z+x**2, una expresión por línea
+ Estado inicial                          0.2,0.2,0.2
+ Metodo del flujo                        rk4
+ Paso h                                  0.005000
+ Duracion                                500.0000
+ Muestras transitorias                   5000
+ Umbral de divergencia                   1000000.00
+
+Secuencia de controles.
+1. Pulse Validar definicion. Exija el mensaje de definición válida antes de simular.
+2. Pulse Simular y graficar. Registre estado, pasos completados, pasos solicitados y motor mostrado.
+3. Pulse Guardar JSON y use el nombre r09_genesio_tesi_definicion.json.
+4. Abra Espectro, fije PSD de Welch (recomendado), Descartar transitorio (s)=25 y pulse Usar última trayectoria.
+   Guarde r09_genesio_tesi_psd_base.png.
+
+
+   Salida esperada y lectura de las gráficas
+   La validación debe reconocer tres variables y un flujo. La simulación debe completar una trayectoria
+   finita o informar explícitamente el punto de fallo. El gráfico integrado muestra la proyección de las
+   tres variables después de retirar las muestras transitorias elegidas. El JSON conserva la definición
+   algebraica; la PSD permite revisar escalas de la trayectoria compartida.
+
+
+
+
+Figura 23: Apoyo para interpretar un sistema personalizado: el campo determina la órbita, su variacional
+describe la deformación local y las direcciones estables e inestables organizan el movimiento próximo. La
+simulación debe acompañarse de esa lectura, no sustituirla.
+
+
+
+Fyskode                                               32                                                 v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+Prueba de refinamiento.
+Repita con Paso h=0.002500, Duracion=500 y Muestras transitorias=10000. El cambio de 5000 a 10000
+mantiene en 25 unidades de tiempo el tramo retirado. Compare región visitada, rangos y PSD; guarde la
+figura refinada con el sufijo _h00025.
+
+
+   Qué no demuestra y limitación actual de reutilización
+   Una definición válida sólo satisface el contrato sintáctico y numérico del motor; no prueba caos
+   ni atracción global. En la interfaz actual, Retratos 2D y Series temporales comparan la clave de la
+   última trayectoria con el catálogo y pueden rechazar la clave personalizada. La ruta verificada para
+   reutilizarla es Espectro; no afirme que los otros dos botones aceptaron el sistema si la interfaz mostró
+   incompatibilidad.
+
+
+Archivos y metadatos que deben guardarse.
+Conserve el JSON, ambas PSD y r09_genesio_tesi_bitacora.txt. El JSON no incluye automáticamente
+paso, duración ni muestras transitorias; añada esos datos, el umbral, versión del motor, estado y conteo de
+pasos a la bitácora.
+
+
+5.11 Receta 10. Código Sprott, estilo y paquete de exportación
+
+   Pregunta
+   ¿Puede reconstruirse un mapa 2D desde un código compacto y conservarse la trayectoria separada
+   de las decisiones de estilo?
+
+
+Valores exactos.
+Use el código EWMWAMMMPMMMM. En Exploracion establezca Tipo=map, Dimension=2, Orden=2, Iteraciones/
+pasos=12000, Transitorio=1500, Tolerancia divergencia=1000000, Semilla aleatoria=1 y Codigo=EWMWAMMMPM
+MMM. Para un código fijo, semilla, Paso h y Metodo flujo no cambian la iteración del mapa; déjelos en 1, 0.01
+y rk4 para documentar el estado visible.
+Use además Proyeccion=x-y, Color por=tiempo, Paleta=Viridis, Fondo=blanco, Modo dibujo=puntos, Tamano
+punto=0.70, Opacidad=0.75, Max puntos=12000, Bandas=0 y DPI export=220. Active Mostrar ejes, Mostrar
+grid y Aspect ratio igual.
+
+Secuencia de controles.
+ 1. En Codigos, pegue el código y pulse Decodificar. Verifique que las ecuaciones reconstruidas sean
+
+                                   xn+1 = 1 + yn − 1.2x2n ,     yn+1 = 0.3xn .
+
+ 2. Pase a Exploracion, capture el contrato anterior y pulse Simular y graficar. Lea estado, razón y rangos
+    antes de cambiar el estilo.
+ 3. Capture los controles visuales y pulse Aplicar estilo. Cambiar estilo no debe volver a simular la órbita
+    almacenada.
+ 4. Pulse Exportar imagen actual, Exportar metadatos JSON y Exportar datos CSV ; use el prefijo r10_sprott
+    _EWMWAMMMPMMMM_base.
+
+Fyskode                                              33                                                  v0.1.0
+Toolbox Chaos                                                                              Manual de usuario
+
+
+5. Pulse Copiar codigo y Copiar cita; pegue ambos textos en r10_sprott_cita.txt.
+
+
+   Salida esperada y lectura de las gráficas
+   El decodificador debe identificar una familia polinomial de mapa 2D y doce coeficientes después de
+   la letra de familia. La órbita postransitoria debe formar un conjunto plegado bidimensional; el color
+   por tiempo ayuda a seguir la secuencia sin modificar las coordenadas. Registre el estado real del
+   filtro. Si aparece candidate_chaotic, léalo como trayectoria finita, acotada y no colapsada bajo
+   filtros rápidos.
+
+
+
+
+Figura 24: Proyección de una órbita 4D del Explorador Sprott: dos coordenadas ocupan los ejes y una
+coordenada adicional controla el color. El código, el transitorio y el rango cromático deben guardarse con la
+imagen.
+
+
+Prueba de refinamiento.
+Mantenga código y estilo, cambie sólo Iteraciones/pasos=24000 y Transitorio=3000, y vuelva a simular.
+Exporte con el sufijo _n24000. Compare soporte, rangos, zonas densas y estado del filtro. Una segunda
+prueba puramente visual puede cambiar paleta o color, pero debe reutilizar los mismos datos y llevar un
+sufijo _estilo; no la presente como nueva evidencia dinámica.
+
+
+   Qué no demuestra
+   La etiqueta candidate_chaotic, una imagen compleja o una estimación rápida de Lyapunov no
+   prueban caos, existencia de un atractor, dimensión fractal ni robustez paramétrica. El Explorador
+   Sprott organiza candidatos y exporta evidencia para análisis posterior.
+
+
+Fyskode                                              34                                                v0.1.0
+Toolbox Chaos                                                                            Manual de usuario
+
+
+Archivos y metadatos que deben guardarse.
+El paquete mínimo contiene PNG, CSV, JSON, cita, bitácora y sus versiones refinadas. Compruebe que
+el código del JSON coincide con el copiado; registre familia, dimensión, orden, ecuaciones, iteraciones,
+transitorio, umbral, estado, razón, rangos, proyección, color, paleta, fondo, modo, punto, opacidad, máximo
+de puntos, bandas, DPI, versión y procedencia sintética.
+
+
+5.12 Plantilla de bitácora reproducible
+
+Complete una copia por corrida, incluida cada prueba de refinamiento. Cuando un campo no aplique, escriba
+“no aplica”; no lo deje vacío, pues un espacio en blanco no permite distinguir una omisión de una decisión
+consciente.
+
+    Campo                            Registro de la corrida
+
+    Identificador único
+    Receta y pregunta
+    Fecha y hora local
+    Toolbox Chaos, versión y
+    commit si se conoce
+    Sistema operativo y equipo
+    Pestaña y acción ejecutada
+    Sistema: etiqueta visible y
+    clave si se conoce
+    Tipo y dimensión del modelo
+    Fuente, DOI o procedencia
+
+    Parámetros, con orden y cifras
+
+    Estado o historia inicial
+    Método y backend mostrados
+    Paso dt o h y horizonte T
+    Iteraciones y transitorio
+
+    Barrido: parámetro, intervalo,
+    N , observable y continuación
+
+    Lyapunov: burn-in, tiempo
+    final e intervalo QR
+
+    Espectro: método, descarte y
+    límites de frecuencia
+
+    Cuenca: región, malla, plano,
+    horizonte y clases
+
+
+Fyskode                                             35                                               v0.1.0
+Toolbox Chaos                                                                               Manual de usuario
+
+
+
+    Campo                             Registro de la corrida
+
+    Proyección y estilo visual
+
+    Estado, razón, rangos y
+    advertencias
+
+    Salida esperada antes de
+    calcular
+
+
+    Observación obtenida
+
+    Cambio exacto de la prueba
+    de refinamiento
+
+
+    Comparación base frente a
+    refinada
+
+    Qué permite sostener la
+    corrida
+
+    Qué no permite sostener
+
+    Archivos y relación entre ellos
+    SHA-256 o suma de
+    comprobación, si se calculó
+
+
+   Cierre de una receta
+   Una receta está completa cuando la pregunta inicial puede responderse con una comparación explícita
+   entre corrida base y refinada, los archivos pueden relacionarse sin depender de la memoria de quien
+   los produjo y la conclusión usa un verbo proporcional a la evidencia: “muestra”, “es compatible con”,
+   “respalda numéricamente” o “requiere pruebas adicionales”.
+
+
+
+   Vocabulario de prudencia científica
+   Evite convertir automáticamente “trayectoria acotada” en “atractor”, “figura irregular” en “caos”,
+   “coexistencia” en una clasificación global o “resultado reproducido una vez” en “resultado robusto”.
+   Cada una de esas transiciones necesita hipótesis, diagnósticos y controles adicionales.
+
+
+
+6 Exportación, interpretación y ampliación del software
+
+La última etapa de una exploración no es cerrar la aplicación, sino dejar un registro suficiente para que otra
+persona pueda reconstruirla y evaluar sus límites. Esta sección reúne la exportación, la lectura responsable,
+la solución de problemas y las vías para solicitar una capacidad nueva.
+
+Fyskode                                              36                                                 v0.1.0
+Toolbox Chaos                                                                                Manual de usuario
+
+
+Exportación y reproducibilidad.
+Para que otra persona pueda reconstruir un resultado, el registro debe contener el nombre exacto del
+sistema y la versión de Toolbox Chaos; parámetros y condiciones iniciales con cifras suficientes; método, paso
+temporal, tiempo total, transitorio y controles específicos; la figura exportada y, cuando existan, datos CSV
+o metadatos JSON; además de la fecha, el sistema operativo, el propósito del cálculo y la fuente bibliográfica
+cuando se reproduzca un caso publicado.
+
+
+   Nombres de los archivos
+   Use nombres como lorenz_rho28_rk4_h001_T40_series.png y acompañe la figura con lorenz_r
+   ho28_rk4_h001_T40_metadata.json. Evite nombres genéricos como grafica-final.png.
+
+
+Antes de compartir los resultados, repita el cálculo con un paso menor o una resolución mayor, según
+corresponda, y compare al menos dos métodos cuando la trayectoria sea sensible al integrador. Aumentar el
+transitorio descartado y el horizonte ayuda a comprobar que la lectura cualitativa se conserva. Después de
+cualquier cambio, exporte de nuevo en lugar de reutilizar una imagen anterior con parámetros distintos y
+formule la conclusión como evidencia numérica dentro del contrato registrado.
+
+Interpretación de los resultados numéricos.
+
+ Resultado                    Sí permite decir                     No permite decir por sí solo
+ Trayectoria 3D o retrato     La órbita calculada visita una       Que existe un atractor global o que la
+ 2D                           región con cierta geometría          dinámica es caótica.
+                              durante el horizonte elegido.
+ Serie temporal               Se observan amplitudes,              Que la señal es aleatoria o aperiódica para
+                              transitorio y regularidad            todo tiempo.
+                              aparente en la muestra.
+ FFT o PSD                    La señal finita tiene contenido      Que un espectro ancho prueba caos.
+                              frecuencial distribuido de la
+                              forma mostrada.
+ Bifurcación                  La respuesta numérica cambia al      Que cada rama es única o independiente
+                              barrer el parámetro bajo ese         de la dirección y del estado inicial.
+                              protocolo.
+ Cuenca                       La malla fue clasificada en          Que la frontera continua tiene exactamen-
+                              destinos bajo el paso, horizonte y   te la forma de los píxeles.
+                              tolerancias usados.
+ Lyapunov finito              El algoritmo estimó tasas de         Que el signo y todos los dígitos son inva-
+                              separación y muestra una             riantes sin pruebas de convergencia.
+                              trayectoria de convergencia.
+ Autovalores                  Se obtuvo la estabilidad lineal      Que se conoce la dinámica global.
+                              local de equilibrios compatibles.
+
+Solución de problemas.
+
+
+
+
+Fyskode                                              37                                                  v0.1.0
+Toolbox Chaos                                                                             Manual de usuario
+
+
+
+  Síntoma                        Comprobación                       Acción
+  La aplicación no abre desde    Verifique que el instalador        Abra desde el menú Inicio. Si
+  el acceso directo              terminó y que el archivo provino   persiste, reinstale el mismo artefacto
+                                 de la versión oficial.             y conserve el mensaje de error para
+                                                                    reportarlo.
+  Usar última trayectoria        Aún no se generó una               Ejecute Generar atractor 3D o
+  informa que no hay datos       trayectoria compartida en esta     Simular y graficar en Crear sistema.
+                                 sesión.
+  La integración rechaza T y     T /dt no es un número entero       Elija valores compatibles, por
+  dt                             dentro de la tolerancia.           ejemplo T = 40, dt = 0.01.
+  La trayectoria diverge o       Paso grande, parámetro             Revise la transcripción, reduzca el
+  contiene valores no finitos    equivocado o condición inicial     paso y acorte primero el horizonte.
+                                 fuera del dominio útil.            No aumente el umbral para ocultar
+                                                                    una divergencia.
+  La figura cambia mucho al      El horizonte caótico amplifica     Compare escalas y diagnósticos
+  repetir con otro método        diferencias de discretización.     estadísticos; reduzca dt y reporte el
+                                                                    intervalo de acuerdo.
+  La cuenca tarda demasiado      N x × N y, tiempo total o región   Haga una exploración de baja
+                                 son grandes.                       resolución, recorte la región de
+                                                                    interés y aumente después la malla.
+  Lyapunov indica No             El sistema no es un flujo ODE      Use un sistema compatible o realice
+  disponible                     entero registrado de dimensión     el análisis requerido en un script de
+                                 3.                                 investigación validado.
+  Crear sistema marca            No coinciden variables,            Mantenga una ecuación por variable,
+  definición inválida            ecuaciones o estado inicial; hay   nombres consistentes y expresiones
+                                 sintaxis no admitida.              matemáticas admitidas; pulse de
+                                                                    nuevo Validar definicion.
+  El visor PDF integrado no      El componente QtPdf puede no       Use el botón de apertura externa del
+  funciona                       estar disponible.                  visor o abra el PDF desde la carpeta
+                                                                    instalada.
+
+
+Solicitudes de funciones y contribuciones.
+Una solicitud útil describe el problema de investigación, el resultado esperado y un ejemplo reproducible.
+Incluya sistema, ecuaciones o referencia, datos de entrada, parámetros, método, salida esperada y criterio
+con el que podría validarse.
+El contacto por correo es fer.moreno@inaoep.mx. El repositorio está en https://github.com/Xerkkun/Too
+lbox-chaos; una función nueva puede proponerse en https://github.com/Xerkkun/Toolbox-chaos/iss
+ues/new, las incidencias existentes se consultan en https://github.com/Xerkkun/Toolbox-chaos/issues
+y las contribuciones de código en https://github.com/Xerkkun/Toolbox-chaos/pulls. El registro
+académico y los materiales se encuentran en https://osf.io/gqmjr, con DOI https://doi.org/10.176
+05/OSF.IO/GQMJR.
+Para un pull request, cree una rama, añada pruebas y documentación, ejecute la batería del repositorio y
+explique el contrato numérico de la nueva capacidad. No incluya archivos originales de Sprott, bases .DIC,
+ejecutables históricos ni material protegido.
+
+
+
+
+Fyskode                                             38                                                v0.1.0
+Toolbox Chaos                                                                                  Manual de usuario
+
+
+
+   Información para solicitar una función
+   Necesidad: qué pregunta científica o didáctica se quiere resolver.
+   Entrada: sistema, datos, parámetros y condiciones iniciales.
+   Salida: gráfica, tabla, archivo o métrica requerida.
+   Validación: artículo, caso de referencia o prueba cuantitativa.
+   Reproducibilidad: plataforma, versión y ejemplo mínimo.
+
+
+La referencia del software es: Maria Fernanda Moreno Lopez (Fer Moreno), Fyskode Chaotic Systems
+Toolbox, versión 0.1.0, licencia MIT. Repositorio: https://github.com/Xerkkun/Toolbox-chaos. DOI:
+https://doi.org/10.17605/OSF.IO/GQMJR.
+
+
+
+
+Una salida numérica es evidencia computacional dentro de un protocolo; no constituye por sí sola una demostración
+                                                  matemática.
+
+
+
+Fyskode                                                39                                                  v0.1.0
+

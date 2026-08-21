@@ -411,6 +411,21 @@ def test_platform_build_scripts_gate_real_packaged_self_test():
     assert 'build/pyinstaller/*-self-test.json' in workflow
 
 
+def test_windows_build_waits_for_isolated_packaged_self_test():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / 'packaging' / 'windows' / 'build.ps1').read_text(
+        encoding='utf-8'
+    )
+
+    assert 'windows-self-test-runtime' in source
+    assert '$env:NUMBA_CACHE_DIR = $selfTestCache' in source
+    assert '$env:TEMP = $selfTestTemp' in source
+    assert '$env:TMP = $selfTestTemp' in source
+    assert 'Start-Process -FilePath $exePath' in source
+    assert '-PassThru -Wait -WindowStyle Hidden' in source
+    assert '[Environment]::SetEnvironmentVariable(' in source
+
+
 def test_windows_native_build_uses_reproducible_pe_flags():
     root = Path(__file__).resolve().parents[1]
     sources = (

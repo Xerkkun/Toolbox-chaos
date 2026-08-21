@@ -209,6 +209,26 @@ def test_dictionary_matches_basin_and_current_spectral_contracts():
     assert 'sin \\texttt{fftshift} ni frecuencias negativas' in text
 
 
+def test_pedagogical_manuals_are_integrated_as_distinct_documents():
+    root = Path(__file__).resolve().parents[1]
+    filenames = {
+        'manual_usuario_toolbox_chaos.pdf',
+        'manual_teorico_pedagogico.pdf',
+        'manual_explorador_sprott.pdf',
+    }
+    for filename in filenames:
+        assert (root / 'assets' / 'manuals' / filename).is_file()
+
+    metadata = (root / 'core' / 'app_metadata.py').read_text(encoding='utf-8')
+    main_window = (root / 'ui' / 'main_window.py').read_text(encoding='utf-8')
+    sprott = (root / 'ui' / 'sprott_explorer_tab.py').read_text(encoding='utf-8')
+    assert 'manual_usuario_toolbox_chaos.pdf' in metadata
+    assert "self.tabs.addTab(self.tab_dict, 'Manuales')" in main_window
+    assert filenames.issubset(set(main_window.split("'")))
+    assert "bundled_doc_path('manual_teorico_pedagogico.pdf')" in sprott
+    assert "bundled_doc_path('manual_explorador_sprott.pdf')" in sprott
+
+
 def test_no_global_sidebar():
     """Verify there is no global sidebar or controls layout in the main window."""
     window = MainWindow()

@@ -379,18 +379,49 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
-        self.dictionary_pdf_path = str(bundled_doc_path('chaos_dictionary.pdf'))
-
         from ui.pdf_viewer import PdfViewerWidget
 
-        self.pdf_viewer = PdfViewerWidget(
-            pdf_path=self.dictionary_pdf_path,
-            title='Diccionario de conceptos',
-            fallback_html=self._dictionary_html(),
-            parent=self.tab_dict,
+        self.manual_tabs = QTabWidget(self.tab_dict)
+        manual_specs = (
+            (
+                'Usuario',
+                'manual_usuario_toolbox_chaos.pdf',
+                'Manual de usuario de Toolbox Chaos',
+            ),
+            (
+                'Teoría y diccionario',
+                'manual_teorico_pedagogico.pdf',
+                'Manual teórico pedagógico de sistemas dinámicos y caos',
+            ),
+            (
+                'Explorador Sprott',
+                'manual_explorador_sprott.pdf',
+                'Manual pedagógico del Explorador Sprott',
+            ),
         )
-        layout.addWidget(self.pdf_viewer, stretch=1)
-        self.tabs.addTab(self.tab_dict, 'Diccionario')
+        self.manual_viewers = {}
+        self.manual_pdf_paths = {}
+        for tab_label, filename, title in manual_specs:
+            pdf_path = bundled_doc_path(filename)
+            viewer = PdfViewerWidget(
+                pdf_path=pdf_path,
+                title=title,
+                fallback_html=self._manual_fallback_html(title, pdf_path),
+                parent=self.manual_tabs,
+            )
+            self.manual_pdf_paths[filename] = str(pdf_path)
+            self.manual_viewers[filename] = viewer
+            self.manual_tabs.addTab(viewer, tab_label)
+
+        # Compatibility aliases retained for capture helpers and extensions.
+        self.dictionary_pdf_path = self.manual_pdf_paths[
+            'manual_teorico_pedagogico.pdf'
+        ]
+        self.pdf_viewer = self.manual_viewers[
+            'manual_teorico_pedagogico.pdf'
+        ]
+        layout.addWidget(self.manual_tabs, stretch=1)
+        self.tabs.addTab(self.tab_dict, 'Manuales')
 
     def build_custom_system_tab(self):
         self.tab_custom_system = NoCodeSystemTab(self, self)
@@ -430,14 +461,14 @@ class MainWindow(QMainWindow):
                 QUrl.fromLocalFile(self.dictionary_pdf_path)
             )
 
-    def _dictionary_html(self) -> str:
-        pdf_uri = QUrl.fromLocalFile(self.dictionary_pdf_path).toString()
+    def _manual_fallback_html(self, title: str, pdf_path: Path) -> str:
+        pdf_uri = QUrl.fromLocalFile(str(pdf_path)).toString()
         return (
             '<html><body style="font-family: Segoe UI, Arial, sans-serif; margin: 14px;">'
-            '<h2>Diccionario de conceptos</h2>'
-            '<p>La vista profesional de esta pestaña está preparada como PDF compilado. '
-            'Abre el PDF externo si el visor embebido no está disponible en tu instalación de Qt.</p>'
-            f'<p><a href="{pdf_uri}">Abrir chaos_dictionary.pdf</a></p>'
+            f'<h2>{title}</h2>'
+            '<p>Este manual está disponible como PDF. Abre el archivo de forma '
+            'externa si el visor embebido no está disponible.</p>'
+            f'<p><a href="{pdf_uri}">Abrir manual</a></p>'
             '</body></html>'
         )
 

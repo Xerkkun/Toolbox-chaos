@@ -1,0 +1,794 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage[margin=2.15cm,headheight=15pt]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,longtable,array}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{needspace}
+\usepackage{seqsplit}
+\usepackage[most]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{fancyhdr}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{Navy}{HTML}{17324D}
+\definecolor{Teal}{HTML}{0F766E}
+\definecolor{Gold}{HTML}{B7791F}
+\definecolor{Ink}{HTML}{172033}
+\definecolor{Muted}{HTML}{526173}
+\definecolor{SoftBlue}{HTML}{EFF6FB}
+\definecolor{SoftTeal}{HTML}{EDF8F5}
+\definecolor{SoftGold}{HTML}{FFF8E8}
+\definecolor{Line}{HTML}{C8D5DF}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=Navy,
+  urlcolor=Teal,
+  citecolor=Gold,
+  pdftitle={Explorador Sprott en Chaos Toolbox: manual ampliado de uso, álgebra y algoritmos},
+  pdfauthor={Chaos Toolbox},
+  pdfsubject={Familias A--X, codificación, integración, búsqueda, diagnóstico y reproducibilidad}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.52em}
+\setlist[enumerate]{leftmargin=1.65em,itemsep=0.25em,topsep=0.35em}
+\setlist[itemize]{leftmargin=1.45em,itemsep=0.2em,topsep=0.3em}
+\renewcommand{\arraystretch}{1.18}
+\setcounter{tocdepth}{2}
+\setlength{\cftsecnumwidth}{2.8em}
+\setlength{\cftsubsecnumwidth}{3.8em}
+
+\titleformat{\section}
+  {\Large\sffamily\color{Navy}}
+  {\thesection}{0.65em}{}
+\titleformat{\subsection}
+  {\large\sffamily\color{Teal}}
+  {\thesubsection}{0.55em}{}
+\titlespacing*{\section}{0pt}{2.1em}{0.75em}
+\titlespacing*{\subsection}{0pt}{1.4em}{0.45em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small Explorador Sprott}
+\fancyhead[R]{\sffamily\small Manual pedagógico}
+\fancyfoot[C]{\rmfamily\small\thepage}
+\renewcommand{\headrulewidth}{0.35pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\codigo}[1]{\texttt{#1}}
+\newcommand{\codigolargo}[1]{\texttt{\seqsplit{#1}}}
+\newcommand{\boton}[1]{\textsf{\itshape «#1»}}
+\newcommand{\control}[1]{\textsf{\itshape #1}}
+\newcommand{\lecturasprott}[1]{%
+  \par\noindent{\sffamily\scriptsize\color{Teal}Lectura complementaria}\footnote{%
+  \textbf{Lectura complementaria.} #1}\par}
+
+\newtcolorbox{idea}[1]{
+  enhanced,
+  breakable,
+  colback=SoftGold,
+  colframe=Gold,
+  boxrule=0.7pt,
+  arc=2mm,
+  left=3mm,right=3mm,top=2mm,bottom=2mm,
+  title={#1},
+  coltitle=white,
+  fonttitle=\sffamily\itshape
+}
+
+\newtcolorbox{laboratorio}[1]{
+  enhanced,
+  breakable,
+  colback=SoftBlue,
+  colframe=Teal,
+  boxrule=0.8pt,
+  arc=2mm,
+  left=3.4mm,right=3.4mm,top=2.4mm,bottom=2.4mm,
+  before skip=1em,
+  after skip=1em,
+  title={#1},
+  coltitle=white,
+  fonttitle=\sffamily\large
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \thispagestyle{empty}
+  \color{Ink}
+  \vspace*{0.7cm}
+  {\color{Teal}\rule{\textwidth}{1.8pt}}\par
+  \vspace{1.1cm}
+  {\fontsize{31}{36}\selectfont\sffamily Explorador Sprott en Chaos Toolbox\par}
+  \vspace{0.45cm}
+  {\fontsize{18}{23}\selectfont\sffamily\color{Teal}
+    Manual pedagógico ampliado de uso, álgebra y algoritmos\par}
+  \vspace{0.45cm}
+  {\large Codificación algebraica, mapas, flujos, visualización y análisis reproducible\par}
+  \vspace{0.9cm}
+
+  \begin{center}
+    \includegraphics[width=0.88\textwidth,height=0.43\textheight,keepaspectratio]{../sprott/images/generated/sprott_map4d_turbo_white.png}
+  \end{center}
+
+  \vfill
+  \begin{tcolorbox}[
+    colback=SoftTeal,colframe=Teal,boxrule=0.7pt,arc=2mm,
+    left=4mm,right=4mm,top=3mm,bottom=3mm]
+  Este manual acompaña a una reimplementación educativa independiente inspirada en
+  \emph{Strange Attractors: Creating Patterns in Chaos}. Enseña a leer un código,
+  reconstruir su sistema, simularlo, juzgar con prudencia la evidencia numérica y
+  documentar una figura reproducible. No contiene software, textos, diccionarios ni
+  imágenes históricas de Julien C. Sprott.
+  \end{tcolorbox}
+  \vspace{0.45cm}
+  {\small\sffamily Chaos Toolbox \textbar{} Guía de aprendizaje autónomo y de apoyo docente\par}
+  {\color{Teal}\rule{\textwidth}{1.8pt}}\par
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section*{Uso del manual del Explorador Sprott}
+\addcontentsline{toc}{section}{Organización y alcance del manual}
+
+El Explorador Sprott recupera una idea especialmente fértil para la enseñanza: una
+ecuación sencilla puede producir una dinámica difícil de anticipar, y una computadora
+permite pasar de la conjetura a la observación sin ocultar el razonamiento matemático.
+La propuesta original de Sprott avanza precisamente de esta forma: comienza con la
+iteración, desarrolla una notación compacta para familias de ecuaciones, organiza una
+búsqueda computacional y después enriquece la representación mediante proyecciones,
+profundidad, bandas y color \cite{sprott1993}. Chaos Toolbox conserva ese itinerario,
+pero lo presenta en una interfaz contemporánea y genera sus propios cálculos y figuras.
+
+La ventana distribuye ese recorrido entre subpestañas con funciones complementarias:
+\boton{Inicio} orienta el primer acceso; \boton{Teoria} abre el manual general de
+conceptos; \boton{Tutorial} muestra este manual; \boton{Codigos} decodifica la cadena y
+reconstruye sus ecuaciones; \boton{Exploracion} reúne simulación, búsqueda, diagnóstico
+y estilo; \boton{Ejemplos} presenta casos sintéticos y archivos \codigo{.DIC} aportados
+por la persona usuaria; \boton{Galeria} conserva imágenes y metadatos locales;
+\boton{Inventario local} sólo indexa referencias del disco y puede enviarlas a
+\boton{Ejemplos}, pero no persiste candidatos de búsqueda; y \boton{Backend explicado}
+genera una explicación didáctica del código y permite exportarla en Markdown. Esta
+división ayuda a distinguir orientación, teoría, cálculo, procedencia y registro sin
+confundir una vista de la interfaz con evidencia matemática.
+
+La lectura se organiza como una secuencia de preguntas, conceptos y controles. Cada capítulo enlaza una
+pregunta matemática con una acción visible en la interfaz. Primero se distingue un mapa
+de un flujo; después se cuenta la base de monomios que cabe dentro de un código; más
+adelante se decodifica, se simula y se decide qué información puede conservar una
+proyección. Sólo entonces se introduce la búsqueda automática, la estimación rápida de
+sensibilidad y la exportación. Ese orden evita una confusión frecuente: una figura
+atractiva puede motivar una investigación y requiere el procedimiento de evidencia que certifique la existencia
+de un atractor ni el carácter caótico de la dinámica.
+
+\begin{idea}{Secuencia conceptual}
+La secuencia conceptual es
+\[
+\begin{aligned}
+\text{modelo}&\longrightarrow\text{base algebraica}\longrightarrow
+\text{código}\longrightarrow\text{órbita}\\
+&\longrightarrow\text{representación}\longrightarrow
+\text{diagnóstico}\longrightarrow\text{reproducibilidad}.
+\end{aligned}
+\]
+Conviene completar los laboratorios en ese orden. En cada uno se pide anticipar un
+resultado antes de pulsar un botón: la predicción obliga a separar lo que sabemos por
+la ecuación de lo que apenas veremos en una trayectoria finita.
+\end{idea}
+
+La notación y las interpretaciones generales se apoyan en el tratamiento geométrico de
+los sistemas dinámicos de Devaney y Strogatz \cite{devaney2022,strogatz2018}. La gramática,
+la búsqueda y el lenguaje visual se estudian a partir del libro de Sprott y de sus
+páginas oficiales \cite{sprott1993,sprottbookonline}. Todo el texto está redactado como
+síntesis propia; las capturas y los atractores incluidos fueron generados con Chaos
+Toolbox.
+
+\section{Mapas, flujos y trayectorias calculadas}
+\lecturasprott{Julien C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, capítulos 1--2 y 6; Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos}, capítulos 9--12.}
+
+Un sistema dinámico describe cómo cambia un estado. Si el tiempo avanza por saltos,
+el modelo es un mapa
+\[
+  x_{n+1}=F(x_n), \qquad x_n\in\R^D,
+\]
+y su objeto básico es la órbita
+\(x_0,x_1,x_2,\ldots\). Si el tiempo es continuo, el modelo es un flujo
+\[
+  \dot{x}=f(x), \qquad x(t)\in\R^D,
+\]
+y la computadora debe aproximar la curva mediante un paso \(h\). Esta diferencia expresa
+meramente terminológica. En un mapa, una iteración pertenece a la definición del
+modelo; en un flujo, un paso es una decisión numérica y debe comprobarse que reducirlo
+no cambia de forma sustancial la conclusión. La distinción entre dinámica discreta y
+continua atraviesa tanto la exposición de Devaney como la de Strogatz
+\cite{devaney2022,strogatz2018}.
+
+El espacio de estados tiene una coordenada por variable. Una gráfica \(x\)-\(y\) muestra
+todo el estado sólo cuando \(D=2\); para \(D\geq 3\) es una proyección. Por eso, antes de
+interpretar una nube de puntos, hay que preguntar qué coordenadas se omitieron, cuál
+fue el transitorio descartado y si la integración o iteración permaneció acotada. El
+Explorador convierte estas preguntas en controles explícitos y deja visibles los datos necesarios para responderlas.
+
+\begin{laboratorio}{Laboratorio 1. Comparación numérica de mapas y flujos}
+El propósito es distinguir el contrato numérico de una iteración y el de una ecuación
+diferencial, y relacionarlo con los controles visibles. Antes de simular, formula una
+predicción: un mapa produce puntos indexados por \(n\), sin que \control{Paso h} ni
+\control{Metodo flujo} alteren su regla; en un flujo, el integrador aproxima
+\(\dot{x}=f(x)\). Euler evalúa el campo una vez por paso y RK4 cuatro, pero ambos exigen
+comprobar qué ocurre al reducir \(h\).
+
+Con esa predicción escrita, recorre la interfaz en este orden:
+\begin{enumerate}
+  \item Abre la pestaña principal \boton{Explorador Sprott} y, dentro de ella,
+  \boton{Codigos}. Sustituye el contenido por \codigo{EWMWAMMMPMMMM} y pulsa
+  \boton{Decodificar}. Lee \control{tipo}, \control{dimensión}, \control{orden} y las
+  ecuaciones reconstruidas.
+  \item Pulsa \boton{→ Usar en Exploración}. En \boton{Exploracion}, fija
+  \control{Iteraciones/pasos}=8000 y \control{Transitorio}=1000; después pulsa
+  \boton{Simular y graficar}.
+  \item Regresa a \boton{Codigos}, pega
+  \codigo{QMMMMMMMMWMMWCMMMMMMMWMMMMCMMMM}, pulsa \boton{Decodificar} y observa que
+  ahora aparece un flujo tridimensional. Usa \boton{→ Usar en Exploración}, elige el
+  preset \control{Flujo 3D RK4 corto}, conserva \(h=0.01\) y pulsa
+  \boton{Simular y graficar}.
+  \item Repite sólo el flujo con \(h=0.005\). Compara la geometría general y no una
+  coincidencia punto a punto, porque los tiempos de muestreo y la acumulación del error
+  han cambiado.
+\end{enumerate}
+
+El primer código debe identificarse como mapa polinomial 2D de orden 2. El segundo
+reconstruye el flujo
+\(\dot{x}=yz\), \(\dot{y}=x-y\), \(\dot{z}=1-xy\). La salida informa además si la
+trayectoria fue finita, divergente o no colapsada bajo los filtros rápidos. La etiqueta
+\control{map} recuerda que \(n\) forma parte del modelo; \control{flow} indica que el
+tiempo físico es \(t=kh\), de modo que \(h\) pertenece a la aproximación. Una geometría
+parecida bajo los dos pasos aporta evidencia inicial de estabilidad numérica; una
+diferencia marcada obliga a reducir \(h\) antes de interpretar la figura.
+
+El alcance debe mantenerse explícito: la evaluación de caos, atracción e invariancia
+requiere trayectorias, diagnósticos y refinamientos complementarios, y dos pasos cubren una parte de
+convergencia. Como extensión, construye una tabla con \(h\), método, pasos, rangos y
+clasificación; explica por qué un mapa se compara por iteraciones y un flujo por tiempo
+físico total.
+\end{laboratorio}
+
+\section{Códigos y ecuaciones polinomiales}
+\lecturasprott{Julien C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, secciones 2.3--2.4 y apéndices E--F.}
+
+La potencia pedagógica del Explorador aparece cuando el código deja de verse como una
+contraseña y se reconoce como una matriz de coeficientes. Para un sistema polinomial de
+dimensión \(D\) y grado total máximo \(O\), cada componente se escribe como
+\[
+ F_i(x)=\sum_{j=1}^{N_m}c_{ij}m_j(x),\qquad i=1,\ldots,D,
+\]
+donde \(m_j\) recorre los monomios
+\(x_1^{\alpha_1}\cdots x_D^{\alpha_D}\) cuyos exponentes satisfacen
+\(\alpha_1+\cdots+\alpha_D\leq O\). Contar esos monomios es un problema de
+combinaciones con repetición. Al añadir una variable auxiliar que representa el grado
+no utilizado, el procedimiento de ``estrellas y barras'' da
+\[
+ N_m=\binom{D+O}{O},\qquad
+ N_c=D\binom{D+O}{O}.
+\]
+La primera cantidad cuenta la base de una ecuación; la segunda cuenta todos los
+coeficientes del sistema.
+
+\begin{table}[H]
+\centering
+\caption{Tamaño de la base polinomial y número total de coeficientes. En cada celda se
+muestra \(N_m/N_c\).}
+\small
+\begin{tabularx}{0.88\textwidth}{>{\sffamily}lCCCC}
+\toprule
+\rowcolor{Navy}
+\color{white}Dimensión & \color{white}\(O=2\) & \color{white}\(O=3\) &
+\color{white}\(O=4\) & \color{white}\(O=5\)\\
+\midrule
+\(D=1\) & 3/3 & 4/4 & 5/5 & 6/6\\
+\(D=2\) & 6/12 & 10/20 & 15/30 & 21/42\\
+\(D=3\) & 10/30 & 20/60 & 35/105 & 56/168\\
+\(D=4\) & 15/60 & 35/140 & 70/280 & 126/504\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Las familias polinomiales se organizan en bloques de cuatro letras. Dentro de cada
+bloque, las letras avanzan de orden 2 a orden 5. La misma letra nunca debe interpretarse
+aislada del lugar que ocupa: \codigo{M} al inicio selecciona un mapa cuadrático 4D,
+mientras que \codigo{M} después del primer carácter representa el coeficiente cero.
+
+\begin{table}[H]
+\centering
+\caption{Gramática de familias polinomiales A--X implementada por el Explorador.}
+\small
+\begin{tabularx}{\textwidth}{>{\ttfamily}l>{\raggedright\arraybackslash}p{0.22\textwidth}CCY}
+\toprule
+\rowcolor{Navy}
+\color{white}\sffamily Letras & \color{white}\sffamily Dinámica &
+\color{white}\sffamily Dimensión & \color{white}\sffamily Órdenes &
+\color{white}\sffamily Lectura\\
+\midrule
+A--D & mapa polinomial & 1 & 2--5 & Una regla escalar por iteración.\\
+E--H & mapa polinomial & 2 & 2--5 & Dos ecuaciones de actualización.\\
+I--L & mapa polinomial & 3 & 2--5 & Tres ecuaciones de actualización.\\
+M--P & mapa polinomial & 4 & 2--5 & Cuatro ecuaciones de actualización.\\
+Q--T & flujo polinomial & 3 & 2--5 & Tres ecuaciones diferenciales.\\
+U--X & flujo polinomial & 4 & 2--5 & Cuatro ecuaciones diferenciales.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Después de la familia, cada carácter \(\chi\) se traduce mediante
+\[
+ c(\chi)=\frac{\operatorname{ord}(\chi)-77}{10}.
+\]
+Así, \codigo{A} representa \(-1.2\), \codigo{M} representa \(0\), \codigo{P}
+representa \(0.3\), \codigo{W} representa \(1.0\) y \codigo{Y} representa \(1.2\).
+La cuantización a décimas hace posible guardar muchos parámetros en una cadena corta,
+pero también recuerda que el código representa una familia numérica específica, no
+todas las ecuaciones posibles.
+
+\begin{laboratorio}{Laboratorio 2. Conteo de monomios y decodificación}
+Este laboratorio enlaza el conteo algebraico con la lectura de la cadena: primero se
+predice su longitud, después se detecta si está incompleta y sólo entonces se reconstruye
+y simula el mapa. Para \(D=2\) y \(O=2\), la base
+\((1,x,y,x^2,xy,y^2)\) contiene seis monomios; por tanto, dos ecuaciones necesitan doce
+coeficientes y trece caracteres al contar la familia. Para \(D=4\), \(O=2\), se esperan
+quince monomios, sesenta coeficientes y sesenta y un caracteres. Después separa
+\[
+\codigo{E}\;|\;\codigo{WMWAMM}\;|\;\codigo{MPMMMM}.
+\]
+La familia E fija dos ecuaciones cuadráticas y cada bloque de seis caracteres debe
+corresponder a esa base en el mismo orden.
+
+La fórmula combinatoria valida la estructura con independencia de los valores. El
+primer bloque decodifica
+\((1,0,1,-1.2,0,0)\) y el segundo
+\((0,0.3,0,0,0,0)\). Por tanto,
+\[
+\begin{aligned}
+ x_{n+1}&=1+y_n-1.2x_n^2,\\
+ y_{n+1}&=0.3x_n.
+\end{aligned}
+\]
+Cada punto de la figura es el resultado de aplicar estas dos ecuaciones al punto
+anterior; el dibujo resulta de la integración de esa regla.
+
+Ahora contrasta la deducción con el Explorador:
+\begin{enumerate}
+  \item Calcula primero \(N_m\), \(N_c\) y la longitud total para los casos 2D y 4D.
+  En \boton{Codigos}, pega \codigo{EWMWAMMMPMMMM} en
+  \control{Codigo tipo Sprott} y pulsa \boton{Decodificar}.
+  \item Compara los doce coeficientes y las \control{Ecuaciones reconstruidas} con el
+  cálculo anterior. Si no coinciden, revisa la posición de cada monomio antes de seguir.
+  Sustituye luego el código por
+  \codigolargo{MSLMFPHPIEFTPJJLOJNNTQQIINJUKJUUPPRMFIRIMELNKERJJIGJSGFLLOMSU};
+  verifica sus sesenta coeficientes y observa la advertencia al retirar temporalmente su
+  último carácter.
+  \item Repón el carácter, vuelve al código 2D y pulsa
+  \boton{→ Usar en Exploración}; establece 12000 iteraciones, descarta 1500
+  de transitorio y pulsa \boton{Simular y graficar}.
+  \item Cambia únicamente la \control{Proyeccion} o el estilo, pulsa
+  \boton{Aplicar estilo} y confirma que las ecuaciones y la trayectoria almacenada no
+  se recalculan.
+\end{enumerate}
+
+El resultado esperado hace visible la gramática: el primer carácter fija la familia y
+los restantes llenan, por filas, la matriz de coeficientes. Una cadena truncada produce
+una advertencia de relleno con ceros; con el código completo, el panel reproduce las dos
+ecuaciones 2D y genera su órbita postransitoria. Cambiar la paleta vuelve a dibujar los
+mismos datos, pues la geometría procede de la órbita y el color, el tamaño y la opacidad
+son decisiones de representación. Esta separación entre simulación y estilo es esencial
+para la reproducibilidad.
+
+El conteo valida la longitud, no cada carácter: rellenar con ceros no recupera el modelo
+pretendido, y códigos cercanos pueden producir dinámicas muy distintas. Como extensión,
+demuestra que un sistema cúbico 3D necesita \(3\binom{6}{3}=60\) coeficientes,
+identifica sus letras de mapa y flujo, modifica un carácter del código 2D, reconstruye la
+ecuación y describe el cambio como una perturbación paramétrica concreta.
+\end{laboratorio}
+
+\input{chapters/manual_sprott_desarrollo_ampliado}
+
+\section{Visualización de órbitas multidimensionales}
+\lecturasprott{Julien C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, capítulos 3--5; Julien C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic Flows}, secciones 1.1--1.15.}
+
+La órbita inicial suele contener el acercamiento desde la condición inicial hasta la
+región que interesa observar. Si se calculan \(N\) estados y se descartan \(N_T\), la
+colección representada es
+\[
+ \mathcal{T}_{\mathrm{post}}=
+ \{x_{N_T},x_{N_T+1},\ldots,x_N\}.
+\]
+Descartar un transitorio reduce la contaminación visual del arranque y deja explícito que la garantía
+que se haya alcanzado un régimen asintótico. Un \(N_T\) demasiado pequeño mezcla el
+acercamiento con la dinámica posterior; uno excesivo puede ocultar transitorios largos
+que son relevantes para la investigación. Devaney y Strogatz insisten en distinguir la
+órbita observada de las propiedades globales del sistema
+\cite{devaney2022,strogatz2018}.
+
+La visualización añade una segunda decisión: qué información conservar cuando
+\(D>2\). Sprott dedica capítulos completos a proyecciones, sombras, bandas, colores y a
+la cuarta dimensión porque ningún plano puede mostrar simultáneamente cuatro
+coordenadas \cite{sprott1993}. En el Explorador, una proyección \(x\)-\(y\) puede
+acompañarse con color por \(z\), \(w\), tiempo, radio o velocidad. El color no recupera
+toda la geometría 4D, pero permite que una coordenada omitida siga siendo visible.
+
+\begin{laboratorio}{Laboratorio 3. Visualización de una órbita de cuatro dimensiones}
+La actividad genera el ejemplo sintético 4D de Chaos Toolbox, controla el transitorio y
+conserva información de \(w\) mediante color en una proyección \(x\)-\(y\). Antes de
+dibujar, predice que el plano superpondrá puntos con valores distintos de \(w\) y que el
+color separará algunas regiones sin modificar la órbita. El código comienza con M: un
+mapa 4D de orden 2, con quince monomios por ecuación y sesenta coeficientes. Como cada
+color deriva de la cuarta coordenada, permite distinguir puntos cercanos en
+\(x\)-\(y\) cuyos valores de \(w\) difieren.
+
+Para comprobar la predicción sin cambiar simultáneamente el modelo y el estilo, sigue
+esta secuencia:
+\begin{enumerate}
+  \item Abre \boton{Exploracion}. Fija \control{Tipo}=\codigo{map},
+  \control{Dimension}=4, \control{Orden}=2,
+  \control{Iteraciones/pasos}=52000, \control{Transitorio}=2600 y
+  \control{Tolerancia divergencia}=1000000000.
+  \item En \control{Codigo}, pega
+  \codigolargo{MSLMFPHPIEFTPJJLOJNNTQQIINJUKJUUPPRMFIRIMELNKERJJIGJSGFLLOMSU}
+  y pulsa \boton{Simular y graficar}.
+  \item En \control{Estilo visual}, selecciona el preset \control{Mapa 4D} y después
+  ajusta \control{Proyeccion}=\codigo{x-y}, \control{Color por}=\codigo{w},
+  \control{Paleta}=\control{Turbo}, \control{Fondo}=\control{blanco} y
+  \control{Modo dibujo}=\control{puntos}.
+  \item Para reproducir la captura de este manual, usa
+  \control{Tamano punto}=0.62, \control{Opacidad}=0.84,
+  \control{Max puntos}=60000, \control{Bandas}=0 y
+  \control{DPI export}=320. Pulsa \boton{Aplicar estilo}.
+\end{enumerate}
+
+La interfaz debe mostrar una nube 4D plegada y una variación cromática continua. La
+clasificación \codigo{candidate\_chaotic} sólo indica una trayectoria finita, acotada y
+no colapsada bajo los filtros rápidos. La figura permite preguntar dónde cambia \(w\),
+qué ramas se superponen y si otra proyección conserva mejor la estructura; Turbo
+codifica \(w\), no una cuenca, una banda dinámica ni una clase de estabilidad.
+
+La clasificación y la proyección describen una trayectoria calculada en \(\R^4\). Para sostener una conclusión dinámica se requieren condiciones iniciales, longitudes, refinamientos y diagnósticos acordes con la aritmética finita empleada.
+Para separar estructura y estilo, compara los mismos datos con color por \(w\), por
+tiempo, doce bandas de \(w\) y escala de grises; cambia a \(x\)-\(w\) y explica qué
+conclusión permanece y cuál era sólo un efecto de la representación.
+\end{laboratorio}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.52\textwidth,height=0.45\textheight,keepaspectratio]{../sprott/images/generated/sprott_map4d_turbo_white.png}
+\caption{Resultado propio del ejemplo sintético: proyección \(x\)-\(y\), color por
+\(w\), paleta Turbo y fondo blanco. Observe que puntos próximos en el plano pueden
+recibir colores distintos: el gradiente conserva una pista de la coordenada omitida y
+requiere una leyenda que separe la coordenada codificada de tiempo, densidad y estabilidad.}
+\label{fig:map4d-turbo}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/gui_sprott_map4d_turbo.png}
+\caption{Configuración completa del ejemplo 4D en la pestaña
+\emph{Exploración}. La captura fue producida con Chaos Toolbox; no procede del libro ni
+del software histórico de Sprott.}
+\label{fig:gui-map4d}
+\end{figure}
+
+\section{Archivos .DIC, búsqueda y sensibilidad}
+\lecturasprott{Julien C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, secciones 2.3--2.4 y apéndice F; Kathleen T. Alligood, Tim D. Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, secciones 3.1--3.5 y 5.2.}
+
+El libro de Sprott no propone observar un único sistema, sino recorrer familias amplias
+de ecuaciones, descartar rápidamente las trayectorias inútiles y estudiar con mayor
+cuidado las que sobreviven. Sus capítulos sobre búsqueda en una y varias dimensiones,
+así como el apéndice de diccionarios, dan contexto a esa estrategia
+\cite{sprott1993}. El Explorador moderniza el flujo, pero mantiene una separación legal
+y científica importante: los ejemplos sintéticos incluidos fueron creados para Chaos
+Toolbox; los archivos históricos \codigo{.DIC} sólo se leen desde el disco de la persona
+usuaria.
+
+El sitio oficial publica el manuscrito y el directorio del material del libro en
+direcciones explícitas, útiles también cuando el manual se consulta impreso:
+\begin{center}
+\small
+\begin{tabularx}{0.96\textwidth}{>{\sffamily\color{Teal}}p{0.24\textwidth}Y}
+Manuscrito oficial & \url{https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM}\\
+Material del libro & \url{https://sprott.physics.wisc.edu/fractals/bookdisk/}\\
+Paquete comprimido & \url{https://sprott.physics.wisc.edu/fractals/bookdisk/SADISK.ZIP}\\
+Galería oficial & \url{https://sprott.physics.wisc.edu/FRACTALS.HTM}\\
+\end{tabularx}
+\end{center}
+La página del material identifica \codigo{BOOKFIGS.DIC}, \codigo{SELECTED.DIC},
+\codigo{SPECIAL.DIC} y \codigo{SADISK.ZIP}, además de indicar las condiciones de uso y
+atribución \cite{sprottbookdisk}. Conviene consultar allí los términos vigentes. Chaos
+Toolbox no descarga, ejecuta ni incorpora esos archivos automáticamente.
+
+Un diccionario funciona como un índice de sistemas. La cadena conserva los
+coeficientes, mientras que la línea y el nombre del archivo conservan procedencia. Al
+seleccionar un \codigo{.DIC}, la interfaz construye un inventario con familia,
+dimensión, orden, métricas disponibles y estado de soporte, pero mantiene el archivo en
+su ubicación original. Una coincidencia visual con una figura del libro aporta una
+reproducción cualitativa; para transformarla en evidencia verificable también deben
+registrarse la línea, el contrato numérico y el estilo. El procedimiento completo se
+realizará en el Laboratorio 4, una vez presentados los filtros y la sensibilidad.
+
+La búsqueda automática usa filtros escalonados. Una trayectoria no finita o que cruza
+el umbral se marca como divergente; una cola que colapsa dentro de la tolerancia se
+marca como punto fijo; una cola con poca dispersión o muchos estados repetidos después
+del redondeo se considera periódica o de baja complejidad. Sólo si supera esos filtros
+se etiqueta \codigo{candidate\_chaotic}. Esta etiqueta significa ``candidato acotado y
+sin colapso detectado''; expresa un resultado de filtrado que debe pasar a una etapa de diagnóstico de caos.
+
+\begin{table}[H]
+\centering
+\caption{Lectura correcta de los estados de búsqueda rápida.}
+\small
+\begin{tabularx}{\textwidth}{>{\ttfamily}p{0.28\textwidth}YY}
+\toprule
+\rowcolor{Navy}
+\color{white}\sffamily Estado & \color{white}\sffamily Evidencia que aporta &
+\color{white}\sffamily Evidencia adicional requerida\\
+\midrule
+divergent & La trayectoria produjo valores no finitos o cruzó el umbral. & Que el
+sistema matemático diverja para todas las condiciones o que aumentar el umbral sea una
+corrección válida.\\
+fixed\_point & La cola numérica se concentró cerca de un estado. & Estabilidad global o
+unicidad del equilibrio.\\
+periodic\_or\_low\_complexity & La cola tuvo poca dispersión o muchas repeticiones
+redondeadas. & Periodo exacto, ausencia de transitorios largos o ausencia de caos en
+otra región.\\
+candidate\_chaotic & La muestra fue finita, acotada y no colapsó bajo los filtros. &
+Caos, existencia de atractor, dimensión fractal o robustez paramétrica.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La búsqueda eficiente separa descarte y confirmación. Con la misma familia, semilla y
+número de intentos, la generación sintética recorre la misma secuencia; un criterio más
+permisivo puede detenerla antes sin que eso vuelva más complejo al caso aceptado. Si se
+ha cargado un diccionario, la búsqueda comienza por los códigos locales visibles a
+partir de la fila seleccionada, por lo que también esa selección forma parte del
+experimento. Mientras queden códigos locales dentro del límite de intentos, la familia,
+la dimensión, el orden y la semilla aleatoria organizan el experimento, mientras esas cadenas
+sólo gobiernan los intentos aleatorios posteriores. Por ello, una comparación de
+semillas exige retirar primero el archivo local o comenzar una sesión sin
+\codigo{.DIC}. Detenerse en el primer superviviente introduce un sesgo útil para ahorrar
+cálculo, pero obliga a conservar los rechazos y a someter el candidato a pruebas más
+largas.
+
+La sensibilidad a las condiciones iniciales se estudia siguiendo dos trayectorias
+cercanas. Si su separación inicial es \(\delta_0\), una estimación con
+renormalizaciones periódicas adopta la forma
+\[
+ \widehat{\lambda}_{\max}=
+ \frac{1}{T}\sum_{j=1}^{r}
+ \ln\!\left(\frac{\|\delta_j\|}{\delta_0}\right).
+\]
+Para mapas, \(T\) se mide en iteraciones; para flujos, en tiempo físico. Sprott presenta
+la idea en base 2, como pérdida de información en bits por iteración
+\cite{sprott1993}; el estimador del Explorador usa logaritmo natural, de modo que
+\(\lambda_{\mathrm{bits}}=\lambda_{\mathrm{nat}}/\ln 2\). Un valor positivo sostenido
+es evidencia de separación exponencial media, pero su signo puede depender del
+transitorio, la ventana, el paso, el método y la escala de perturbación.
+
+En la implementación actual, ese diagnóstico evoluciona dos estados separados por
+\(10^{-7}\), renormaliza la perturbación cada cinco pasos y usa una ventana rápida de
+350 pasos en la tabla de búsqueda. Devuelve un solo exponente máximo aproximado: por
+iteración en mapas y por unidad de tiempo en flujos. En esta versión, el cálculo rápido
+sólo se ejecuta para las familias polinomiales A--X de tipo mapa o flujo; ninguna familia
+especial usa este estimador. Por ello, la columna de Lyapunov debe leerse junto con el
+código, el estado del filtro, su razón y los rangos de la trayectoria. Un valor positivo
+que se mantiene al ampliar la ventana y, para un flujo, al reducir \(h\), apoya la
+hipótesis de sensibilidad; el espectro completo, la incertidumbre y la pertenencia de la
+órbita a un atractor requieren un estudio ampliado. El laboratorio
+final reúne esta lectura prudente con la carga de archivos, la búsqueda y la exportación,
+de modo que el número nunca quede separado del experimento que lo generó.
+
+\section{Registro y exportación de resultados}
+\lecturasprott{Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and Engineers}, capítulos 9--10; Julien C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, apéndices E--F.}
+
+La última etapa conserva el camino que produjo la figura.
+Una imagen aislada omite el código, el transitorio, la longitud, el umbral y las
+decisiones de estilo. El Explorador permite exportar la figura, los datos y los
+metadatos por separado; juntos forman una unidad mínima de reproducción. La atribución
+cumple otra función: distingue la reimplementación contemporánea, el cálculo propio y
+la fuente histórica que inspiró la gramática.
+
+\begin{table}[H]
+\centering
+\caption{Registro mínimo recomendado para una figura del Explorador.}
+\small
+\begin{tabularx}{\textwidth}{>{\sffamily\color{Teal}}p{0.27\textwidth}Y}
+Modelo & Código completo, familia, dimensión, orden y ecuaciones reconstruidas.\\
+Simulación & Condición inicial, iteraciones o pasos, transitorio, \(h\) y método para
+flujos, umbral de divergencia y estado del cálculo.\\
+Visualización & Proyección, variable de color, paleta, fondo, modo, tamaño, opacidad,
+máximo de puntos y bandas.\\
+Procedencia & Ejemplo sintético o archivo \codigo{.DIC} local; para este último, nombre
+del archivo y línea.\\
+Diagnóstico & Clasificación, razón, rangos y estimación de Lyapunov con unidades y
+advertencias.\\
+Archivos & Imagen, CSV, JSON y una nota que relacione sus nombres o identificadores.\\
+\end{tabularx}
+\end{table}
+
+\begin{laboratorio}{Laboratorio 4. Archivos .DIC, búsqueda y exportación}
+El recorrido final integra cuatro operaciones que sólo adquieren sentido cuando se
+documentan juntas: leer un diccionario descargado por la persona usuaria, buscar
+candidatos, examinar una estimación rápida de sensibilidad y exportar un resultado que
+otra persona pueda revisar. Antes de empezar, predice qué aportará cada capa. El archivo
+\codigo{.DIC} debe producir un inventario, no una certificación; la búsqueda debe aceptar
+el primer caso que satisfaga el criterio; y la imagen, el CSV y el JSON deben conservar
+aspectos distintos del experimento. El diccionario aporta procedencia, los filtros
+reducen una familia amplia a casos que merecen más cálculo y Lyapunov plantea una
+pregunta sobre sensibilidad. La reproducibilidad vuelve a unir esas decisiones con los
+datos y la transformación visual, pues la atribución de un patrón a la órbita requiere contrastar la representación.
+
+La secuencia distingue deliberadamente la búsqueda sobre códigos locales de la
+generación aleatoria:
+\begin{enumerate}
+  \item Consulta \url{https://sprott.physics.wisc.edu/fractals/bookdisk/} y descarga por
+  tu cuenta uno de los diccionarios indicados allí. Si eliges \codigo{SADISK.ZIP},
+  extrae únicamente el \codigo{.DIC} que vas a estudiar; el Explorador no necesita
+  ejecutar los programas históricos del paquete.
+  \item En \boton{Ejemplos}, pulsa \boton{Elegir .DIC} y después
+  \boton{Cargar codigos}. Activa \control{solo simulables}, elige una fila y pulsa
+  \boton{Simular codigo local seleccionado} o \boton{Simular con estilo recomendado}.
+  Conserva el nombre del archivo y el número de línea. Para reconstruir las ecuaciones,
+  copia el código de la fila, abre \boton{Codigos}, pégalo en
+  \control{Codigo tipo Sprott} y pulsa \boton{Decodificar}. El modo de lectura del libro
+  puede sugerir un estilo; la inspección y el contrato numérico completan el procedimiento.
+  \item Con el \codigo{.DIC} todavía cargado, ve a \boton{Exploracion}, fija
+  \control{Iteraciones/pasos}=8000, \control{Transitorio}=1000,
+  \control{Intentos maximos}=24 y
+  \control{Criterio minimo}=\codigo{candidate\_chaotic}; luego pulsa
+  \boton{Buscar candidato}. La tabla recorrerá primero los códigos locales visibles a
+  partir de la fila seleccionada. Lee código, estado, razón, rangos y Lyapunov de cada
+  intento; en esta fase la familia, la dimensión, el orden y la semilla aleatoria no
+  gobiernan las cadenas locales.
+  \item Separa ahora el experimento aleatorio. En \boton{Ejemplos}, borra el contenido
+  del campo de ruta del \codigo{.DIC} y pulsa \boton{Cargar codigos}; confirma que el
+  estado indique que no hay archivo cargado. Como alternativa, inicia una sesión nueva
+  sin abrir ningún \codigo{.DIC}. Regresa a \boton{Exploracion}, configura un mapa
+  polinomial 2D de orden 2, semilla 7, 24 intentos y criterio
+  \codigo{candidate\_chaotic}, y pulsa \boton{Buscar candidato}. Repite con la misma
+  semilla y un criterio permisivo; compara en qué intento se detiene cada búsqueda en
+  vez de suponer que ambas eligieron el mismo caso.
+  \item Sin volver a cargar un diccionario, configura un flujo polinomial 3D de orden 2
+  con semilla 11, 24 intentos, criterio \codigo{candidate\_chaotic}, \(h=0.01\) y RK4.
+  Busca un candidato y conserva su código, estado, razón, rangos y Lyapunov. Repite con
+  \(h=0.005\); si aparece el mismo código, compara el estimador. Una variación grande
+  exige una ventana mayor y un estudio de convergencia.
+  \item Selecciona el resultado que documentarás; también puedes volver al ejemplo 4D
+  del Laboratorio 3. Pulsa \boton{Exportar imagen actual},
+  \boton{Exportar datos CSV} y \boton{Exportar metadatos JSON}, usando un mismo prefijo.
+  Pulsa \boton{Copiar codigo} y comprueba que coincide con el JSON; luego pulsa
+  \boton{Copiar cita}. Si usas \boton{Guardar en galería}, escribe una nota que formule
+  la pregunta investigada junto con las propiedades visibles de la imagen.
+  \item Abre el CSV y el JSON fuera de la interfaz. Comprueba el número de columnas, el
+  código, el transitorio, la proyección y la variable de color. Si el origen fue un
+  diccionario local, cita su página oficial y no redistribuyas el archivo sin revisar sus
+  términos.
+\end{enumerate}
+
+El recorrido debe producir un inventario legible, una búsqueda local cuya procedencia
+sea visible, otra búsqueda realmente gobernada por la semilla, una comparación breve de
+sensibilidad y, al final, una figura, una trayectoria y los parámetros necesarios para
+reconstruir el render. Un texto de
+atribución apropiado puede ser: ``Figura generada con Chaos Toolbox, módulo Explorador
+Sprott, reimplementación educativa independiente inspirada en Sprott (1993); código
+\codigolargo{MSLMFPHPIEFTPJJLOJNNTQQIINJUKJUUPPRMFIRIMELNKERJJIGJSGFLLOMSU},
+52000 iteraciones y 2600 de transitorio.''
+
+Los filtros reducen el espacio de búsqueda y requieren diagnósticos adicionales para convertir una trayectoria en una
+prueba. Una estimación positiva y repetible refuerza la hipótesis de sensibilidad,
+mientras que una exportación bien documentada transforma la imagen en un objeto
+discutible: otra persona puede cambiar la proyección, ampliar la ventana o refutar una
+interpretación sin adivinar cómo se produjo.
+
+El alcance sigue siendo limitado: el analizador sólo acepta la gramática implementada,
+detenerse en el primer superviviente sesga la selección, el diagnóstico rápido aporta un
+estimador de Lyapunov y la exactitud entre versiones, plataformas o bibliotecas numéricas
+requiere una validación específica. Si el código procede de un \codigo{.DIC} local,
+adjuntes el diccionario histórico salvo que sus términos y la finalidad concreta lo
+permitan. Como extensión, repite la búsqueda aleatoria con tres semillas, conserva los
+rechazos y estudia los candidatos con ventanas mayores. Redacta dos pies para la misma
+figura: uno didáctico que explique el color y otro de investigación que añada contrato
+numérico, procedencia y límite de la evidencia; ambos deben terminar con una pregunta
+que la figura ayude a investigar.
+\end{laboratorio}
+
+El respaldo de este recorrido procede de dos capas complementarias. En
+\emph{Strange Attractors: Creating Patterns in Chaos} se consultaron iteración y
+sensibilidad, búsqueda, mapas polinomiales, proyecciones, color, cuarta dimensión,
+flujos y los apéndices de ecuaciones y diccionarios; en Devaney, órbita, periodicidad,
+bifurcación y dinámica discreta; y en Strogatz, flujos, estabilidad, espacio de fases y
+caos \cite{sprott1993,devaney2022,strogatz2018}. Estas fuentes respaldan los conceptos,
+no los detalles de la interfaz.
+
+Los controles descritos, la gramática implementada, el orden de monomios, el
+conteo de coeficientes, los filtros y el estimador rápido se verificaron contra el código
+local actual de Chaos Toolbox. Las direcciones del manuscrito, el directorio
+\codigo{bookdisk}, los nombres de los diccionarios y las condiciones de atribución se
+comprobaron en las páginas oficiales de J. C. Sprott de la University of
+Wisconsin--Madison \cite{sprottbookonline,sprottbookdisk,sprottgallery}. La redacción presenta
+figuras ni fragmentos extensos de los libros; las figuras~\ref{fig:map4d-turbo} y
+\ref{fig:gui-map4d} son resultados propios del software.
+
+\begin{thebibliography}{9}
+
+\bibitem{sprott1993}
+J. C. Sprott,
+\emph{Strange Attractors: Creating Patterns in Chaos},
+M\&T Books, 1993.
+
+\bibitem{sprottbookonline}
+J. C. Sprott,
+\emph{Strange Attractors: Creating Patterns in Chaos}, manuscrito oficial en línea,
+University of Wisconsin--Madison.
+\url{https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM}.
+
+\bibitem{sprottbookdisk}
+J. C. Sprott,
+\emph{Fractal Programs from the Book Strange Attractors}, directorio oficial del
+material del libro, University of Wisconsin--Madison.
+\url{https://sprott.physics.wisc.edu/fractals/bookdisk/}.
+
+\bibitem{sprottgallery}
+J. C. Sprott,
+\emph{Sprott's Fractal Gallery}, University of Wisconsin--Madison.
+\url{https://sprott.physics.wisc.edu/FRACTALS.HTM}.
+
+\bibitem{sprott1994}
+J. C. Sprott,
+``Some simple chaotic flows,''
+\emph{Physical Review E}, vol. 50, no. 2, pp. R647--R650, 1994.
+\url{https://doi.org/10.1103/PhysRevE.50.R647}.
+
+\bibitem{sprott2010}
+J. C. Sprott,
+\emph{Elegant Chaos: Algebraically Simple Chaotic Flows},
+World Scientific, Singapore, 2010.
+
+\bibitem{devaney2022}
+R. L. Devaney,
+\emph{An Introduction to Chaotic Dynamical Systems}, 3rd ed.,
+CRC Press, 2022.
+\url{https://doi.org/10.1201/9780429280801}.
+
+\bibitem{strogatz2018}
+S. H. Strogatz,
+\emph{Nonlinear Dynamics and Chaos: With Applications to Physics, Biology,
+Chemistry, and Engineering}, 2nd ed.,
+CRC Press, 2018; first published by Westview Press, 2015.
+
+\end{thebibliography}
+
+\begin{idea}{Criterio final de interpretación}
+El Explorador cumple su propósito cuando el código deja de ser una cadena opaca y la
+figura deja de ser un fin en sí misma. La pregunta que debe acompañar cada nueva imagen
+es doble: ¿qué propiedad del modelo explica lo que veo y qué cálculo adicional necesito
+para sostener esa interpretación?
+\end{idea}
+
+\end{document}

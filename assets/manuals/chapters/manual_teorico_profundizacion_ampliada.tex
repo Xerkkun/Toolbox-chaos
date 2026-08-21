@@ -1,0 +1,1089 @@
+% Profundización y proyecto. Se incluye desde manual_teorico_pedagogico.tex.
+
+\section{Mapas, flujos, señales y sistemas avanzados}
+
+\begin{objectivebox}
+Integrar teoría y cómputo para estudiar mapas discretos, flujos caóticos canónicos,
+rutas al caos, geometría fractal, datos temporales, retardo, alta dimensión,
+dinámica conservativa y transitoria, sincronización, control y memoria fraccionaria.
+La meta es formular conclusiones graduadas: qué se derivó, qué se observó, qué
+indicador se estimó y qué permanece abierto.
+\end{objectivebox}
+
+\subsection{Mapa logístico y diagrama de telaraña}
+
+\paragraph{Ecuación del mapa logístico.}
+Un \term{mapa dinámico} actualiza el estado en instantes discretos:
+\[
+ x_{n+1}=f(x_n;\mu).
+\]
+La órbita de \(x_0\) es la sucesión
+\(\{x_0,f(x_0),f^2(x_0),\ldots\}\). Un punto fijo satisface
+\(f(x^*)=x^*\); un punto de periodo primo \(p\) satisface
+\(f^p(x)=x\) y no vuelve antes. Para un punto fijo hiperbólico,
+\[
+ |f'(x^*)|<1\quad\Longrightarrow\quad\text{atractor local},\qquad
+ |f'(x^*)|>1\quad\Longrightarrow\quad\text{repulsor local}.
+\]
+La derivada es un \term{multiplicador por iteración}; las tasas por unidad de tiempo corresponden a los flujos continuos.
+
+\paragraph{Construcción de telaraña.}
+En el plano \((x_n,x_{n+1})\), se dibujan \(y=f(x)\) y la diagonal \(y=x\).
+Desde \(x_n\), un segmento vertical llega a \(f(x_n)\) y uno horizontal regresa a la
+diagonal, donde queda \(x_{n+1}\). La alternancia reproduce exactamente la iteración;
+representa la actualización discreta del mapa. Una convergencia alternante indica multiplicador negativo,
+mientras que una convergencia sin alternancia suele asociarse con uno positivo.
+
+\paragraph{Ejemplo algebraico resuelto: mapa logístico.}
+Para
+\[
+ f_r(x)=rx(1-x),\qquad 0\leq x\leq1,
+\]
+los puntos fijos satisfacen
+\[
+ x=rx(1-x)\quad\Longrightarrow\quad
+ x_0^*=0,\qquad x_1^*=1-\frac1r\quad(r\ne0).
+\]
+Como \(f_r'(x)=r(1-2x)\),
+\[
+ f_r'(0)=r,\qquad
+ f_r'(x_1^*)=2-r.
+\]
+El origen es estable para \(|r|<1\); el punto no nulo es estable cuando
+\(|2-r|<1\), es decir, \(1<r<3\). En \(r=3\) su multiplicador cruza \(-1\), firma
+local de la primera duplicación de periodo.
+
+Para \(r=4\) y \(x_0=0.2\),
+\[
+ x_1=0.64,\qquad x_2=0.9216,\qquad
+ x_3=4(0.9216)(0.0784)=0.28901376.
+\]
+Los tres valores son reproducibles a mano; la interpretación requiere el cálculo de
+indicadores además de la apariencia de la gráfica. El exponente finito de una órbita se estima mediante
+\[
+ \lambda_N=\frac1N\sum_{n=0}^{N-1}
+ \log|r(1-2x_n)|.
+\]
+
+\begin{activitybox}{Práctica reproducible: cuatro regímenes logísticos}
+Seleccione el sistema logístico registrado o defínalo como mapa en
+\gui{Crear sistema}. Use \(x_0=0.2\), descarte 500 iteraciones y conserve 500.
+Ejecute \(r=2.8\), \(3.2\), \(3.5\) y \(4\). Para los dos primeros dibuje a mano
+las primeras veinte etapas de la telaraña; para todos exporte la serie y calcule
+\(\lambda_N\). En \gui{Bifurcación}, barra \(r\in[2.5,4]\) con una malla que después
+duplique. Conserve el mismo transitorio y número de muestras al comparar.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.86\linewidth]{logistic_bifurcation.png}
+\caption{Diagrama logístico producido para el manual con el software. Cada columna
+contiene iterados tardíos para un parámetro; las líneas aparentes son conjuntos de
+puntos muestreados, no curvas de soluciones continuas.}
+\label{fig:logistica-profundizacion}
+\end{figure}
+
+\paragraph{Lectura de la órbita logística.}
+Una rama única corresponde a un valor tardío dominante; dos ramas, a una órbita de
+periodo dos, si se confirma el orden temporal. Una banda densa puede contener órbitas
+caóticas, inestables, preperiódicas y efectos de resolución. Las ventanas claras
+dentro de bandas densas motivan una simulación local con mayor transitorio.
+
+\begin{warningbox}
+El diagrama de bifurcación debe leerse junto con \(x_0\), transitorio, aritmética, malla y dirección del barrido. La identificación de un atractor único exige
+telaraña con muchas líneas tampoco demuestra sensibilidad; para ello se comparan
+órbitas vecinas o se estima expansión con control de convergencia.
+\end{warningbox}
+
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 10.1, ``Fixed Points and Cobwebs'', 10.2--10.5,
+sobre mapa logístico, ventanas y exponente de Lyapunov; Robert L. Devaney,
+\emph{A First Course in Chaotic Dynamical Systems: Theory and Experiment},
+2.\textsuperscript{a} ed., capítulos 4--8, sobre análisis gráfico, puntos fijos,
+bifurcaciones y diagrama de órbitas; Kathleen T. Alligood, Tim D. Sauer y James A.
+Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, secciones 1.1--1.7.}
+
+\subsection{Mapa de Hénon, plegamiento y dinámica simbólica}
+
+\paragraph{Ecuaciones y puntos fijos de Hénon.}
+Un mapa bidimensional puede contraer área en una dirección y estirar y plegar en
+otra. El mapa de Hénon, en una convención habitual, es
+\[
+ x_{n+1}=1-a x_n^2+y_n,\qquad y_{n+1}=b x_n.
+\]
+Su Jacobiano es
+\[
+ DF(x,y)=
+ \begin{pmatrix}-2ax&1\\ b&0\end{pmatrix},\qquad
+ \det DF=-b.
+\]
+Por tanto, un elemento de área cambia su magnitud por el factor constante \(|b|\).
+Con \(|b|<1\) existe contracción de área. La clasificación de cada órbita requiere
+acotada.
+
+La \term{dinámica simbólica} asigna a cada estado un símbolo según una partición. Un
+itinerario \(s_0s_1s_2\cdots\) registra qué región visita la órbita. Para que esta
+codificación sea una representación matemática completa se necesita justificar una
+partición generadora y una relación con un desplazamiento simbólico; etiquetar puntos
+por su signo sólo produce un resumen.
+
+\paragraph{Ejemplo algebraico resuelto: puntos fijos de Hénon.}
+En un punto fijo \(y^*=bx^*\) y
+\[
+ x^*=1-a(x^*)^2+bx^*,
+\]
+de modo que
+\[
+ a(x^*)^2+(1-b)x^*-1=0.
+\]
+Para \(a=1.4\), \(b=0.3\),
+\[
+ x_\pm^*=\frac{-0.7\pm\sqrt{6.09}}{2.8}
+ \simeq 0.63135,\ -1.13135,
+\qquad y_\pm^*=0.3x_\pm^*.
+\]
+En cada punto, \(\tau=-2ax^*\) y \(\Delta=-0.3<0\). Por el criterio plano, ambos
+son sillas. El atractor numérico clásico, cuando se observa, pertenece a la dinámica alejada de esos puntos;
+su organización está vinculada con las variedades de las sillas y el plegamiento
+global.
+
+\paragraph{Itinerario simbólico del mapa de Hénon.}
+Defina \(s_n=L\) si \(x_n<0\) y \(s_n=R\) si \(x_n\geq0\). La palabra
+\(RRL LR\), sin espacios, identifica cinco visitas, pero no conserva amplitudes ni
+distancias. Las frecuencias de bloques \(LR\), \(RL\), \(LL\), \(RR\) pueden comparar
+órbitas largas; la condición de bloque prohibido requiere muestras y criterios adicionales.
+
+\begin{activitybox}{Práctica reproducible: Hénon y un alfabeto binario}
+Genere Hénon con \(a=1.4\), \(b=0.3\), \((x_0,y_0)=(0,0)\), 20000 iteraciones y
+descarte 2000. Use \gui{Series temporales} y \gui{Retratos 2D}; exporte los datos.
+Verifique los dos puntos fijos calculados y clasifíquelos con sus matrices. Codifique
+las últimas 10000 observaciones mediante \(L/R\), cuente bloques de longitud dos y
+tres y repita con \((10^{-8},0)\). Registre si cambian las frecuencias dentro de la
+precisión muestral.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\linewidth]{systems/henon_phase_timeseries.png}
+\caption{Retrato y serie del mapa de Hénon generados por Toolbox Chaos. El retrato
+revela plegamiento geométrico; la serie conserva el orden de visitas que se pierde en
+la nube plana.}
+\label{fig:henon-profundizacion}
+\end{figure}
+
+\paragraph{Lectura del retrato de fase de Hénon.}
+El espesor aparente del conjunto depende de resolución, antialiasing y número de
+puntos. Una ampliación debe recalcular o redibujar los datos, no ampliar una captura.
+La serie permite detectar escape o periodicidad; el retrato revela foliaciones y
+plegamiento; el itinerario simbólico resume recurrencia entre regiones.
+
+\begin{warningbox}
+\(|\det DF|<1\) demuestra contracción local de área. La existencia y unicidad de un
+atractor, la sensibilidad y la conjugación con el desplazamiento de Bernoulli requieren verificar hipótesis adicionales sobre la partición y los itinerarios.
+\end{warningbox}
+
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., sección 12.2, ``The Hénon Map''; Kathleen T. Alligood,
+Tim D. Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems},
+secciones 2.2, 2.5--2.6, 3.5 y 5.6; Robert L. Devaney,
+\emph{A First Course in Chaotic Dynamical Systems: Theory and Experiment},
+2.\textsuperscript{a} ed., capítulo 9, sobre dinámica simbólica, desplazamiento y
+conjugación; Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+3.\textsuperscript{a} ed., capítulo 15, apartados sobre caos, dinámica simbólica,
+desplazamiento y conjunto de Cantor.}
+
+\subsection{Lorenz, Rössler, Chua y Duffing--Ueda}
+
+\paragraph{Mecanismos dinámicos en cuatro modelos.}
+Estos sistemas son laboratorios matemáticos, no plantillas intercambiables. Lorenz
+combina convección idealizada, simetría y disipación:
+\[
+ \dot x=\sigma(y-x),\qquad
+ \dot y=x(\rho-z)-y,\qquad
+ \dot z=xy-\beta z.
+\]
+Rössler concentra la no linealidad en una ecuación:
+\[
+ \dot x=-y-z,\qquad
+ \dot y=x+ay,\qquad
+ \dot z=b+z(x-c).
+\]
+Una forma de Chua usa una no linealidad por tramos:
+\[
+ \dot x=\alpha[y-x-h(x)],\quad
+ \dot y=x-y+z,\quad
+ \dot z=-\beta y,
+\]
+\[
+ h(x)=m_1x+\frac{m_0-m_1}{2}
+ \bigl(|x+1|-|x-1|\bigr).
+\]
+Duffing--Ueda es no autónomo; con la fase del forzamiento se escribe
+\[
+ \dot x=v,\quad
+ \dot v=-2\zeta v-x-sx^3+f\cos\phi,\quad
+ \dot\phi=\nu.
+\]
+
+\paragraph{Ejemplo algebraico resuelto: Lorenz clásico.}
+La divergencia del campo es constante:
+\[
+ \nabla\cdot\mathbf f=-\sigma-1-\beta.
+\]
+Para \((\sigma,\rho,\beta)=(10,28,8/3)\) vale \(-41/3<0\); un volumen infinitesimal
+se contrae como \(\exp[-(41/3)t]\). Esto demuestra disipación volumétrica local, no
+acotación global por sí sola.
+
+Los equilibrios son
+\[
+ E_0=(0,0,0),\qquad
+ E_\pm=\bigl(\pm\sqrt{\beta(\rho-1)},
+             \pm\sqrt{\beta(\rho-1)},\rho-1\bigr)
+\]
+cuando \(\rho>1\). En el caso clásico,
+\[
+ E_\pm=(\pm6\sqrt2,\pm6\sqrt2,27).
+\]
+La transformación \((x,y,z)\mapsto(-x,-y,z)\) deja invariantes las ecuaciones y
+explica la simetría de los dos lóbulos. No obliga a una trayectoria finita a pasar
+exactamente el mismo tiempo en cada uno.
+
+\paragraph{Estructura algebraica de los cuatro modelos.}
+En Rössler,
+\[
+ \nabla\cdot\mathbf f=a+x-c,
+\]
+que varía a lo largo de la órbita; en el Duffing autónomo,
+\(\nabla\cdot\mathbf f=-2\zeta\). En Chua, la pendiente efectiva de \(h(x)\) cambia
+al cruzar los quiebres. Por tanto, ``disipativo'' puede significar contracción
+instantánea constante, contracción media o contracción por regiones; el cálculo debe
+acompañar la etiqueta.
+
+\begin{activitybox}{Práctica reproducible: atlas de cuatro flujos}
+En cada pestaña seleccione el preset registrado de Lorenz, Rössler, Chua y
+Duffing--Ueda. Antes de ejecutar copie las ecuaciones, parámetros y estado inicial que
+muestra la interfaz. Use RK4 y el paso recomendado por cada preset; genere
+\gui{Atractor 3D}, pulse \gui{Usar última trayectoria} en \gui{Retratos 2D} y
+\gui{Series temporales}, y repita con la mitad del paso y el mismo horizonte físico.
+Para Lorenz marque \(E_0,E_\pm\). Para Duffing interprete la fase como reloj del
+forzamiento y construya, desde los datos, una sección cada \(2\pi/\nu\).
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{systems/lorenz_phase_timeseries.png}
+\caption{Lorenz en una vista combinada de trayectoria y series generada por Toolbox
+Chaos. Los lóbulos reflejan la simetría del campo; los cambios de lóbulo se localizan
+mejor al conservar el orden temporal.}
+\label{fig:software-lorenz}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{systems/rossler_phase_timeseries.png}
+\caption{Rössler generado por Toolbox Chaos. La rotación casi plana y las excursiones
+en la tercera coordenada sugieren un mecanismo de estiramiento y reinyección; la
+proyección requiere el procedimiento adicional que establece una sección de retorno unimodal.}
+\label{fig:software-rossler}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{systems/chua_phase_timeseries.png}
+\caption{Chua generado por Toolbox Chaos. Los cambios entre regiones de la
+característica por tramos organizan la geometría de doble desplazamiento; los quiebres
+de la ecuación deben interpretarse junto con la escala de los ejes.}
+\label{fig:software-chua}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{systems/duffing_ueda_phase_timeseries.png}
+\caption{Duffing--Ueda generado por Toolbox Chaos. El retrato proyectado mezcla
+movimiento y fase de forzamiento; una sección estroboscópica separa mejor periodicidad,
+cuasiperiodicidad y respuesta irregular.}
+\label{fig:software-duffing}
+\end{figure}
+
+\paragraph{Variables para analizar cada modelo.}
+En cada figura identifique: variable horizontal y vertical; tramo transitorio; rango
+tardío; simetrías; vecindad de equilibrios; orientación; frecuencia de retornos; y
+posibles saturaciones. Después formule una frase causal vinculada con un término de
+la ecuación y una frase prudente que describa sólo lo observado. Esta doble redacción
+evita que un parecido visual sustituya el análisis.
+
+\begin{warningbox}
+Las cuatro imágenes fueron generadas con configuraciones concretas del software. No
+son retratos de todo el espacio de parámetros. La identificación de Lorenz, Rössler y caos en Chua requiere contrastar los retratos con ecuaciones y diagnósticos; una respuesta irregular de Duffing requiere controlar transitorios y aliasing.
+\end{warningbox}
+
+\lecturaseccion{Julien C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic
+Flows}, capítulo 2, apartados sobre van der Pol, Rayleigh y Duffing forzados, y
+capítulo 3, apartados sobre Lorenz, Rössler, sistemas de Sprott, ecuaciones jerk y
+Chua; Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, capítulo 9, apartados sobre
+Lorenz, Rössler, Chua, flujos forzados y exponentes de Lyapunov; Morris W. Hirsch,
+Stephen Smale y Robert L. Devaney, \emph{Differential Equations, Dynamical Systems,
+and an Introduction to Chaos}, 3.\textsuperscript{a} ed., capítulos 14 y 16,
+apartados sobre Lorenz, Rössler, doble desplazamiento y circuito de Chua.}
+
+\subsection{Rutas al caos: duplicación, cuasiperiodicidad, intermitencia y crisis}
+
+\paragraph{Mecanismos de transición al caos.}
+Una \term{ruta al caos} es una secuencia organizada de cambios al variar un
+parámetro. Entre las rutas frecuentes se encuentran:
+\begin{itemize}
+  \item duplicaciones sucesivas del periodo;
+  \item ruptura de un toro después de movimiento cuasiperiódico;
+  \item intermitencia, con fases casi regulares interrumpidas por ráfagas;
+  \item crisis, donde una colisión global cambia bruscamente tamaño, acceso o vida de
+  un conjunto caótico;
+  \item bifurcaciones homoclínicas o heteroclínicas asociadas con variedades
+  invariantes.
+\end{itemize}
+Estas etiquetas requieren evidencias diferentes. Un diagrama de máximos es eficaz
+para duplicación y crisis; un número de rotación y espectro son más informativos para
+cuasiperiodicidad; una distribución de longitudes laminares ayuda en intermitencia.
+
+\paragraph{Ejemplo algebraico resuelto: primera cascada logística.}
+La rama fija no nula del mapa logístico tiene multiplicador \(2-r\), que alcanza
+\(-1\) en \(r=3\). Los puntos de periodo dos que no son fijos son
+\[
+ x_\pm=\frac{r+1\pm\sqrt{(r-3)(r+1)}}{2r}.
+\]
+Para \(r=3.2\),
+\[
+ x_-\simeq0.5130,\qquad x_+\simeq0.7995.
+\]
+El multiplicador del ciclo es el producto
+\[
+ M_2=f'(x_-)f'(x_+)=-r^2+2r+4.
+\]
+En \(r=3.2\), \(M_2=0.16\), por lo que el ciclo es estable. Pierde estabilidad
+cuando \(M_2=-1\), es decir, en \(r=1+\sqrt6\simeq3.44949\). Este cálculo localiza
+dos niveles de la cascada sin depender de la resolución del diagrama.
+
+\paragraph{Escalamiento de Feigenbaum.}
+Si \(r_n\) son parámetros de duplicaciones sucesivas en una familia unimodal
+genérica, las razones
+\[
+ \delta_n=\frac{r_{n-1}-r_{n-2}}{r_n-r_{n-1}}
+\]
+pueden aproximarse a una constante universal. La universalidad requiere hipótesis
+sobre la familia y un límite; una razón calculada con tres puntos aproximados no la
+demuestra.
+
+\begin{activitybox}{Práctica reproducible: distinguir cuatro rutas}
+Primero use \gui{Bifurcación} para la logística y refine los intervalos alrededor de
+\(r=3\) y \(r=1+\sqrt6\). Después, con Duffing--Ueda, construya secciones
+estroboscópicas para una secuencia de amplitudes de forzamiento tomada del preset y
+registre si aparece un número finito de puntos, una curva o una nube. Para Lorenz,
+barra \(\rho\) en ambas direcciones y use el mismo estado inicial y transitorio.
+Cuando observe un salto, simule a ambos lados con horizontes duplicados y varias
+condiciones iniciales.
+\end{activitybox}
+
+\paragraph{Lectura de las rutas al caos.}
+Una duplicación conserva orden: los máximos alternan entre dos, cuatro y más niveles.
+Un toro se manifiesta como curva cerrada en una sección apropiada, no como una banda
+en cualquier proyección. La intermitencia se reconoce en la serie por intervalos
+laminares. Una crisis se investiga mediante cambio abrupto de tamaño o tiempo de vida
+y proximidad a una estructura invariante.
+
+\begin{warningbox}
+Identifique una duplicación de periodo mediante la comprobación de la alternancia
+temporal. Una banda espectral ensanchada no identifica por sí sola ruptura de toro.
+Un salto en un barrido unidireccional puede ser retraso transitorio o coexistencia, y
+un cambio abrupto requiere análisis adicional para clasificar una crisis global.
+\end{warningbox}
+
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 8.4, 8.6--8.7 y 10.4--10.7; Robert C. Hilborn,
+\emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and Engineers},
+2.\textsuperscript{a} ed., capítulos 2, 4, 6 y 7, apartados sobre universalidad,
+transitorios, cuasiperiodicidad, intermitencia y crisis; Kathleen T. Alligood, Tim D.
+Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, capítulos
+10--12; John Guckenheimer y Philip Holmes, \emph{Nonlinear Oscillations, Dynamical
+Systems, and Bifurcations of Vector Fields}, capítulos 4--6.}
+
+\subsection{Fractales, cuencas y dimensiones}
+
+\paragraph{Dimensiones fractales y cuencas.}
+Un conjunto muestra \term{escalamiento fractal} cuando el número de elementos
+necesarios para cubrirlo sigue una ley de potencia en un intervalo de escalas. La
+dimensión de cajas se define, si existe el límite, por
+\[
+ D_B=\lim_{\varepsilon\to0}
+ \frac{\log N(\varepsilon)}{\log(1/\varepsilon)}.
+\]
+Para puntos de una trayectoria, la integral de correlación
+\[
+ C(\varepsilon)=\frac{2}{N(N-1)}
+ \sum_{1\leq i<j\leq N}
+ \mathbf 1\{\|\mathbf x_i-\mathbf x_j\|<\varepsilon\}
+\]
+puede escalar como \(C(\varepsilon)\propto\varepsilon^{D_2}\). La estimación de
+\(D_2\) requiere excluir pares temporalmente próximos, revisar saturación con la
+dimensión de inmersión y encontrar una zona de escala.
+
+\paragraph{Ejemplo algebraico resuelto: conjunto de Cantor.}
+En la etapa \(k\) del conjunto ternario de Cantor hay \(N_k=2^k\) intervalos de
+longitud \(\varepsilon_k=3^{-k}\). Por tanto,
+\[
+ D_B=\lim_{k\to\infty}\frac{\log2^k}{\log3^k}
+ =\frac{\log2}{\log3}\simeq0.63093.
+\]
+La dimensión no proviene de que el dibujo sea rugoso, sino de una relación exacta de
+autosemejanza.
+
+\paragraph{Ejemplo espectral: Kaplan--Yorke.}
+Ordenados \(\lambda_1\geq\cdots\geq\lambda_m\), sea \(j\) el mayor índice con
+\(\sum_{i=1}^j\lambda_i\geq0\). La dimensión de Kaplan--Yorke se define como
+\[
+ D_{KY}=j+\frac{\sum_{i=1}^j\lambda_i}{|\lambda_{j+1}|}.
+\]
+Para un espectro ilustrativo \((0.90,0,-14.6)\),
+\[
+ D_{KY}=2+\frac{0.90}{14.6}\simeq2.0616.
+\]
+Ésta es una dimensión derivada de exponentes estimados, no la misma definición que
+\(D_B\) o \(D_2\).
+
+\begin{activitybox}{Práctica reproducible: cuenca y escalamiento}
+En \gui{Cuenca de atracción}, seleccione un caso con clasificador disponible. Fije el
+dominio de \((x_0,y_0)\), \(z_0\), integrador, \(dt\), horizonte y umbrales. Calcule
+mallas \(100\times100\), \(200\times200\) y \(400\times400\); exporte la
+clasificación. Para una frontera binaria, cuente cajas ocupadas a tamaños
+\(\varepsilon=1/4,1/8,1/16,1/32\) del lado del dominio y ajuste la pendiente
+\(\log N\) contra \(\log(1/\varepsilon)\). Repita con tiempo doble.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.84\linewidth]{lorenz_basin_reading_zones.png}
+\caption{Zonas de lectura de una cuenca de Lorenz generada con Toolbox Chaos. Los
+colores representan clases calculadas bajo un horizonte y un clasificador; las celdas
+próximas a una frontera requieren refinamiento antes de asignarles etiquetas
+asintóticas exactas.}
+\label{fig:cuenca-profundizacion}
+\end{figure}
+
+\paragraph{Lectura de fronteras y dimensiones.}
+Una pendiente sólo es defendible donde la gráfica log--log es aproximadamente lineal
+y estable al añadir escalas. En una cuenca, las regiones interiores suelen ser más
+robustas que la frontera. Conviene representar una clase separada para escapes,
+indeterminación o no convergencia, en vez de forzar cada celda a un atractor.
+
+\begin{warningbox}
+Una dimensión estimada con dos escalas es sólo una pendiente. El antialiasing de una
+imagen no contiene datos de cajas; deben usarse coordenadas o etiquetas exportadas.
+La identificación de Wada requiere pruebas topológicas, y un valor de Kaplan--Yorke se complementa con una
+estimación geométrica y evidencia de la medida invariante específica.
+\end{warningbox}
+
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, secciones 4.1, 4.4--4.7 y 5.3;
+Robert L. Devaney, \emph{A First Course in Chaotic Dynamical Systems: Theory and
+Experiment}, 2.\textsuperscript{a} ed., capítulo 14, apartados sobre fractales y
+dimensión; Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction
+for Scientists and Engineers}, 2.\textsuperscript{a} ed., capítulos 9--10, apartados
+sobre dimensión fractal, correlación y multifractales; Tamás Tél y Márton Gruiz,
+\emph{Chaotic Dynamics: An Introduction Based on Classical Mechanics}, capítulos
+2 y 6.}
+
+\subsection{Series temporales, FFT y densidad espectral}
+
+\paragraph{Series temporales, FFT y PSD.}
+Una serie uniformemente muestreada es \(s_n=s(n\Delta t)\), con frecuencia
+\(f_s=1/\Delta t\). La transformada discreta
+\[
+ S_k=\sum_{n=0}^{N-1}s_n e^{-2\pi i kn/N}
+\]
+evalúa frecuencias \(f_k=kf_s/N\). Para una señal real, la parte unilateral contiene
+frecuencias hasta Nyquist,
+\[
+ f_N=\frac{f_s}{2}.
+\]
+El \term{espectro de amplitud} describe magnitudes de componentes en un registro; la
+\term{densidad espectral de potencia} distribuye potencia por frecuencia. Welch
+promedia periodogramas de segmentos solapados y reduce varianza a cambio de resolución.
+
+\paragraph{Ventanas, fuga y aliasing.}
+Un registro finito equivale a multiplicar la señal por una ventana temporal. Si una
+sinusoide no completa un número entero de periodos, su energía se reparte entre
+frecuencias: \term{fuga espectral}. Una ventana suaviza discontinuidades en los
+extremos, pero ensancha picos. Si existe contenido por encima de \(f_N\), el muestreo
+lo refleja a frecuencias falsas: \term{aliasing}. Ninguna opción gráfica repara datos
+ya submuestreados.
+
+\paragraph{Ejemplo de frecuencias discretas.}
+Con \(\Delta t=0.01\) y \(N=10000\),
+\[
+ f_s=100,\qquad f_N=50,\qquad
+ \Delta f=\frac{f_s}{N}=0.01.
+\]
+Una señal \(s(t)=2\cos(2\pi\,1.5\,t)\) cae exactamente en el bin
+\(k=1.5/0.01=150\) si el registro mantiene esa longitud. Si se reduce a
+\(N=2000\), \(\Delta f=0.05\); el pico sigue localizable pero con malla cinco veces
+más gruesa. Una señal de \(60\) Hz muestreada a \(100\) Hz aparece aliased cerca de
+\(|60-100|=40\) Hz.
+
+\begin{activitybox}{Práctica reproducible: una trayectoria, dos espectros}
+Genere Lorenz clásico con RK4, \(dt=0.01\), \(T=200\), y descarte \(T_0=20\).
+Pulse \gui{Usar última trayectoria} en \gui{Espectro}. Calcule primero
+\gui{PSD de Welch (recomendado)} y después \gui{Espectro de amplitud}, sin cambiar
+datos ni variable. Repita con \(T_0=50\) y con una trayectoria generada a
+\(dt=0.005\). Exporte las series y compruebe \(f_s\), Nyquist, longitud útil y
+resolución. Compare \(x\), \(y\) y \(z\) junto con el pico más alto.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.80\linewidth]{lorenz_fft.png}
+\caption{Espectro normalizado centrado de Lorenz generado a partir de datos del software. Los
+picos y la banda describen el registro finito y su muestreo; su interpretación requiere
+solos una prueba de caos.}
+\label{fig:fft-profundizacion}
+\end{figure}
+
+\paragraph{Lectura de espectros y series.}
+Una órbita periódica ideal produce líneas en la frecuencia fundamental y armónicos;
+una cuasiperiódica, combinaciones de varias frecuencias inconmensurables; una señal
+irregular puede mostrar banda ancha. Transitorios, ruido, modulación y no
+estacionariedad también ensanchan el espectro. La serie original debe revisarse antes
+de interpretar cada pico.
+
+\begin{warningbox}
+Un espectro ancho orienta el análisis de caos y un pico agudo orienta el de periodicidad
+asintótica; ambos requieren pruebas dinámicas complementarias. Comparar amplitudes entre registros con distinta normalización, ventana o
+duración es inválido. Welch mejora estabilidad estadística, pero no aumenta la
+frecuencia de Nyquist ni recupera información perdida por aliasing.
+\end{warningbox}
+
+\lecturaseccion{Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An
+Introduction for Scientists and Engineers}, 2.\textsuperscript{a} ed., apéndice A,
+``Fourier Analysis'', y capítulo 9, apartados sobre cuantificación de series; Julien
+C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic Flows}, capítulo 1,
+apartados sobre espectros, ciclos, quasiperiodicidad e indicadores; Kathleen T.
+Alligood, Tim D. Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical
+Systems}, capítulo 13, apartado inicial sobre datos de series temporales.}
+
+\subsection{Reconstrucción por retardo y diagnóstico desde una observación}
+
+\paragraph{Vectores de reconstrucción por retardo.}
+Cuando sólo se mide un escalar \(s(t)\), se forman vectores de retardo
+\[
+ \mathbf y_n=
+ \bigl(s_n,s_{n-\ell},s_{n-2\ell},\ldots,s_{n-(m-1)\ell}\bigr),
+\]
+donde \(\tau=\ell\Delta t\) es el retardo y \(m\) la dimensión de inmersión. Bajo
+hipótesis de suavidad, genericidad y dimensión suficiente, un teorema de inmersión
+permite reconstruir una geometría equivalente en un sentido preciso. En datos
+finitos, elegir \(\tau\), \(m\), observable y preprocesamiento es parte del resultado.
+
+\paragraph{Selección de retardo y dimensión.}
+Un retardo demasiado pequeño agrupa puntos cerca de la diagonal; uno demasiado grande
+descorrelaciona las componentes y mezcla escalas. Se usan, como guías, el primer cruce
+o mínimo de autocorrelación o información mutua. La dimensión puede explorarse con
+falsos vecinos cercanos o saturación de una magnitud. Ningún umbral es universal.
+
+\paragraph{Ejemplo algebraico resuelto: oscilador armónico.}
+Sea \(s(t)=\cos(\omega t)\), con periodo \(T=2\pi/\omega\). Si
+\(\tau=T/4\),
+\[
+ s(t-\tau)=\cos\left(\omega t-\frac{\pi}{2}\right)=\sin(\omega t),
+\]
+y por tanto
+\[
+ [s(t)]^2+[s(t-\tau)]^2=1.
+\]
+La reconstrucción bidimensional es un círculo. Si \(\tau=0\), todos los puntos caen
+en la diagonal; si \(\tau=T/2\), caen en la antidiagonal. El mismo sistema puede
+parecer degenerado por una elección inadecuada del retardo.
+
+\begin{activitybox}{Práctica reproducible: reconstruir Lorenz desde \(x(t)\)}
+En Toolbox Chaos genere Lorenz con \(dt=0.01\), \(T=200\) y descarte \(20\).
+Exporte \(x(t)\). Calcule la autocorrelación y elija tres retardos: uno corto, el
+primer cruce o escala equivalente, y uno cuatro veces mayor. Construya las nubes
+\((x_n,x_{n-\ell})\) y
+\((x_n,x_{n-\ell},x_{n-2\ell})\). Registre número de muestras efectivas después de
+los desplazamientos. Repita con \(z(t)\) y explique qué rasgos dependen del observable.
+\end{activitybox}
+
+\paragraph{Lectura de reconstrucciones por retardo.}
+Una reconstrucción útil separa estados sin convertir el conjunto en nube uniforme.
+Las hebras cercanas pueden ser estructura o escasez de datos; deben revisarse con otro
+retardo y más muestras. Un retrato de retorno \(s_{n+1}\) contra \(s_n\) aporta una representación distinta de
+una inmersión general: sólo usa retraso de una muestra.
+
+\begin{warningbox}
+Una nube con forma de atractor no verifica las hipótesis de un teorema de inmersión.
+La estimación de dimensión requiere puntos temporalmente separados, y el determinismo requiere más evidencia que una reconstrucción suave. Filtrar, normalizar o
+interpolar cambia distancias y debe documentarse.
+\end{warningbox}
+
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, capítulo 13, apartados sobre
+datos, coordenadas de retardo y embedología; Robert C. Hilborn,
+\emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and Engineers},
+2.\textsuperscript{a} ed., capítulo 10, apartados sobre inmersión, reconstrucción y
+multifractales; Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., sección 12.4, ``Reconstructing Attractors from Data''.}
+
+\subsection{Sistemas con retardo, alta dimensión e hipercaos}
+
+\paragraph{Historia de estado en Mackey--Glass.}
+En una ecuación con retardo,
+\[
+ \dot x(t)=F\bigl(x(t),x(t-\tau)\bigr),
+\]
+el valor \(x(0)\) se complementa con una función de historia que determina el futuro. Debe especificarse una función
+historia \(\varphi(t)\) en \([-\tau,0]\). El espacio de estados es entonces
+infinito-dimensional, aunque la salida se represente con unas pocas coordenadas de
+retardo.
+
+\paragraph{Ejemplo algebraico resuelto: Mackey--Glass.}
+Una forma habitual es
+\[
+ \dot x(t)=
+ \frac{\beta x(t-\tau)}{1+x^n(t-\tau)}-\gamma x(t).
+\]
+Un equilibrio constante \(x(t)=x^*\) satisface
+\[
+ 0=x^*\left[\frac{\beta}{1+(x^*)^n}-\gamma\right].
+\]
+Además de \(x^*=0\), existe
+\[
+ x^*=\left(\frac{\beta}{\gamma}-1\right)^{1/n}
+\]
+si \(\beta>\gamma\). Para \(\beta=0.2\), \(\gamma=0.1\), \(n=10\),
+\(x^*=1\). El equilibrio no depende de \(\tau\), pero su estabilidad sí: el retardo
+entra en la ecuación característica trascendente de la linealización.
+
+\paragraph{Alta dimensión: Lorenz--96.}
+Con índices cíclicos,
+\[
+ \dot x_i=(x_{i+1}-x_{i-2})x_{i-1}-x_i+F,
+ \qquad i=1,\ldots,N.
+\]
+El estado homogéneo \(x_i=F\) es equilibrio porque el término de advección se anula.
+La divergencia es
+\[
+ \sum_{i=1}^{N}\frac{\partial\dot x_i}{\partial x_i}=-N,
+\]
+de modo que el modelo contrae volumen en el espacio \(N\)-dimensional. Alta dimensión
+requiere criterios adicionales para \term{hipercaos}; esta etiqueta suele requerir más de un exponente de
+Lyapunov positivo convergente.
+
+\begin{activitybox}{Práctica reproducible: historia y proyección}
+Ejecute el preset de Mackey--Glass y registre \(\beta,\gamma,n,\tau\), historia,
+paso y esquema numérico mostrado por la interfaz. Duplique el horizonte y compare
+series y retratos de retardo. Después ejecute Lorenz--96 con la dimensión y forzamiento
+del preset; grafique tres componentes contiguas y tres separadas. Exporte las series y
+compare correlaciones y escalas. Si \gui{Lyapunov} aparece como no disponible,
+consérvelo como límite del contrato y no transfiera el algoritmo 3D.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{systems/mackey_glass_phase_timeseries.png}
+\caption{Mackey--Glass generado por Toolbox Chaos. La proyección usa retardos o
+componentes derivadas de una historia; conserva la naturaleza funcional de la ecuación y requiere el marco adecuado de EDO
+tridimensional.}
+\label{fig:mackey-glass-profundizacion}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\linewidth]{systems/lorenz96_phase_timeseries.png}
+\caption{Lorenz--96 generado por Toolbox Chaos. Tres coordenadas muestran una sombra
+del estado de dimensión mayor; la estructura omitida debe discutirse antes de inferir
+geometría global.}
+\label{fig:lorenz96-profundizacion}
+\end{figure}
+
+\paragraph{Lectura de sistemas con retardo y alta dimensión.}
+En retardo, una transición depende de la historia junto con el valor final.
+En alta dimensión, dos proyecciones distintas pueden ocultar o crear cruces aparentes.
+La presencia de varias escalas temporales sugiere calcular correlaciones, espectros y,
+cuando exista un método compatible, varios exponentes.
+
+\begin{warningbox}
+Use una historia completa para representar el estado. Clasifique como hipercaótico
+un sistema por tener cuatro o más variables, ni extrapole un espectro de Lyapunov 3D
+a dimensión alta. Una señal irregular de Mackey--Glass o Lorenz--96 puede incluir un
+transitorio largo y requiere prueba de horizonte.
+\end{warningbox}
+
+\lecturaseccion{Julien C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic
+Flows}, capítulo 6, apartados sobre sistemas de alta dimensión e hipercaos, capítulo
+8, ``Spatiotemporal Chaos'', y capítulo 9, ``Delay Differential Equations''; Robert
+C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and
+Engineers}, 2.\textsuperscript{a} ed., capítulo 11, apartados sobre caos
+espaciotemporal; Tamás Tél y Márton Gruiz, \emph{Chaotic Dynamics: An Introduction
+Based on Classical Mechanics}, capítulo 3, apartados sobre estabilidad y espacio de
+fases general.}
+
+\subsection{Caos conservativo y caos transitorio}
+
+\paragraph{Estructura de los sistemas conservativos.}
+En un sistema hamiltoniano
+\[
+ \dot q=\frac{\partial H}{\partial p},\qquad
+ \dot p=-\frac{\partial H}{\partial q},
+\]
+se cumple \(\dot H=0\) y la divergencia del campo es cero. No hay atracción
+volumétrica como en Lorenz. El espacio de fases puede mezclar islas regulares, toros y
+mares caóticos; hablar de atractor en el sentido disipativo suele ser inapropiado.
+
+\paragraph{Ejemplo algebraico resuelto: mapa estándar.}
+El mapa
+\[
+ p_{n+1}=p_n+K\sin q_n,\qquad
+ q_{n+1}=q_n+p_{n+1}\pmod{2\pi}
+\]
+tiene Jacobiano
+\[
+ D F=
+ \begin{pmatrix}
+ 1+K\cos q_n&1\\
+ K\cos q_n&1
+ \end{pmatrix},
+\qquad \det DF=1.
+\]
+Por tanto preserva área exactamente en aritmética matemática. Para \(K=0\),
+\(p_n=p_0\) y \(q_n=q_0+np_0\); el número de rotación es \(p_0/(2\pi)\). Al aumentar
+\(K\), resonancias y capas caóticas pueden coexistir sin contracción global.
+
+\paragraph{Tiempo de escape y caos transitorio.}
+Una silla caótica no atractora puede retener órbitas durante tiempos irregulares antes
+de que escapen. Si la probabilidad de supervivencia se aproxima por
+\[
+ P(t)\simeq e^{-\kappa t},
+\]
+\(\kappa\) es una tasa de escape y el tiempo medio idealizado es \(1/\kappa\). Si de
+1000 semillas quedan cerca de 368 a \(t=10\), entonces
+\[
+ \widehat\kappa=-\frac1{10}\log(368/1000)\simeq0.10,
+\qquad \widehat{\langle T\rangle}\simeq10.
+\]
+La estimación de esta distribución requiere un conjunto de trayectorias y condiciones iniciales.
+
+\begin{activitybox}{Práctica reproducible: conservación y supervivencia}
+En \gui{Crear sistema}, defina el oscilador
+\(\dot q=p,\ \dot p=-q\) con \((q_0,p_0)=(1,0)\). Para Euler, Heun y RK4 y
+\(h=0.05,0.025,0.0125\), exporte \(H_n=(q_n^2+p_n^2)/2\) y grafique su deriva.
+Después seleccione un caso del catálogo que muestre escape o transitorio prolongado,
+si está disponible, y ejecute una malla explícita de condiciones iniciales con dos
+horizontes. Construya una curva de supervivencia sin reclasificar escapes como
+atractores.
+\end{activitybox}
+
+\paragraph{Lectura de trayectorias conservativas y transitorias.}
+En dinámica conservativa, puntos que llenan una curva indican movimiento regular
+confinado; nubes e islas pueden coexistir. La deriva sistemática de energía revela
+efecto del integrador, no disipación física. En caos transitorio, se debe graficar
+número de sobrevivientes en escala semilogarítmica y comprobar si existe un intervalo
+aproximadamente lineal.
+
+\begin{warningbox}
+En un sistema conservativo, una trayectoria acotada debe analizarse mediante invariantes y estructura de volumen antes de clasificarla como atractor. Un determinante
+numérico cercano a uno se complementa con controles de conservación. El horizonte finito
+censura tiempos de escape, por lo que las irregularidades requieren extender la simulación y comparar condiciones iniciales.
+\end{warningbox}
+
+\lecturaseccion{Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An
+Introduction for Scientists and Engineers}, 2.\textsuperscript{a} ed., capítulo 4,
+apartados sobre transitorios caóticos y órbitas homoclínicas, y capítulo 8, apartados
+sobre dinámica hamiltoniana, KAM, mapa estándar y Hénon--Heiles; Tamás Tél y Márton
+Gruiz, \emph{Chaotic Dynamics: An Introduction Based on Classical Mechanics},
+capítulo 6, ``Transient Chaos'', y capítulo 7, apartados sobre dinámica conservativa,
+mapa estándar, ergodicidad y mezcla; Julien C. Sprott, \emph{Elegant Chaos:
+Algebraically Simple Chaotic Flows}, capítulo 4, apartados sobre flujos conservativos.}
+
+\subsection{Sincronización y control de caos}
+
+\paragraph{Sincronización y variables de error.}
+Dos sistemas se \term{sincronizan} cuando una medida de su diferencia converge o
+permanece pequeña bajo un acoplamiento especificado. La sincronía completa usa
+\(\|\mathbf x_1-\mathbf x_2\|\to0\); existen también sincronía de fase, generalizada
+y retrasada. \term{Control de caos} introduce una intervención pequeña y diseñada
+para estabilizar una órbita o región deseada. La evaluación del control declara señal, ley de control, costo y estabilidad del lazo cerrado.
+
+\paragraph{Dinámica transversal del error.}
+Para dos sistemas idénticos con acoplamiento difusivo completo,
+\[
+ \dot{\mathbf x}_1=\mathbf f(\mathbf x_1),\qquad
+ \dot{\mathbf x}_2=\mathbf f(\mathbf x_2)+k(\mathbf x_1-\mathbf x_2),
+\]
+el error \(\mathbf e=\mathbf x_2-\mathbf x_1\) satisface, cerca de la variedad
+sincrónica,
+\[
+ \dot{\mathbf e}\simeq
+ [D\mathbf f(\mathbf x_1(t))-kI]\mathbf e.
+\]
+La estabilidad depende de la expansión transversal a lo largo de la trayectoria, no
+sólo de los autovalores en un equilibrio.
+
+\paragraph{Ejemplo algebraico resuelto.}
+Para el par lineal
+\[
+ \dot x=-ax,\qquad \dot y=-ay+k(x-y),
+\]
+\(e=y-x\) cumple
+\[
+ \dot e=-(a+k)e,\qquad e(t)=e(0)e^{-(a+k)t}.
+\]
+Si \(a=0.2\), \(k=0.8\), el error disminuye con tasa \(1\). Sin acoplamiento,
+\(k=0\), disminuye con tasa \(0.2\). Este ejemplo separa sincronización inducida de
+la convergencia común a un equilibrio; en un sistema caótico, cada trayectoria puede
+seguir siendo irregular mientras el error transversal decrece.
+
+\paragraph{Control en un mapa linealizado.}
+Si cerca de una órbita objetivo el mapa controlado es
+\[
+ \xi_{n+1}=a\xi_n+b u_n,\qquad u_n=-K\xi_n,
+\]
+el multiplicador cerrado es \(a-bK\). Para \(a=1.2\), \(b=1\), elegir \(K=0.5\)
+produce \(0.7\), estable. Debe comprobarse que la linealización y los límites del
+actuador sean válidos en la región usada.
+
+\begin{activitybox}{Práctica reproducible: error de dos Lorenz}
+En \gui{Crear sistema}, defina dos copias de Lorenz con variables
+\texttt{x1,y1,z1,x2,y2,z2}. La primera usa las ecuaciones clásicas; en la segunda
+añada \texttt{k*(x1-x2)}, \texttt{k*(y1-y2)} y \texttt{k*(z1-z2)} a las tres
+ecuaciones. Use \((10,28,8/3)\), estados \((1,1,1)\) y \((1.001,1,1)\),
+\(k=0,1,5\), RK4, \(h=0.005\), \(T=50\). Exporte datos y grafique
+\(\log\|\mathbf e(t)\|\), evitando el logaritmo de cero. Repita con \(h/2\) y
+registre la magnitud del acoplamiento.
+\end{activitybox}
+
+\paragraph{Lectura del error de sincronización.}
+La sincronización se evalúa en el error, no por superposición visual de dos curvas
+gruesas. Una recta descendente en escala semilogarítmica sugiere contracción
+exponencial transversal en ese intervalo. En control, compare régimen sin control,
+transitorio de activación, estado controlado y esfuerzo \(u(t)\).
+
+\begin{warningbox}
+La estabilidad global de la variedad sincrónica requiere controles más amplios que un
+error pequeño durante tiempo finito. Las pruebas de robustez usan perturbaciones de las condiciones iniciales. Un controlador que satura, cambia mucho el modelo o
+requiere conocer toda la trayectoria debe reportarse con esas condiciones de uso;
+estabilización de pequeña señal.
+\end{warningbox}
+
+\lecturaseccion{Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An
+Introduction for Scientists and Engineers}, 2.\textsuperscript{a} ed., capítulo 12,
+apartados sobre control y sincronización; Julien C. Sprott,
+\emph{Elegant Chaos: Algebraically Simple Chaotic Flows}, capítulo 1, apartados sobre
+exponentes, estabilidad y transitorios, y capítulo 10, apartados sobre realizaciones
+en circuitos; John Guckenheimer y Philip Holmes, \emph{Nonlinear Oscillations,
+Dynamical Systems, and Bifurcations of Vector Fields}, capítulo 4, apartados sobre
+perturbaciones y métodos de Melnikov, como contexto de intervención débil.}
+
+\section{Proyecto final sobre un sistema dinámico}
+
+\paragraph{Pregunta y evidencia del proyecto.}
+El proyecto integra un resultado analítico con evidencia numérica. La pregunta debe
+ser acotada, por ejemplo: ¿cómo cambia un régimen al variar un parámetro?, ¿qué
+condiciones iniciales alcanzan dos destinos?, ¿qué propiedad permanece al refinar el
+paso?, ¿qué observable distingue periodicidad de irregularidad? El informe acepta como
+pregunta únicamente ``graficar un atractor''.
+
+\paragraph{Opciones de proyecto.}
+\begin{enumerate}
+  \item \textbf{Mapa:} logística, Hénon o sistema del \gui{Explorador Sprott};
+  incluir puntos periódicos, multiplicadores, bifurcación y dinámica simbólica.
+  \item \textbf{Flujo clásico:} Lorenz, Rössler, Chua o Duffing--Ueda; incluir
+  equilibrios, Jacobiano, disipación, sección y al menos un indicador.
+  \item \textbf{Cuencas y coexistencia:} comparar condiciones iniciales, resolución,
+  horizonte y clasificador, con categoría indeterminada.
+  \item \textbf{Datos:} reconstruir una dinámica desde una serie, justificar muestreo,
+  FFT/PSD, retardo, dimensión y control sustituto.
+  \item \textbf{Extensión:} retardo, alta dimensión, caos transitorio,
+  sincronización o memoria fraccionaria, con alcance explícitamente prudente.
+\end{enumerate}
+
+\paragraph{Desarrollo algebraico obligatorio.}
+El informe debe incluir al menos uno de los siguientes cálculos completos:
+\begin{itemize}
+  \item puntos fijos o equilibrios y clasificación mediante derivada o Jacobiano;
+  \item adimensionalización y grupos de control;
+  \item multiplicador de órbita o forma normal local;
+  \item divergencia, invariante o balance de energía;
+  \item ecuación variacional y significado del indicador de Lyapunov;
+  \item solución de equilibrio para un sistema con retardo;
+  \item dinámica del error para sincronización o control.
+\end{itemize}
+Copiar ecuaciones del catálogo sin desarrollar una consecuencia no satisface este
+requisito.
+
+\paragraph{Protocolo computacional mínimo.}
+\begin{enumerate}
+  \item Registrar nombre del sistema, ecuaciones, parámetros y unidades o escalas.
+  \item Guardar condición o historia inicial, método, paso, tolerancias, horizonte,
+  transitorio, muestreo y umbral de escape.
+  \item Producir tres vistas coordinadas desde los mismos datos cuando sea posible.
+  \item Exportar datos y metadatos junto con las imágenes.
+  \item Repetir con al menos dos pasos u opciones de tolerancia.
+  \item Repetir con horizonte o transitorio distinto.
+  \item Comparar condiciones iniciales si la pregunta es global.
+  \item Explicar disponibilidad y limitación de cada pestaña utilizada.
+\end{enumerate}
+
+\begin{evidencebox}{Matriz de afirmaciones del proyecto}
+Para cada conclusión, incluya cuatro columnas: afirmación; evidencia directa;
+control de robustez; y alternativa no descartada. Ejemplo: ``la estimación finita de
+\(\lambda_1\) es positiva'' se apoya en la curva de convergencia y dos refinamientos;
+describe el conjunto de estados y parámetros que cubre la evidencia declarada.
+\end{evidencebox}
+
+\paragraph{Estructura del informe.}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.23\linewidth}
+                  >{\raggedright\arraybackslash}p{0.67\linewidth}}
+\toprule
+Sección & Contenido verificable \\
+\midrule
+\endhead
+Pregunta y alcance & Variable de respuesta, parámetro o comparación y límites.\\
+Modelo & Ecuaciones, estado, hipótesis, unidades y procedencia del preset.\\
+Análisis & Desarrollo algebraico y predicción anterior a la simulación.\\
+Método & Contrato numérico completo y versión del software.\\
+Resultados & Datos, tablas, tres vistas, pies autosuficientes e indicador.\\
+Robustez & Paso, horizonte, transitorio, semilla y, cuando proceda, resolución.\\
+Discusión & Coincidencias y tensiones entre predicción, gráfica e indicador.\\
+Conclusión & Respuesta graduada y lista de propiedades no demostradas.\\
+Anexo & Archivos JSON/CSV, nombres de figuras y guía de reproducción.\\
+\bottomrule
+\end{longtable}
+
+\begin{activitybox}{Reproducción cruzada}
+Entregue a otro equipo una carpeta que contenga únicamente informe, configuración y
+datos. El equipo receptor repite una figura y un valor cuantitativo sin explicación
+oral. Debe registrar versión, diferencias y ambigüedades. El equipo autor corrige el
+protocolo y conserva ambas ejecuciones como evidencia de trazabilidad.
+\end{activitybox}
+
+\begin{warningbox}
+El proyecto formula conclusiones acordes con muestreos finitos. Las expresiones ``demuestra caos'', ``prueba estabilidad global'' o ``valida el
+modelo físico'' requieren un argumento matemático específico con todas sus hipótesis y evidencia adicional a una pestaña o una figura.
+\end{warningbox}
+
+\lecturaseccion{Edward N. Lorenz, \emph{The Essence of Chaos}, capítulos 1--5 y
+apéndices ``The Butterfly Effect'', ``Mathematical Excursions'' y ``Glossary'', como
+modelo de conexión entre mecanismo, cálculo e interpretación; Robert C. Hilborn,
+\emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and Engineers},
+2.\textsuperscript{a} ed., capítulos 9--10, sobre cuantificación y reconstrucción;
+Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, apéndice B, para control de error
+numérico.}
+
+\section[\texorpdfstring{\hspace{0.45em}}{}Banco graduado de actividades y problemas]{Banco graduado de actividades y problemas}
+
+\paragraph{Estructura de actividades A--C.}
+Las actividades A son de interpretación, las B combinan álgebra y simulación, y las C
+constituyen miniproyectos. En todos los casos se entrega predicción previa, contrato
+numérico, figura con ejes, datos exportados, control y evidencia pendiente por documentar.
+
+\subsection*{Nivel A: lectura y conceptos}
+\begin{enumerate}
+  \item[A1.] \textbf{Misma órbita, tres vistas.} Use Lorenz y marque en
+  \gui{Atractor 3D}, \gui{Retratos 2D} y \gui{Series temporales} el mismo intervalo.
+  Explique qué información pierde cada vista.
+  \item[A2.] \textbf{Mapa y flujo: reglas de actualización.} Para veinte puntos logísticos, compare una
+  gráfica con marcadores y otra con líneas. Identifique qué segmentos no pertenecen a
+  la dinámica.
+  \item[A3.] \textbf{Nullcline y trayectoria: funciones complementarias.} Sobre el ejemplo
+  \(\dot x=x(1-x-y)\), \(\dot y=y(x-1/2)\), señale dónde el vector es vertical y
+  dónde horizontal.
+  \item[A4.] \textbf{Transitorio.} Para Rössler, grafique las primeras y las últimas
+  veinte unidades de tiempo con la misma escala. Decida qué estadísticas cambian.
+  \item[A5.] \textbf{Proyección engañosa.} Localice un cruce en \(x\)-\(y\) de
+  Lorenz y compare las coordenadas \(z\) y los tiempos de ambos puntos.
+  \item[A6.] \textbf{Pie de figura auditable.} Reescriba el pie de una captura para
+  incluir sistema, parámetros, estado, método, paso, tiempo, transitorio y mensaje
+  principal.
+\end{enumerate}
+
+\subsection*{Nivel B: cálculo y reproducción}
+\begin{enumerate}
+  \item[B1.] \textbf{Saddle--node.} Derive ramas y estabilidad de
+  \(\dot x=\mu-x^2\); mida el tiempo para entrar en una tolerancia de \(10^{-3}\)
+  cuando \(\mu\) se aproxima a cero.
+  \item[B2.] \textbf{Plano traza--determinante.} Diseñe una matriz para cada región,
+  calcule sus autovalores y reproduzca los retratos en \gui{Crear sistema}.
+  \item[B3.] \textbf{Jacobiano de Lorenz.} Derive \(J(x,y,z)\), evalúelo en
+  \(E_0,E_\pm\) y confronte \gui{Autovalores} para dos valores de \(\rho\).
+  \item[B4.] \textbf{Ciclo radial.} Estime periodo y multiplicador del ciclo
+  \(r=1\) con dos pasos; compare con \(2\pi\) y \(e^{-4\pi}\).
+  \item[B5.] \textbf{Periodo dos logístico.} Para \(r=3.2\), verifique
+  \(x_\pm\), su orden temporal y el multiplicador \(M_2=0.16\).
+  \item[B6.] \textbf{Contracción de Hénon.} Seleccione tres triángulos pequeños de
+  condiciones iniciales, itere una vez y compare áreas con el factor \(|b|\).
+  \item[B7.] \textbf{Divergencia.} Calcule \(\nabla\cdot f\) para Lorenz, Rössler y
+  Duffing autónomo; relacione signo instantáneo con el volumen, sin inferir cuenca.
+  \item[B8.] \textbf{Convergencia Lyapunov.} Para Lorenz, combine dos pasos, dos
+  tiempos finales y dos intervalos QR. Informe sólo dígitos estables.
+  \item[B9.] \textbf{Nyquist.} Genere dos señales sintéticas en
+  \gui{Crear sistema} o desde datos controlados, una debajo y otra encima de Nyquist;
+  identifique el alias en \gui{Espectro}.
+  \item[B10.] \textbf{Reconstrucción.} Para una señal periódica, compruebe que
+  \(\tau=T/4\) produce un círculo y que \(\tau=0\) produce una diagonal.
+  \item[B11.] \textbf{Dimensión de cajas.} Valide el algoritmo con etapas del Cantor
+  antes de aplicarlo a una frontera de cuenca.
+  \item[B12.] \textbf{Energía numérica.} Compare deriva de \(H\) para Euler, Heun y
+  RK4; interprete la menor deriva como un indicador que se complementa con la prueba de conservación.
+\end{enumerate}
+
+\subsection*{Nivel C: miniproyectos}
+\begin{enumerate}
+  \item[C1.] \textbf{Ventana periódica.} Localice una ventana logística, verifique
+  periodo, multiplicador y \(\lambda_N\), y estudie sus bordes.
+  \item[C2.] \textbf{Retorno de Rössler.} Defina una sección, interpole cruces,
+  construya \(u_{n+1}\) contra \(u_n\) y discuta si es aproximadamente unimodal.
+  \item[C3.] \textbf{Ruta de Duffing.} Varíe un solo parámetro, compare secciones
+  estroboscópicas y clasifique la evidencia de periodicidad, toro o irregularidad.
+  \item[C4.] \textbf{Frontera de cuenca.} Refine resolución y horizonte, estime una
+  pendiente y cuantifique celdas que cambian de clase.
+  \item[C5.] \textbf{Mackey--Glass.} Compare dos historias con el mismo \(x(0)\);
+  muestre cómo la historia completa define el estado.
+  \item[C6.] \textbf{Lorenz--96.} Compare proyecciones contiguas y separadas, PSD y
+  correlaciones; explique qué queda fuera de la vista.
+  \item[C7.] \textbf{Caos transitorio.} Construya una distribución de tiempos de
+  escape con datos censurados y pruebe un ajuste exponencial sólo en el intervalo
+  sustentado.
+  \item[C8.] \textbf{Sincronización.} Estime una tasa transversal desde
+  \(\log\|\mathbf e(t)\|\), explore \(k\) y cuantifique el costo de acoplamiento.
+  \item[C9.] \textbf{Acceso a coexistencia.} Compare semillas cercanas a equilibrios
+  y alejadas; clasifique la evidencia sin convertir ausencia finita en ocultamiento.
+  \item[C10.] \textbf{Explorador Sprott.} Elija un código sintético público,
+  decodifique sus coeficientes, derive sus ecuaciones, calcule puntos fijos cuando
+  proceda y conserve código, datos, estilo y metadatos.
+\end{enumerate}
+
+\begin{evidencebox}{Criterio de cierre del banco}
+Una actividad está terminada cuando otra persona puede repetirla, la predicción
+algebraica se contrasta con los datos, el rasgo interpretado sobrevive al control
+elegido y la conclusión se mantiene dentro del alcance del método. Obtener una imagen aporta
+criterio de cierre.
+\end{evidencebox}
+
+\begin{warningbox}
+Las actividades que requieren cálculos externos parten de datos exportados por
+Toolbox Chaos y deben conservar el script o procedimiento usado. Las atribuciones deben corresponder
+a la interfaz estimadores que no implementa, ni ocultar pasos manuales bajo frases
+como ``el software demostró''. Cada herramienta se acredita por la operación que
+realmente realizó.
+\end{warningbox}
+
+\lecturaseccion{Para seleccionar problemas adicionales: Robert L. Devaney,
+\emph{A First Course in Chaotic Dynamical Systems: Theory and Experiment},
+2.\textsuperscript{a} ed., capítulos 3--14; Kathleen T. Alligood, Tim D. Sauer y
+James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, capítulos 1--13
+y apéndice B; Julien C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic
+Flows}, capítulos 1--10; Julien C. Sprott, \emph{Strange Attractors: Creating
+Patterns in Chaos}, secciones 2.3--2.4, 3.1--3.5, capítulos 4--6 y apéndices E--F.}

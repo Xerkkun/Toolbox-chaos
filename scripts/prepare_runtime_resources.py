@@ -9,6 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 BUNDLED = ROOT / 'resources' / 'bundled'
 
 DOC_SOURCES = {
+    ROOT / 'assets' / 'manuals' / 'manual_usuario_toolbox_chaos.pdf': BUNDLED / 'docs' / 'manual_usuario_toolbox_chaos.pdf',
+    ROOT / 'assets' / 'manuals' / 'manual_teorico_pedagogico.pdf': BUNDLED / 'docs' / 'manual_teorico_pedagogico.pdf',
+    ROOT / 'assets' / 'manuals' / 'manual_explorador_sprott.pdf': BUNDLED / 'docs' / 'manual_explorador_sprott.pdf',
     ROOT / 'assets' / 'chaos_dictionary.pdf': BUNDLED / 'docs' / 'chaos_dictionary.pdf',
     ROOT / 'assets' / 'sprott' / 'sprott_theory.pdf': BUNDLED / 'docs' / 'sprott_theory.pdf',
     ROOT / 'assets' / 'sprott' / 'sprott_explorer_guide.pdf': BUNDLED / 'docs' / 'sprott_explorer_guide.pdf',

@@ -1,0 +1,1135 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=2.05cm,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,longtable,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[most]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\graphicspath{{../doc_figures/}}
+
+\definecolor{Navy}{HTML}{12355B}
+\definecolor{Blue}{HTML}{1C6E8C}
+\definecolor{Teal}{HTML}{0F8B8D}
+\definecolor{Gold}{HTML}{D99B2B}
+\definecolor{Ink}{HTML}{25313C}
+\definecolor{SoftBlue}{HTML}{EDF6FA}
+\definecolor{SoftGold}{HTML}{FFF7E6}
+\definecolor{SoftGray}{HTML}{F3F5F7}
+\definecolor{SoftRed}{HTML}{FFF0EF}
+\definecolor{Red}{HTML}{A33A32}
+\definecolor{Green}{HTML}{287A55}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=Navy,
+  citecolor=Teal,
+  urlcolor=Blue,
+  pdftitle={Manual teorico pedagogico de sistemas dinamicos y caos},
+  pdfauthor={Toolbox Chaos}
+}
+\urlstyle{same}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlist[itemize]{leftmargin=1.35em,itemsep=0.18em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.6em,itemsep=0.22em,topsep=0.25em}
+\renewcommand{\arraystretch}{1.18}
+
+\titleformat{\section}
+  {\Large\sffamily\bfseries\color{Navy}}
+  {\thesection}{0.65em}{}
+\titleformat{\subsection}
+  {\large\sffamily\bfseries\color{Blue}}
+  {\thesubsection}{0.55em}{}
+\titleformat{\subsubsection}
+  {\normalsize\sffamily\bfseries\color{Teal}}
+  {}{0pt}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small Toolbox Chaos}
+\fancyhead[R]{\sffamily\small Manual teórico pedagógico}
+\fancyfoot[L]{\sffamily\scriptsize Sistemas dinámicos y análisis numérico}
+\fancyfoot[R]{\sffamily\small \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\gui}[1]{\textsf{\emph{#1}}}
+\newcommand{\term}[1]{\textcolor{Navy}{\emph{#1}}}
+\newcommand{\dd}{\,\mathrm{d}}
+
+\newtcolorbox{objectivebox}{
+  enhanced,breakable,colback=SoftBlue,colframe=Blue,
+  boxrule=0.75pt,arc=1.5mm,left=2mm,right=2mm,top=1.5mm,bottom=1.5mm,
+  title={Objetivo de aprendizaje},fonttitle=\sffamily\bfseries
+}
+\newtcolorbox{activitybox}[1]{
+  enhanced,breakable,colback=SoftGold,colframe=Gold,
+  boxrule=0.75pt,arc=1.5mm,left=2mm,right=2mm,top=1.5mm,bottom=1.5mm,
+  title={#1},fonttitle=\sffamily\bfseries
+}
+\newtcolorbox{evidencebox}[1]{
+  enhanced,breakable,colback=SoftGray,colframe=Navy,
+  boxrule=0.7pt,arc=1.5mm,left=2mm,right=2mm,top=1.5mm,bottom=1.5mm,
+  title={#1},fonttitle=\sffamily\bfseries
+}
+\newtcolorbox{warningbox}{
+  enhanced,breakable,colback=SoftRed,colframe=Red,
+  boxrule=0.7pt,arc=1.5mm,left=2mm,right=2mm,top=1.5mm,bottom=1.5mm,
+  title={Límite de interpretación},fonttitle=\sffamily\bfseries
+}
+\newcommand{\didactic}[1]{%
+  \par\medskip\noindent{\sffamily\itshape\color{Teal}#1.}\enspace}
+\newcommand{\lecturaseccion}[1]{%
+  \par\noindent{\sffamily\scriptsize\color{Teal}Lectura complementaria}\footnote{%
+  \textbf{Lectura complementaria.} #1}\par}
+
+\begin{document}
+
+\pagenumbering{roman}
+\begin{titlepage}
+\pagecolor{SoftBlue}
+\color{Ink}
+\vspace*{1.2cm}
+{\sffamily\Large\color{Blue} Toolbox Chaos}\par
+\vspace{0.55cm}
+{\sffamily\bfseries\fontsize{28}{33}\selectfont
+Manual teórico pedagógico\par}
+\vspace{0.35cm}
+{\sffamily\fontsize{17}{22}\selectfont
+  Sistemas dinámicos, caos e interpretación responsable de resultados\\
+  numéricos\par}
+\vspace{0.9cm}
+\begin{tcolorbox}[colback=white,colframe=Teal,boxrule=1pt,arc=2mm]
+Este manual desarrolla los conceptos matemáticos que permiten leer las gráficas de
+Toolbox Chaos. Cada unidad parte de una
+intuición, formula el concepto, lo conecta con una pestaña de la interfaz y termina
+con una actividad de contraste. La meta es construir evidencia mediante cálculos,
+gráficas y criterios de interpretación.
+\end{tcolorbox}
+\vfill
+{\sffamily\large Contenido temático}\par
+\vspace{0.3cm}
+\begin{tabularx}{\textwidth}{>{\sffamily\bfseries\color{Navy}}p{0.25\textwidth}X}
+Fundamentos & Estado, modelado, flujos de una y dos dimensiones, estabilidad, oscilaciones e integración numérica.\\
+Caos y diagnósticos & Mapas, bifurcaciones, cuencas, Lyapunov, espectros, recurrencia y dimensión.\\
+Sistemas y aplicaciones & Lorenz, Rössler, Chua, Duffing--Ueda, retardo, alta dimensión y orden fraccionario.\\
+Curso y proyecto & Secuencia de 16 unidades, laboratorios reproducibles, actividades y proyecto integrador.\\
+\end{tabularx}
+\vfill
+{\small\sffamily Edición pedagógica independiente. Las figuras son productos del
+propio software o esquemas elaborados para este manual; las figuras de los libros
+citados permanecen en sus fuentes originales.}
+\end{titlepage}
+\nopagecolor
+\pagenumbering{arabic}
+
+\tableofcontents
+\vfill
+\begin{evidencebox}{Tres rutas de lectura}
+\textbf{Ruta conceptual:} unidades 1--7 para construir el lenguaje geométrico y
+algebraico. \textbf{Ruta computacional:} unidades 8--14 para integrar, diagnosticar
+y contrastar datos. \textbf{Ruta de investigación:} unidades 15--16, proyecto final,
+banco de problemas y guía de comunicación. En cualquiera de las rutas conviene leer
+primero la pregunta de interpretación y cerrar cada práctica con su control numérico.
+\end{evidencebox}
+\newpage
+
+\section*{Uso del manual teórico}
+\addcontentsline{toc}{section}{Organización y criterios de estudio}
+
+La teoría de sistemas dinámicos combina tres lenguajes: ecuaciones, geometría y
+datos numéricos. Conviene pasar continuamente de uno a otro. Strogatz propone
+construir primero intuición geométrica y después formalizarla; Devaney muestra que
+las propiedades globales requieren hipótesis precisas; Sprott explota el cálculo y la
+visualización como laboratorio para descubrir patrones \cite{strogatz2024,devaney1989,sprott1993}.
+Aquí se integran esas tres miradas.
+
+\input{chapters/manual_teorico_plan_curso}
+
+En cada actividad se recomienda anotar cuatro datos mínimos: sistema y parámetros,
+condición inicial, método y paso, y horizonte temporal. Ese contrato numérico permite
+asociar cada gráfica con un experimento definido y reproducir su figura.
+
+\noindent\emph{Convención para la interfaz.} Los nombres de pestañas, botones y
+opciones aparecen en tipografía sans serif cursiva,
+por ejemplo \gui{Atractor 3D} o \gui{Calcular bifurcación}. Esos nombres indican dónde
+realizar el experimento; la explicación matemática permanece en este manual.
+
+\section{Estado, órbitas y espacio de fases}
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos}, capítulos 1--2; Morris W. Hirsch, Stephen Smale y Robert L. Devaney, \emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos}, capítulos 1--3.}
+
+El primer paso consiste en distinguir el estado instantáneo de una trayectoria
+completa y reconocer qué información conserva o pierde una proyección del espacio de
+fases. Una fotografía de un péndulo muestra su posición, mientras que el estado
+incorpora la información necesaria para continuar
+la evolución según el modelo. Al reunir todos los estados posibles se obtiene el mapa
+geométrico del problema, es decir, el espacio de fases. En términos matemáticos, sea
+$X\subseteq\R^n$ el espacio de estados. Un estado es un vector
+$\mathbf{x}=(x_1,\dots,x_n)\in X$. La evolución desde $\mathbf{x}_0$ produce una
+\term{órbita}. Para tiempo continuo se escribe
+\[
+  \mathcal O(\mathbf{x}_0)=\{\Phi_t(\mathbf{x}_0):t\ge 0\},
+\]
+donde $\Phi_t:X\to X$ es el flujo. Para tiempo discreto,
+\[
+  \mathcal O(\mathbf{x}_0)=\{F^n(\mathbf{x}_0):n=0,1,2,\dots\}.
+\]
+Una curva en $X$ es una trayectoria; una curva de $x_i(t)$ contra $t$ es una
+serie temporal. Son representaciones distintas del mismo experimento.
+
+Esta distinción organiza la lectura de la interfaz. En \gui{Atractor 3D} se observa
+una proyección tridimensional de la órbita; en
+\gui{Retratos 2D} se muestran pares de coordenadas; en \gui{Series temporales} se
+conserva el orden temporal. El botón \gui{Usar última trayectoria} permite contrastar
+las vistas conservando el mismo experimento. Para Lorenz con $\sigma=10$, $\rho=28$,
+$\beta=8/3$, la serie $x(t)$ registra
+cuándo cambia la trayectoria entre regiones, mientras que la vista $(x,y,z)$ revela
+los dos lóbulos. La proyección $(x,y)$ puede ocultar cruces aparentes: dos puntos con
+el mismo $(x,y)$ pueden tener distinto $z$.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.34\textwidth}
+  \centering\includegraphics[width=\linewidth]{lorenz_attractor.png}
+  \caption{Órbita proyectada en tres dimensiones.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.62\textwidth}
+  \centering\includegraphics[width=\linewidth]{lorenz_phase_portraits_2d_grid.png}
+  \caption{Tres proyecciones del mismo conjunto de estados.}
+\end{subfigure}
+\caption{Una representación geométrica debe leerse junto con las coordenadas que conserva.}
+\label{fig:state-orbit}
+\end{figure}
+
+De estas representaciones puede describirse la región visitada, la simetría visible y
+la relación entre
+coordenadas. La caracterización de caos, atracción y dimensión requiere diagnósticos
+adicionales a la forma complicada de la curva. Un cruce en una proyección requiere verificar la intersección en el espacio de estados.
+
+Como primera comprobación, genere una trayectoria de Lorenz y use exactamente los
+mismos datos en las tres
+pestañas. Identifique un cruce aparente en un retrato 2D y compruebe en la vista 3D
+que las alturas $z$ son distintas; después explique en dos frases qué información
+recuperó.
+
+\subsection{Flujos y mapas}
+
+Los sistemas de tiempo continuo y discreto requieren procedimientos propios. Un flujo
+asigna un estado a cada instante, mientras que un mapa genera una sucesión después de
+aplicar repetidamente su regla. Ambos producen órbitas y sus nociones de tiempo
+determinan herramientas numéricas específicas.
+
+Formalmente, un flujo autónomo satisface
+\[
+  \dot{\mathbf{x}}=\mathbf{f}(\mathbf{x};\boldsymbol\mu),\qquad
+  \Phi_{t+s}=\Phi_t\circ\Phi_s .
+\]
+Un mapa iterado satisface
+\[
+  \mathbf{x}_{n+1}=F(\mathbf{x}_n;\boldsymbol\mu),\qquad F^{n+m}=F^n\circ F^m .
+\]
+En un flujo, $h$ es un paso de aproximación temporal. En un mapa, $n\mapsto n+1$
+es parte del modelo: insertar RK4 entre dos iteraciones cambiaría el sistema.
+
+Esta diferencia determina el cálculo que ejecuta Toolbox Chaos: el selector de sistema
+indica si el motor realiza una integración o una iteración.
+Para un mapa, la duración representa un número de iteraciones útiles; para un flujo,
+los controles de método, $h$ y tiempo final definen una discretización numérica.
+
+Por ejemplo, en el mapa logístico
+\[
+  x_{n+1}=r x_n(1-x_n),\qquad 0\le x_n\le1,
+\]
+una órbita de período dos alterna entre dos valores. En un flujo tridimensional, un
+ciclo límite es una curva cerrada recorrida continuamente. Ambos son periódicos y
+presentan geometrías y procedimientos de observación propios \cite{may1976,devaney1989}.
+
+De este contraste puede compararse la sucesión de estados y su régimen asintótico
+dentro del modelo
+correcto. El índice $n$ representa iteraciones y el análisis de error de integración corresponde a los flujos; las reglas discretas requieren control de redondeo y sensibilidad a la precisión finita.
+
+Para comprobarlo, simule el mapa logístico con $r=3.2$ y después con $r=3.9$.
+Descarte las primeras
+500 iteraciones y cuente cuántos valores distintos se distinguen en la cola. Compare
+con una órbita periódica de un flujo y escriba la diferencia entre ``período dos'' y
+``ciclo límite''.
+
+\subsection{Equilibrios, Jacobiano y estabilidad local}
+
+El análisis de equilibrios relaciona la estabilidad local con el Jacobiano y obliga a
+distinguir una conclusión local de una afirmación sobre la dinámica global. Un
+equilibrio es un estado donde el campo vectorial se anula. Para estudiar su entorno,
+se aproxima la superficie no lineal por su plano tangente.
+Los autovalores resumen las direcciones de contracción, expansión y giro de esa
+aproximación.
+
+Así, un equilibrio $\mathbf{x}^*$ cumple $\mathbf f(\mathbf{x}^*)=\mathbf 0$. Con
+$\boldsymbol\xi=\mathbf{x}-\mathbf{x}^*$, la linealización es
+\[
+  \dot{\boldsymbol\xi}=J(\mathbf{x}^*)\boldsymbol\xi+O(\|\boldsymbol\xi\|^2),
+  \qquad J_{ij}=\frac{\partial f_i}{\partial x_j}.
+\]
+Si todos los autovalores tienen parte real negativa, el equilibrio hiperbólico es
+localmente asintóticamente estable. Una parte real positiva produce una dirección
+inestable. Signos mezclados producen una silla. Cuando alguna parte real es cero, la
+linealización sola puede ser inconclusa \cite{strogatz2024}.
+
+Para un mapa, la regla cambia: la estabilidad local de un punto fijo requiere
+
+\[
+  |\lambda_i(DF(\mathbf{x}^*))|<1
+\]
+para todos los multiplicadores.
+
+En la pestaña \gui{Autovalores}, el botón
+\gui{Calcular equilibrios y autovalores} muestra los
+equilibrios disponibles y ubica los autovalores en el plano complejo. El eje vertical
+representa la parte imaginaria y el horizontal la parte real. Seleccione cada
+equilibrio por separado antes de comparar clasificaciones.
+
+Como referencia, Lorenz tiene el equilibrio $E_0=(0,0,0)$ y, para $\rho>1$, dos
+equilibrios
+simétricos
+\[
+  E_\pm=(\pm\sqrt{\beta(\rho-1)},\,\pm\sqrt{\beta(\rho-1)},\,\rho-1).
+\]
+Al variar $\rho$, sus autovalores cambian. La aparición de una pareja compleja con
+parte real positiva describe inestabilidad espiral local. La existencia de un atractor
+caótico requiere además análisis de trayectorias y cuencas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.68\textwidth]{lorenz_spectrum.png}
+\caption{Plano complejo de autovalores. La posición respecto del eje imaginario guía
+la lectura local; el análisis global incorpora órbitas y cuencas.}
+\label{fig:eigenvalues}
+\end{figure}
+
+El resultado permite clasificar la estabilidad local de equilibrios hiperbólicos. La
+forma completa de una cuenca, la coexistencia de atractores y la estabilidad global
+requieren además análisis de órbitas, regiones invariantes y condiciones iniciales.
+
+\begin{activitybox}{Autovalores y comportamiento lejos del equilibrio}
+Calcule los autovalores de Lorenz para dos valores de $\rho$. Dibuje a mano el
+semiplano estable y explique qué autovalor cambia la interpretación. Después genere
+una trayectoria desde dos condiciones iniciales: contraste y distinga el diagnóstico
+local del comportamiento observado lejos del equilibrio.
+\end{activitybox}
+
+\input{chapters/manual_teorico_fundamentos_ampliados}
+
+\section{Integración numérica, error y transitorios}
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, apéndice B; Frank C. Hoppensteadt, \emph{Analysis and Simulation of Chaotic Systems}, capítulos 1--2.}
+
+Para obtener una trayectoria confiable se separan la dinámica del modelo y los
+efectos del método, el paso, el redondeo y el intervalo transitorio. Una computadora
+construye una cadena de aproximaciones a la curva continua. En un sistema sensible,
+dos cálculos correctos pueden perder coincidencia punto a punto después de cierto
+tiempo; por ello la pregunta científica evalúa la estabilidad de las propiedades
+reportadas al refinar el cálculo.
+
+La diferencia se aprecia desde el método más sencillo. Euler explícito usa
+\[
+  \mathbf{x}_{n+1}=\mathbf{x}_n+h\mathbf f(\mathbf{x}_n),
+\]
+con error global $O(h)$. Heun promedia una pendiente predictora y una correctora y
+tiene error global $O(h^2)$. RK4 combina cuatro pendientes y, bajo regularidad,
+tiene error global $O(h^4)$. Un resultado confiable requiere un $h$ adecuado, el
+tratamiento de la rigidez cuando aparece y un horizonte suficiente.
+
+El transitorio es el tramo inicial todavía influido por la condición inicial. Para
+una observable $g(\mathbf{x})$, una media asintótica se aproxima por
+\[
+  \overline g_{T_0,T}=\frac{1}{T-T_0}\int_{T_0}^{T}g(\mathbf{x}(t))\dd t,
+\]
+donde $T_0$ se elige y justifica de forma explícita.
+
+Toolbox Chaos permite poner esta idea a prueba mediante \gui{Comparar metodos}. En
+cada pestaña anote
+\gui{dt}, \gui{Tiempo total T} y el transitorio descartado. La comparación más útil
+mantiene fijos sistema, parámetros y condición inicial, y cambia una sola decisión
+numérica cada vez.
+
+Por ejemplo, calcule Lorenz con RK4 para $h=0.02$, $0.01$ y $0.005$. Las curvas
+pueden dejar
+de coincidir en fase, pero la extensión de los lóbulos, la distribución de visitas y
+los exponentes finitos deben aproximarse de forma consistente si el cálculo es
+adecuado. La convergencia se juzga sobre el observable que se reportará.
+
+\begin{evidencebox}{Prueba de refinamiento}
+Defina una magnitud $Q(h,T,T_0)$: máximo de Poincaré, exponente finito, fracción de
+cuenca o pico espectral. Compare $Q(h)$, $Q(h/2)$ y $Q(h/4)$. Reporte la
+diferencia relativa y compruebe también un horizonte mayor. La prueba de convergencia
+integra esos refinamientos y observables declarados.
+\end{evidencebox}
+
+Una vez realizadas esas pruebas puede afirmarse que una característica numérica es
+robusta frente a los refinamientos
+ensayados. El error se reporta mediante estimaciones, y las trayectorias caóticas se contrastan mediante rangos, tendencias y diagnósticos convergentes.
+
+\begin{activitybox}{Efecto del paso de integración en Lorenz}
+Elija una variable de Lorenz y compare tres pasos. Registre el primer tiempo en que
+dos series difieren más de una tolerancia elegida y, por separado, compare el rango
+asintótico de la variable. Explique cómo la pérdida de sincronía se interpreta junto
+con el control de error del integrador.
+\end{activitybox}
+
+\subsection{Atractores, retratos de fase y series temporales}
+
+La misma cautela permite interpretar puntos fijos, ciclos y conjuntos atractivos al
+distinguir una trayectoria finita del objeto asintótico. Un atractor reúne las
+condiciones iniciales de una región que se aproximan a él. La trayectoria visible
+constituye una muestra temporal de ese conjunto.
+
+Una formulación útil considera un conjunto compacto e invariante $A\subset X$ tal
+que existe una vecindad $U$ con
+\[
+  \dist(\Phi_t(\mathbf{x}),A)\longrightarrow0\quad (t\to\infty),
+  \qquad \mathbf{x}\in U.
+\]
+El conjunto de condiciones que satisfacen esa propiedad es la cuenca
+$\mathcal B(A)$. Dependiendo del contexto se añaden condiciones de minimalidad o
+transitividad; por eso conviene declarar la definición usada \cite{strogatz2024}.
+
+Por ello conviene usar \gui{Atractor 3D}, \gui{Retratos 2D} y
+\gui{Series temporales} como un conjunto de
+vistas coordinadas. En \gui{Coexistencia} se pueden cargar condiciones iniciales
+registradas y comparar resultados para los mismos parámetros.
+
+La interpretación cambia según el régimen: un punto fijo produce series que convergen
+a constantes; un ciclo límite produce
+oscilaciones periódicas y una curva cerrada. Una trayectoria aperiódica acotada puede
+ser compatible con un atractor extraño, pero requiere diagnósticos adicionales. La
+figura~\ref{fig:state-orbit} muestra que la identificación requiere varias proyecciones y diagnósticos.
+
+Con estas vistas puede describirse convergencia visible, periodicidad aproximada y
+geometría muestreada.
+La atracción requiere explorar varias condiciones iniciales. Los términos ``extraño'' y
+``caótico'' se establecen con indicadores específicos: los conjuntos geométricamente
+complicados requieren evaluar el exponente máximo, y los transitorios largos requieren horizontes ampliados.
+
+Como extensión de la actividad anterior, ejecute el mismo sistema desde una pequeña
+nube de condiciones iniciales. Para cada
+una, descarte el mismo transitorio y compare rangos, series y retratos. Proponga una
+evidencia mínima de que las órbitas se acercan al mismo régimen y anote qué prueba
+seguiría faltando.
+
+\section{Definiciones de caos e indicadores numéricos}
+\lecturaseccion{Robert L. Devaney, \emph{A First Course in Chaotic Dynamical Systems: Theory and Experiment}, capítulos 7--12; Kathleen T. Alligood, Tim D. Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, capítulos 1--3.}
+
+Comprender el caos exige diferenciar definiciones matemáticas, indicadores numéricos y
+apariencia irregular, para formular conclusiones con un alcance proporcional a la
+evidencia. ``Se ve caótico'' formula una observación inicial que orienta la selección
+de diagnósticos. La irregularidad puede provenir de ruido, transitorios, discretización
+o superposición de frecuencias. La teoría estudia propiedades de una dinámica en un
+conjunto invariante, mientras que el cálculo aporta una muestra finita y redondeada.
+
+En el plano formal, para un mapa continuo $F:X\to X$ en un espacio métrico, la
+definición de Devaney
+combina, sobre el conjunto estudiado: transitividad topológica, densidad de puntos
+periódicos y dependencia sensible de las condiciones iniciales \cite{devaney1989}.
+Otras comunidades usan entropía positiva, exponentes positivos o propiedades de
+mezcla. Estas definiciones se relacionan bajo hipótesis y conservan criterios propios.
+
+La sensibilidad puede expresarse como la existencia de $\delta>0$ tal que, en cada
+vecindad de un punto, hay otro punto cuyas órbitas llegan a separarse al menos
+$\delta$. Un exponente máximo positivo cuantifica expansión media infinitesimal,
+pero una estimación finita debe complementarse con las condiciones topológicas correspondientes.
+
+En Toolbox Chaos esta diferencia se aborda combinando \gui{Series temporales},
+\gui{Bifurcación}, \gui{Lyapunov},
+\gui{Espectro} y pruebas de refinamiento. La interfaz organiza una cadena de evidencia,
+orienta los diagnósticos requeridos y permite localizar contradicciones.
+
+Así, una órbita logística para $r=4$ puede mostrar sensibilidad, banda ancha y un
+diagrama de bifurcación denso. La afirmación prudente es que los indicadores son
+consistentes con dinámica caótica en el régimen y resolución estudiados. Una
+demostración matemática usaría propiedades del mapa y de su conjunto invariante junto
+con el análisis de los cálculos en punto flotante.
+
+\begin{warningbox}
+La identificación de caos, estabilidad o existencia de un atractor requiere
+diagnósticos convergentes. ``Acotado residual/no clasificado'' es una clase operacional:
+significa que el algoritmo finito registró una trayectoria sin escape, equilibrio o
+periodicidad simple durante la ventana evaluada; el siguiente paso es aplicar
+diagnósticos específicos de caos.
+\end{warningbox}
+
+La conclusión proporcionada consiste en reportar compatibilidad entre varios
+indicadores, junto con horizonte,
+resolución y pruebas de convergencia. Las conclusiones generales integran varios indicadores y se circunscriben a la región de parámetros examinada.
+
+\begin{activitybox}{Indicadores de comportamiento periódico y caótico}
+Construya una tabla con cinco columnas: indicador, resultado, decisión numérica que
+lo afecta, prueba de refinamiento y conclusión permitida. Llénela para un caso
+aparentemente caótico y para un caso periódico. Busque al menos un indicador que por
+sí solo podría inducir a error.
+\end{activitybox}
+
+\section{Bifurcaciones, cuencas y multestabilidad}
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos}, capítulos 3, 8 y 10; Tamás Tél y Márton Gruiz, \emph{Chaotic Dynamics: An Introduction Based on Classical Mechanics}, capítulos 5--6.}
+
+Un diagrama de bifurcación permite leer ramas, duplicaciones, ventanas y saltos, pero
+la estructura sólo es confiable si persiste al cambiar transitorio, malla y estrategia
+de barrido. Una bifurcación identifica el punto en que cambia el tipo de comportamiento.
+El diagrama comprime muchos experimentos:
+cada columna corresponde a un valor del parámetro y sólo conserva eventos
+asintóticos elegidos.
+
+En términos matemáticos, una bifurcación ocurre cuando la dinámica de
+$\dot{\mathbf{x}}=\mathbf f(\mathbf{x};\mu)$ o
+$\mathbf{x}_{n+1}=F(\mathbf{x}_n;\mu)$ cambia cualitativamente al cruzar
+$\mu_*$. Para mapas, se suelen graficar valores tardíos $x_n$. Para flujos se
+registran máximos locales o cruces de una sección de Poincaré. Una sección
+$\Sigma$ induce un mapa de retorno $P:\Sigma\to\Sigma$, que convierte una
+órbita continua en una sucesión de eventos.
+
+En una cascada de duplicación de período, los parámetros $\mu_n$ se aproximan a un
+límite y sus cocientes de escala convergen, para clases amplias de mapas unimodales,
+a la universalidad estudiada por Feigenbaum \cite{feigenbaum1978}. El mapa logístico
+es el ejemplo didáctico clásico \cite{may1976}.
+
+Para construir el diagrama en Toolbox Chaos, en \gui{Bifurcación} seleccione
+parámetro, variable observada, intervalo, número de
+parámetros, $dt$, transitorio, tiempo útil y máximo de cruces. La opción de
+continuación reutiliza el estado final anterior y ayuda a seguir ramas; un barrido
+independiente prueba la sensibilidad a condiciones iniciales. El botón
+\gui{Calcular bifurcación} genera el conjunto de eventos que fundamenta la representación gráfica.
+
+En el mapa logístico, por ejemplo, una rama indica un punto fijo; dos, un ciclo de
+período dos;
+sucesivos desdoblamientos forman una cascada. Las ventanas periódicas dentro de una
+nube densa requieren evaluar cada transición mediante el transitorio, la resolución y
+los diagnósticos pertinentes.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.49\textwidth}
+\centering\includegraphics[width=\linewidth]{logistic_bifurcation.png}
+\caption{Mapa logístico: valores tardíos por parámetro.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\centering\includegraphics[width=\linewidth]{lorenz_bifurcation_rho.png}
+\caption{Flujo de Lorenz: eventos de Poincaré o máximos.}
+\end{subfigure}
+\caption{Dos diagramas de bifurcación pueden parecer similares, aunque la observable
+representada y el mecanismo de muestreo sean distintos.}
+\label{fig:bifurcations}
+\end{figure}
+
+El diagrama permite localizar numéricamente un intervalo de cambio y formular una
+hipótesis sobre
+el tipo de bifurcación. La estimación precisa de $\mu_*$ requiere una malla suficiente, transitorios adecuados y repeticiones que separen una rama de un transitorio. La histéresis requiere barridos en ambas direcciones.
+
+Como prueba práctica, calcule un diagrama con 200 valores y después refine sólo un
+intervalo de interés.
+Repita con el doble de transitorio y compare continuación contra reinicio independiente.
+Marque como ``estructura confirmada'', ``sensible'' o ``inconclusa'' cada rama visible.
+
+\subsection{Cuencas de atracción y fronteras}
+
+Una cuenca relaciona condición inicial y destino; su lectura distingue la
+multestabilidad del caos y revela el efecto de la resolución y el horizonte sobre las
+fronteras. Dos estados iniciales casi iguales pueden terminar en regímenes distintos.
+Una cuenca
+colorea el espacio inicial según el destino y se complementa con trayectorias para
+representar su evolución. Las fronteras suaves permiten cierta tolerancia experimental; las fronteras finas o
+fractales reducen la predictibilidad del estado final \cite{grebogi1983}.
+
+Formalmente, la cuenca de un atractor $A_i$ es
+\[
+ \mathcal B(A_i)=\{\mathbf{x}_0:\dist(\Phi_t(\mathbf{x}_0),A_i)\to0\}.
+\]
+Existe multestabilidad cuando, para los mismos parámetros, coexisten dos o más
+atractores con cuencas no vacías. Una frontera de cuenca separa destinos. Su
+estructura puede cuantificarse mediante exponentes de incertidumbre, medidas de
+extensión o entropía de cuenca \cite{sprottxiong2015,daza2016}.
+
+En una malla finita, el software implementa una clasificación operacional. Para cada
+condición inicial detecta escape, convergencia a un equilibrio, periodicidad simple o
+la clase acotada residual/no clasificada. Cambiar $T$, tolerancias o resolución
+puede cambiar la etiqueta.
+
+Para calcularla en Toolbox Chaos, en \gui{Cuenca de atracción} defina el rectángulo de
+$(x_0,y_0)$, el valor fijo
+$z_0$, $(N_x,N_y)$, $dt$ y tiempo total. Active \gui{Superponer equilibrios} para
+relacionar geometría inicial y puntos fijos. Empiece con una malla pequeña y aumente
+primero el horizonte si hay muchas celdas residuales; luego refine espacialmente.
+
+En una sección bidimensional de Lorenz, por ejemplo, los colores representan destinos
+detectados y categorías operativas de clasificación. Una región residual puede contener un transitorio largo,
+una órbita periódica pendiente de clasificación o dinámica irregular. Las trayectorias de puntos
+seleccionados ayudan a auditar la leyenda.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.51\textwidth}
+\centering\includegraphics[width=\linewidth]{lorenz_basin_reading_zones.png}
+\caption{Zonas de lectura y frontera en una sección de cuenca.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.36\textwidth}
+\centering\includegraphics[width=\linewidth]{lorenz_basin_trajectories.png}
+\caption{Trayectorias que auditan destinos coloreados.}
+\end{subfigure}
+\caption{La cuenca y las órbitas responden preguntas complementarias: ``desde dónde''
+y ``hacia dónde/cómo''.}
+\label{fig:basins}
+\end{figure}
+
+\begin{warningbox}
+La coexistencia visual sólo muestra que las condiciones iniciales ensayadas alcanzaron
+destinos distintos bajo el mismo conjunto de parámetros. La geometría global de las
+cuencas y la naturaleza de su frontera requieren muestreo dirigido, control de
+transitorios, refinamiento espacial y un argumento acorde con la propiedad estudiada.
+\end{warningbox}
+
+Con estas precauciones puede afirmarse coexistencia numérica de destinos para las
+condiciones y el contrato
+ensayados, y estimar fracciones de área de la sección. La descripción de toda la cuenca $n$-dimensional y de su fractalidad requiere análisis de escala y muestreo adicional a una sección 2D.
+
+\begin{activitybox}{Refinamiento de cuencas y fronteras de clasificación}
+Calcule una cuenca en $60\times60$ y $120\times120$. Seleccione diez puntos a ambos
+lados de una frontera y aumente el tiempo total. Registre cuántas etiquetas cambian.
+Interprete ese cambio como incertidumbre numérica antes de atribuirlo a fractalidad.
+\end{activitybox}
+
+\section{Lyapunov, análisis espectral y recurrencia}
+\lecturaseccion{Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and Engineers}, capítulos 9--10 y apéndice A; Kathleen T. Alligood, Tim D. Sauer y James A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, secciones 3.1--3.5, 4.5--4.7 y 5.2.}
+
+El espectro de Lyapunov describe tasas medias de expansión y contracción, pero su signo
+sólo se vuelve evidencia cuando la estimación muestra convergencia temporal. Para
+formar una imagen geométrica, imagine una esfera diminuta de condiciones iniciales:
+la dinámica la deforma en un
+elipsoide: algunos ejes crecen, otros decrecen. Los exponentes de Lyapunov son las
+tasas logarítmicas promedio de esos ejes.
+
+Para una perturbación tangente, esta idea se expresa como
+\[
+ \lambda(\mathbf{x}_0,\mathbf v)=
+ \limsup_{t\to\infty}\frac{1}{t}
+ \log\frac{\|D\Phi_t(\mathbf{x}_0)\mathbf v\|}{\|\mathbf v\|}.
+\]
+El espectro ordenado $\lambda_1\ge\cdots\ge\lambda_n$ resume direcciones. En un
+flujo autónomo típico, un exponente asociado a la dirección del flujo es cero. Un
+máximo positivo es evidencia fuerte de sensibilidad promedio, bajo un cálculo
+convergente y en el régimen correcto.
+
+El algoritmo de Benettin integra el sistema variacional
+\[
+ \dot Y=J(\mathbf{x}(t))Y
+\]
+y aplica factorizaciones $Y=QR$ periódicas. Las sumas de
+$\log|R_{ii}|$ evitan que todas las direcciones colapsen sobre la más expansiva
+\cite{benettin1980a,benettin1980b}.
+
+El cálculo se configura en \gui{Lyapunov} mediante $dt$, tiempo de quemado, tiempo
+final y
+\gui{QR cada N pasos}; después pulse \gui{Calcular exponentes de Lyapunov}. La vista
+de convergencia es tan importante como los valores finales. La implementación visible
+usa RK4 fijo para estado y sistema variacional en flujos ODE tridimensionales.
+
+Para Lorenz clásico, por ejemplo, se espera un patrón aproximado $(+,0,-)$. La
+primera curva cruce cero al inicio: debe estabilizarse al aumentar el horizonte. La
+suma de exponentes puede contrastarse con la contracción promedio del volumen, pero
+la igualdad exacta depende de hipótesis y del error numérico.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering\includegraphics[width=\linewidth]{lyapunov_perturbation_concept.png}
+\caption{Separación local de perturbaciones.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering\includegraphics[width=\linewidth]{lorenz_lyapunov.png}
+\caption{Estimaciones finitas y su convergencia.}
+\end{subfigure}
+\caption{El concepto geométrico y la estimación temporal deben leerse juntos.}
+\label{fig:lyapunov}
+\end{figure}
+
+Sólo entonces puede reportarse un espectro finito que se estabiliza dentro de
+tolerancias y es
+estable frente a $dt$, tiempo y frecuencia QR. El límite asintótico requiere varios horizontes de integración, y un máximo positivo durante el transitorio se contrasta con la dinámica posterior antes de caracterizar un atractor caótico.
+
+\begin{activitybox}{Convergencia del espectro de Lyapunov}
+Calcule $\lambda_i(t)$ con dos tiempos finales y dos pasos. Construya una tabla con
+el valor al final y la oscilación en el último 20\% del intervalo. Proponga una cifra
+significativa justificada; cuando las curvas carecen de una meseta, reporte el estado
+``no convergente'' y documente el patrón observado.
+\end{activitybox}
+
+\subsection{Espectro de amplitud y PSD de Welch}
+
+El análisis frecuencial complementa esa lectura al relacionar periodicidad y contenido
+en frecuencia, distinguir amplitud de densidad de potencia y evaluar una banda
+ancha con diagnósticos de caos adicionales. Una serie temporal puede verse como suma de
+oscilaciones. La transformada de Fourier
+reorganiza la información por frecuencia. Una señal periódica ideal concentra energía
+en líneas; una señal irregular reparte energía, pero el ruido, el transitorio y una
+ventana corta también ensanchan el espectro.
+
+Para muestras $x_n=x(n\Delta t)$, la transformada discreta es
+\[
+ X_k=\sum_{n=0}^{N-1}x_n e^{-2\pi i kn/N},\qquad
+ f_k=\frac{k}{N\Delta t}.
+\]
+La resolución aproximada es $\Delta f=1/(N\Delta t)$ y la frecuencia de Nyquist es
+$f_N=1/(2\Delta t)$. Restar la media y usar una ventana reduce fuga espectral, pero
+modifica amplitudes y anchuras.
+
+Welch divide la señal en segmentos superpuestos, calcula periodogramas modificados y
+los promedia. Reduce varianza a cambio de resolución frecuencial \cite{welch1967}.
+La PSD tiene unidades de la variable al cuadrado por unidad de frecuencia; el espectro
+de amplitud conserva otra normalización y responde una pregunta diferente.
+
+En la pestaña \gui{Espectro}, elija \gui{PSD de Welch (recomendado)} o
+\gui{Espectro de amplitud}, defina el transitorio y, si es necesario, límites de
+frecuencia. Pulse \gui{Calcular FFT/PSD}. Use \gui{Usar última trayectoria} para que
+las tres variables provengan exactamente del mismo cálculo.
+
+En Lorenz, $x(t)$, $y(t)$ y $z(t)$ presentan espectros propios porque observan la
+misma dinámica mediante coordenadas distintas. Una frecuencia dominante puede
+reflejar el tiempo medio de giro de un lóbulo dentro de una señal irregular.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.70\textwidth]{lorenz_fft.png}
+\caption{Espectro normalizado centrado para las variables de Lorenz. La comparación entre
+componentes debe conservar el mismo paso, horizonte y transitorio.}
+\label{fig:fft}
+\end{figure}
+
+El espectro permite localizar periodicidad dominante, armónicos y distribución
+frecuencial bajo
+el muestreo elegido. La distinción entre caos determinista y ruido requiere diagnósticos adicionales a una banda ancha; la identificación de un ciclo límite exige más evidencia que un pico espectral.
+
+Como comprobación, compare una órbita periódica y Lorenz con igual $\Delta t$ y
+duración útil. Repita
+Welch con segmentos más cortos y más largos. Anote qué gana en suavidad y qué pierde
+en resolución. Verifique que ningún pico interpretado esté por encima de Nyquist.
+
+\subsection{Secciones de Poincaré, dimensión de correlación y recurrencia}
+
+Tres herramientas adicionales resumen geometría y repetición: la sección de Poincaré,
+la dimensión de correlación y la matriz de recurrencia. Una trayectoria larga puede
+ser difícil de leer. Una sección registra sólo cruces; la
+dimensión pregunta cómo crece el número de pares cercanos al cambiar la escala; la
+recurrencia marca cuándo el sistema vuelve cerca de un estado previo. Las tres
+herramientas comprimen información, pero cada una puede crear artefactos si se eligen
+mal el umbral o la escala.
+
+Una sección de Poincaré $\Sigma$ registra intersecciones transversales de la órbita.
+Un ciclo límite produce un punto fijo del mapa de retorno; dinámicas más complejas
+producen conjuntos de cruces.
+
+Para $N$ estados, la suma de correlación
+\[
+ C(r)=\frac{2}{N(N-1)}\sum_{i<j}
+ \mathbf 1\bigl(\|\mathbf{x}_i-\mathbf{x}_j\|<r\bigr)
+\]
+puede obedecer $C(r)\propto r^{D_2}$ en una región de escala, y entonces
+\[
+ D_2\approx\frac{\dd\log C(r)}{\dd\log r}.
+\]
+La estimación de Grassberger--Procaccia requiere una meseta de pendiente y suficientes
+datos; la validación selecciona una meseta de pendiente y documenta su intervalo \cite{grassberger1983}.
+
+Una matriz de recurrencia se define por
+\[
+ R_{ij}=\mathbf 1\bigl(\|\mathbf{x}_i-\mathbf{x}_j\|\le\varepsilon\bigr).
+\]
+Sus diagonales y bloques muestran retornos y cambios de régimen, con fuerte
+dependencia del umbral y del muestreo \cite{eckmann1987}.
+
+En la GUI actual, \gui{Bifurcación} puede construir eventos de Poincaré o máximos en
+flujos compatibles. La dimensión de correlación y las matrices de recurrencia se
+se presentan aquí como una ampliación teórica externa: estos cálculos se realizan con
+una serie de estados obtenida o generada fuera de estas pestañas. Para aplicarlos, el
+equipo investigador documenta por separado el procedimiento empleado y verifica la
+ruta de exportación en la versión instalada.
+
+La figura siguiente corta Lorenz con un plano. Los puntos corresponden a eventos de
+una misma órbita. Un plano transversal representa el retorno con precisión y exige
+indicar su orientación y sentido de cruce.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{lorenz_poincare_section.png}
+\caption{Sección de Poincaré producida a partir de una trayectoria de Lorenz.}
+\label{fig:poincare}
+\end{figure}
+
+Con datos externos adecuadamente documentados puede estimarse una ley de escala en un
+intervalo explícito o describirse recurrencia
+para un umbral declarado. La dimensión fractal requiere varios ajustes y las matrices comparadas deben usar normalizaciones compatibles. Las series cortas, sobremuestreadas o ruidosas exigen controles de sesgo.
+
+Como ampliación, construya una sección usando dos planos diferentes y compare el
+número y distribución
+de cruces. Para dimensión, grafique $\log C(r)$ contra $\log r$ y marque regiones
+dominadas por saturación y escasez de pares. Una meseta estable sustenta la estimación;
+su ausencia se documenta como evidencia adicional requerida.
+
+\section{Sistemas fraccionarios y criterio de Matignon}
+\lecturaseccion{Como contexto de estabilidad y linealización, Morris W. Hirsch, Stephen Smale y Robert L. Devaney, \emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos}, capítulos 7--10; para el operador y el criterio fraccionario, véanse las referencias primarias de Caputo y Matignon al final del manual.}
+
+La derivada de Caputo introduce memoria y el criterio angular de Matignon caracteriza
+una clase de sistemas lineales de orden común; ambos conceptos requieren una adaptación
+explícita de los diagnósticos de orden entero. En una ecuación ordinaria, la
+derivada local resume el cambio inmediato. En una
+ecuación fraccionaria, el estado actual depende de una historia ponderada. El orden
+$q$ modifica el modelo y la noción de estado necesaria para predecir el futuro; su
+papel corresponde a una memoria ponderada, distinta del ajuste del paso numérico.
+
+Para $0<q<1$, la derivada de Caputo puede escribirse
+\[
+ {}^{C}D_t^q x(t)=\frac{1}{\Gamma(1-q)}
+ \int_0^t\frac{x'(\tau)}{(t-\tau)^q}\dd\tau .
+\]
+El núcleo $(t-\tau)^{-q}$ conserva memoria de toda la historia. En el límite
+$q\to1$ se recupera la derivada ordinaria bajo condiciones apropiadas. La forma de
+Caputo facilita condiciones iniciales expresadas con valores ordinarios
+\cite{caputo1967}.
+
+Para el sistema lineal conmensurable
+\[
+ {}^{C}D_t^q\mathbf{x}=A\mathbf{x},\qquad 0<q<1,
+\]
+el criterio de Matignon establece estabilidad asintótica si y sólo si
+\[
+ |\arg(\lambda_i)|>\frac{q\pi}{2}
+ \quad\text{para todo }\lambda_i\in\sigma(A)
+\]
+en el caso considerado \cite{matignon1996}. Para $q=1$ la frontera corresponde al
+eje imaginario. Para $q=0.5$, el sector excluido alrededor del eje real positivo
+tiene semiancho $\pi/4$: el criterio se evalúa mediante el argumento de cada
+autovalor.
+
+El plano de \gui{Autovalores} ayuda a ubicar $\lambda_i$, pero la interpretación por
+semiplanos es la de orden entero. Para un cálculo fraccionario debe declararse el
+operador, orden común o no común, historia, método y criterio aplicable. Las funciones
+fraccionarias del núcleo matemático pueden utilizarse desde código cuando estén
+expuestas por la versión instalada; cada diagnóstico tangente entero requiere confirmar su extensión hereditaria validada.
+
+Para ver la diferencia, considere un autovalor $\lambda=1+2i$, cuyo argumento es
+aproximadamente $63.4^\circ$.
+Para $q=1$, su parte real positiva lo hace inestable. Para $q=0.5$, el umbral de
+Matignon es $45^\circ$, de modo que satisface el criterio angular del sistema lineal
+conmensurable. Este contraste exige usar la frontera angular correspondiente al plano fraccionario. El ejemplo es exclusivamente lineal y local:
+clasifica la estabilidad de la linealización bajo las hipótesis de Matignon; la
+estabilidad global del sistema no lineal y la existencia de un atractor requieren
+evidencia adicional.
+
+\begin{evidencebox}{Contrato mínimo para un resultado fraccionario}
+Reporte: definición de derivada, orden u órdenes, condición/historia inicial, método
+de convolución o integración, paso, horizonte, tratamiento de memoria, tolerancias y
+prueba de refinamiento. Dos métodos con nombres parecidos pueden discretizar
+operadores diferentes.
+\end{evidencebox}
+
+En consecuencia, puede aplicarse el criterio de Matignon a la linealización
+conmensurable bajo sus
+hipótesis. Su aplicación requiere adaptación para órdenes no conmensurables, sistemas no
+lineales globales o aproximaciones que cambian el operador. Una trayectoria
+fraccionaria aparentemente caótica requiere diagnósticos específicos de caos y estabilidad global.
+
+\begin{activitybox}{Criterio de Matignon para distintos órdenes fraccionarios}
+Dibuje los rayos $\arg\lambda=\pm q\pi/2$ para $q=1$, $0.8$ y $0.5$. Clasifique
+los autovalores $1+2i$, $-1+i$ y $2+0.5i$. Después explique por qué disminuir
+$q$ cambia la región estable con la matriz $A$ fija.
+\end{activitybox}
+
+\input{chapters/manual_teorico_geometria_topologia}
+
+\input{chapters/manual_teorico_profundizacion_ampliada}
+
+\section[\texorpdfstring{\hspace{0.45em}}{}Interpretación y comunicación de resultados]{Interpretación y comunicación de resultados}
+\lecturaseccion{Edward N. Lorenz, \emph{The Essence of Chaos}, capítulos 1--5; Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics}, capítulos 9--10; Julien C. Sprott, \emph{Elegant Chaos}, secciones 1.1--1.15.}
+
+La interpretación final requiere una secuencia que conecte gráficas, indicadores y
+controles numéricos, de modo que las conclusiones sean auditables y proporcionales a la
+evidencia. Las pestañas forman una secuencia de resultados conectados. Cada una responde una
+pregunta y prepara la siguiente. Una buena investigación avanza desde la verificación
+básica de la trayectoria hasta diagnósticos globales y pruebas de robustez.
+
+Un ``resultado reproducible'' puede representarse como la tupla
+\[
+ \mathcal E=(f,\boldsymbol\mu,\mathbf{x}_0,\mathcal M,h,T,T_0,
+ \mathcal O,\mathcal C),
+\]
+donde $f$ es el modelo, $\mathcal M$ el método, $\mathcal O$ la observable y
+$\mathcal C$ los criterios de clasificación. La figura es una función de
+$\mathcal E$, dentro de un protocolo reproducible.
+
+Con esa tupla como referencia, la siguiente ruta conserva una pregunta por etapa:
+\begin{enumerate}
+  \item \gui{Series temporales}: ¿escapa, converge o mantiene un régimen acotado?
+  \item \gui{Comparar metodos}: ¿la característica sobrevive al refinamiento?
+  \item \gui{Atractor 3D} y \gui{Retratos 2D}: ¿qué geometría y simetrías aparecen?
+  \item \gui{Autovalores}: ¿qué predice la dinámica local de los equilibrios?
+  \item \gui{Bifurcación}: ¿cómo cambia el régimen con el parámetro?
+  \item \gui{Cuenca de atracción} y \gui{Coexistencia}: ¿qué destinos dependen de la condición inicial?
+  \item \gui{Lyapunov}: ¿existe expansión media convergente?
+  \item \gui{Espectro}: ¿qué escalas temporales dominan y son consistentes con las series?
+\end{enumerate}
+
+Al terminar el recorrido, una redacción proporcionada sería: ``Para los parámetros
+indicados, las trayectorias
+permanecieron acotadas durante $T$; el exponente máximo finito fue positivo y mostró
+una meseta estable al duplicar el horizonte; el diagrama de bifurcación presentó una
+nube persistente después de duplicar el transitorio. Estos resultados son consistentes
+con dinámica caótica en el régimen numérico estudiado.'' La formulación mantiene el
+alcance del cálculo y reserva las propiedades adicionales para la evidencia correspondiente.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.16\textwidth}
+                  >{\raggedright\arraybackslash}p{0.24\textwidth}
+                  >{\raggedright\arraybackslash}p{0.25\textwidth}
+                  >{\raggedright\arraybackslash}p{0.25\textwidth}}
+\toprule
+Gráfica o cálculo & Pregunta principal & Señal útil & Control antes de concluir\\
+\midrule
+\endhead
+Atractor 3D & ¿Qué región visita la órbita? & Geometría, simetría, acotación visible & Más condiciones iniciales, más tiempo y otras proyecciones\\
+Series temporales & ¿Cómo evoluciona cada variable? & Tendencia, oscilación, transitorio & Paso, horizonte, saturación y escala de ejes\\
+Retratos 2D & ¿Cómo se relacionan pares de variables? & Lazos, pliegues, proyecciones & Verificar cruces aparentes en dimensión mayor\\
+Bifurcación & ¿Cómo cambia el régimen con un parámetro? & Ramas, saltos, ventanas & Malla, transitorio, continuación y barrido inverso\\
+Cuenca & ¿Qué destino sigue cada condición inicial? & Regiones y fronteras & Resolución, tiempo, tolerancias y puntos auditados\\
+Lyapunov & ¿Hay expansión o contracción media? & Signo y meseta de $\lambda_i(t)$ & $dt$, quemado, horizonte y frecuencia QR\\
+FFT/PSD & ¿Qué frecuencias dominan? & Picos, armónicos, banda ancha & Muestreo, Nyquist, ventana, segmento y transitorio\\
+Autovalores & ¿Qué ocurre cerca de un equilibrio? & Parte real/argumento y pares complejos & Hipótesis local, orden entero/fraccionario y no linealidad\\
+Dimensión y recurrencia (ampliación externa) & ¿Qué escala y retornos aparecen? & Meseta de pendiente, diagonales & Datos suficientes, umbral, sobremuestreo y ruido\\
+\bottomrule
+\end{longtable}
+
+De este modo puede construirse un argumento acumulativo y explícitamente condicionado.
+La demostración teórica integra una secuencia de hipótesis y pruebas. Si dos
+diagnósticos se contradicen, la contradicción es un resultado que exige revisar
+transitorios, métodos, hipótesis o la definición usada.
+
+\begin{activitybox}{Ficha reproducible de resultados}
+Prepare una ficha de una página para un sistema elegido. Incluya la tupla
+$\mathcal E$, tres gráficas complementarias, dos pruebas de refinamiento y un
+párrafo con: evidencia observada, conclusión permitida, limitación y siguiente prueba.
+Intercambie la ficha con otra persona y compruebe que puede repetir el cálculo a partir
+de la información registrada.
+\end{activitybox}
+
+\section*{Glosario}
+\addcontentsline{toc}{section}{Glosario}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.19\textwidth}
+                  >{\raggedright\arraybackslash}p{0.70\textwidth}}
+\toprule
+Término & Significado operativo en este manual\\
+\midrule
+\endhead
+Estado & Vector que contiene la información que el modelo necesita para continuar la evolución.\\
+Órbita & Conjunto ordenado de estados generados desde una condición inicial.\\
+Espacio de fases & Espacio cuyos puntos representan estados; se distingue del espacio físico.\\
+Flujo & Evolución continua $\Phi_t$ generada usualmente por una ODE.\\
+Mapa & Regla discreta $F$ aplicada por iteraciones.\\
+Equilibrio & Estado $\mathbf{x}^*$ con $\mathbf f(\mathbf{x}^*)=0$; punto fijo en un mapa si $F(\mathbf{x}^*)=\mathbf{x}^*$.\\
+Transitorio & Tramo inicial que aún depende fuertemente de la preparación y se excluye, con justificación, del análisis asintótico.\\
+Atractor & Conjunto invariante que atrae una región de condiciones iniciales bajo una definición declarada.\\
+Cuenca & Conjunto de condiciones iniciales asociadas a un destino asintótico.\\
+Multestabilidad & Coexistencia de dos o más atractores para los mismos parámetros.\\
+Bifurcación & Cambio cualitativo de la dinámica al variar un parámetro.\\
+Sección de Poincaré & Superficie transversal que convierte cruces de un flujo en un mapa de retorno.\\
+Exponente de Lyapunov & Tasa logarítmica media de crecimiento o contracción de perturbaciones.\\
+PSD & Densidad espectral de potencia; distribuye potencia por frecuencia y conserva unidades físicas apropiadas.\\
+Dimensión de correlación & Exponente de escala estimado a partir de la fracción de pares separados menos que $r$.\\
+Recurrencia & Retorno de la trayectoria a una vecindad de un estado previo.\\
+Orden fraccionario & Orden no entero de un operador con memoria; forma parte del modelo, no del tamaño de paso.\\
+\bottomrule
+\end{longtable}
+
+La secuencia didáctica se apoya en la intuición computacional de Sprott, la
+formulación cualitativa rigurosa de Devaney y el tránsito entre geometría y análisis
+propuesto por Strogatz. Las fuentes primarias completan ese marco para cada técnica
+numérica; todas se citan a continuación. Las explicaciones, actividades y figuras
+fueron redactadas o generadas para Toolbox Chaos; los textos e ilustraciones de las
+obras citadas permanecen en sus fuentes originales.
+
+\begin{thebibliography}{99}
+
+\bibitem{sprott1993}
+J. C. Sprott, \emph{Strange Attractors: Creating Patterns in Chaos}, M\&T Books,
+New York, 1993, ISBN 1-55851-298-5.
+
+\bibitem{devaney1989}
+R. L. Devaney, \emph{An Introduction to Chaotic Dynamical Systems}, 2nd ed.,
+Addison--Wesley, Redwood City, 1989.
+
+\bibitem{strogatz2024}
+S. H. Strogatz, \emph{Nonlinear Dynamics and Chaos: With Applications to Physics,
+Biology, Chemistry, and Engineering}, 3rd ed., CRC Press, Boca Raton, 2024.
+
+\bibitem{may1976}
+R. M. May, ``Simple mathematical models with very complicated dynamics,''
+\emph{Nature}, vol. 261, pp. 459--467, 1976.
+\href{https://doi.org/10.1038/261459a0}{doi:10.1038/261459a0}.
+
+\bibitem{feigenbaum1978}
+M. J. Feigenbaum, ``Quantitative universality for a class of nonlinear
+transformations,'' \emph{Journal of Statistical Physics}, vol. 19, no. 1,
+pp. 25--52, 1978.
+\href{https://doi.org/10.1007/BF01020332}{doi:10.1007/BF01020332}.
+
+\bibitem{grebogi1983}
+C. Grebogi, E. Ott and J. A. Yorke, ``Fractal basin boundaries, long-lived chaotic
+transients, and unstable-unstable pair bifurcation,'' \emph{Physical Review Letters},
+vol. 50, no. 13, pp. 935--938, 1983.
+\href{https://doi.org/10.1103/PhysRevLett.50.935}{doi:10.1103/PhysRevLett.50.935}.
+
+\bibitem{sprottxiong2015}
+J. C. Sprott and A. Xiong, ``Classifying and quantifying basins of attraction,''
+\emph{Chaos}, vol. 25, 083101, 2015.
+\href{https://doi.org/10.1063/1.4927643}{doi:10.1063/1.4927643}.
+
+\bibitem{daza2016}
+A. Daza, A. Wagemakers, B. Georgeot, D. Guéry-Odelin and M. A. F. Sanjuán,
+``Basin entropy: a new tool to analyze uncertainty in dynamical systems,''
+\emph{Scientific Reports}, vol. 6, 31416, 2016.
+\href{https://doi.org/10.1038/srep31416}{doi:10.1038/srep31416}.
+
+\bibitem{benettin1980a}
+G. Benettin, L. Galgani, A. Giorgilli and J.-M. Strelcyn, ``Lyapunov characteristic
+exponents for smooth dynamical systems and for Hamiltonian systems; a method for
+computing all of them. Part 1: Theory,'' \emph{Meccanica}, vol. 15, pp. 9--20, 1980.
+\href{https://doi.org/10.1007/BF02128236}{doi:10.1007/BF02128236}.
+
+\bibitem{benettin1980b}
+G. Benettin, L. Galgani, A. Giorgilli and J.-M. Strelcyn, ``Lyapunov characteristic
+exponents for smooth dynamical systems and for Hamiltonian systems; a method for
+computing all of them. Part 2: Numerical application,'' \emph{Meccanica}, vol. 15,
+pp. 21--30, 1980.
+\href{https://doi.org/10.1007/BF02128237}{doi:10.1007/BF02128237}.
+
+\bibitem{welch1967}
+P. D. Welch, ``The use of fast Fourier transform for the estimation of power spectra:
+a method based on time averaging over short, modified periodograms,''
+\emph{IEEE Transactions on Audio and Electroacoustics}, vol. 15, no. 2,
+pp. 70--73, 1967.
+\href{https://doi.org/10.1109/TAU.1967.1161901}{doi:10.1109/TAU.1967.1161901}.
+
+\bibitem{grassberger1983}
+P. Grassberger and I. Procaccia, ``Measuring the strangeness of strange attractors,''
+\emph{Physica D}, vol. 9, nos. 1--2, pp. 189--208, 1983.
+\href{https://doi.org/10.1016/0167-2789(83)90298-1}{doi:10.1016/0167-2789(83)90298-1}.
+
+\bibitem{eckmann1987}
+J.-P. Eckmann, S. Oliffson Kamphorst and D. Ruelle, ``Recurrence plots of dynamical
+systems,'' \emph{Europhysics Letters}, vol. 4, no. 9, pp. 973--977, 1987.
+\href{https://doi.org/10.1209/0295-5075/4/9/004}{doi:10.1209/0295-5075/4/9/004}.
+
+\bibitem{caputo1967}
+M. Caputo, ``Linear models of dissipation whose (Q) is almost frequency
+independent--II,'' \emph{Geophysical Journal of the Royal Astronomical Society},
+vol. 13, no. 5, pp. 529--539, 1967.
+\href{https://doi.org/10.1111/j.1365-246X.1967.tb02303.x}{doi:10.1111/j.1365-246X.1967.tb02303.x}.
+
+\bibitem{matignon1996}
+D. Matignon, ``Stability results for fractional differential equations with
+applications to control processing,'' in \emph{Computational Engineering in Systems
+Applications, CESA'96 IMACS Multiconference}, vol. 2, Lille, 1996, pp. 963--968.
+
+\bibitem{hirsch2013}
+M. W. Hirsch, S. Smale and R. L. Devaney, \emph{Differential Equations,
+Dynamical Systems, and an Introduction to Chaos}, 3rd ed., Academic Press,
+Waltham, 2013.
+
+\bibitem{alligood1996}
+K. T. Alligood, T. D. Sauer and J. A. Yorke, \emph{Chaos: An Introduction to
+Dynamical Systems}, Springer, New York, 1996.
+
+\bibitem{devaneyfirst2020}
+R. L. Devaney, \emph{A First Course in Chaotic Dynamical Systems: Theory and
+Experiment}, 2nd ed., CRC Press, Boca Raton, 2020.
+
+\bibitem{hilborn2000}
+R. C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction for
+Scientists and Engineers}, 2nd ed., Oxford University Press, New York, 2000.
+
+\bibitem{telgruiz2006}
+T. Tél and M. Gruiz, \emph{Chaotic Dynamics: An Introduction Based on
+Classical Mechanics}, Cambridge University Press, Cambridge, 2006.
+
+\bibitem{sprott2010}
+J. C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic Flows},
+World Scientific, Singapore, 2010.
+
+\bibitem{hoppensteadt2000}
+F. C. Hoppensteadt, \emph{Analysis and Simulation of Chaotic Systems},
+2nd ed., Springer, New York, 2000.
+
+\bibitem{lorenz2005}
+E. N. Lorenz, \emph{The Essence of Chaos}, CRC Press, Boca Raton, electronic
+edition, 2005; first published 1993.
+
+\bibitem{guckenheimerholmes1983}
+J. Guckenheimer and P. Holmes, \emph{Nonlinear Oscillations, Dynamical
+Systems, and Bifurcations of Vector Fields}, Springer, New York, 1983.
+
+\bibitem{nahmad2022}
+E. Nahmad-Achar, \emph{Topología y geometría diferencial con aplicaciones a la
+física}, Universidad Nacional Autónoma de México, Ciudad de México, 2022.
+
+\bibitem{juarez2021a}
+J. A. Jaurez Rosas, L. Ortiz Bobadilla, J. A. Palma Márquez and E. Rosales González,
+\emph{Teoría geométrica de ecuaciones diferenciales I}, Universidad Nacional Autónoma
+de México, Ciudad de México, 2021.
+
+\bibitem{juarez2021b}
+J. A. Jaurez Rosas, L. Ortiz Bobadilla, J. A. Palma Márquez and E. Rosales González,
+\emph{Teoría geométrica de ecuaciones diferenciales II}, Universidad Nacional
+Autónoma de México, Ciudad de México, 2021.
+
+\bibitem{amster2021}
+P. G. Amster, \emph{Métodos topológicos en el estudio de las ecuaciones diferenciales
+no lineales}, Universidad Nacional Autónoma de México, Ciudad de México, 2021.
+
+\bibitem{podlubny1999}
+I. Podlubny, \emph{Fractional Differential Equations}, Academic Press, San Diego,
+1999.
+
+\bibitem{diethelm2010}
+K. Diethelm, \emph{The Analysis of Fractional Differential Equations}, Springer,
+Berlin, 2010.
+
+\bibitem{herrmann2014}
+R. Herrmann, \emph{Fractional Calculus: An Introduction for Physicists}, 2nd ed.,
+World Scientific, Singapore, 2014.
+
+\bibitem{das2020}
+S. Das, \emph{Kindergarten of Fractional Calculus}, Cambridge Scholars Publishing,
+Newcastle upon Tyne, 2020.
+
+\bibitem{oliveira2019}
+E. Capelas de Oliveira, \emph{Solved Exercises in Fractional Calculus}, Springer,
+Cham, 2019.
+
+\bibitem{diethelmfordfreed2002}
+K. Diethelm, N. J. Ford and A. D. Freed, ``A predictor-corrector approach for the
+numerical solution of fractional differential equations,'' \emph{Nonlinear Dynamics},
+vol. 29, pp. 3--22, 2002.
+
+\end{thebibliography}
+
+\end{document}

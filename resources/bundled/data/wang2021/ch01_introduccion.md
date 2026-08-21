@@ -84,7 +84,7 @@ A continuación se comparan los equilibrios reportados en el libro (Tabla de Cap
 | **sprott_f** | $\dot{x}=y+z$, $\dot{y}=-x+0.5y$, $\dot{z}=x^2-z$ | $(0,0,0)$, $(-2,-4,4)$ | $(0,0,0)$, $(-2,-4,4)$ | Coincide. |
 | **sprott_g** | $\dot{x}=0.4x+z$, $\dot{y}=xz-y$, $\dot{z}=-x+y$ | $(0,0,0)$, $(-2.5,-2.5,1)$ | $(0,0,0)$, $(-2.5,-2.5,1)$ | Coincide. |
 | **sprott_h** | $\dot{x}=-y+z^2$, $\dot{y}=x+0.5y$, $\dot{z}=x-z$ | $(0,0,0)$, $(-2,4,-2)$ | $(0,0,0)$, $(-2,4,-2)$ | Coincide. |
-| **sprott_i** | $\dot{x}=0.2y$, $\dot{y}=x+z$, $\dot{z}=x+y^2-z$ | $(0,0,0)$ | $(0,0,0)$ | Coincide. |
+| **sprott_i** | $\dot{x}=-0.2y$, $\dot{y}=x+z$, $\dot{z}=x+y^2-z$ | $(0,0,0)$ | $(0,0,0)$ | Coincide. |
 | **sprott_j** | $\dot{x}=2z$, $\dot{y}=-2y+z$, $\dot{z}=-x+y+y^2$ | $(0,0,0)$ | $(0,0,0)$ | Coincide. |
 | **sprott_k** | $\dot{x}=xy-z$, $\dot{y}=x-y$, $\dot{z}=x+0.3z$ | $(0,0,0)$, $(-3.333,-3.333,11.111)$ | $(0,0,0)$, $(-3.333,-3.333,11.111)$ | Coincide (redondeo). |
 | **sprott_l** | $\dot{x}=y+3.9z$, $\dot{y}=0.9x^2-y$, $\dot{z}=1-x$ | $(1, 1.111, -0.231)$ | $(1, 0.9, -0.2308)$ | **Discrepancia detectada**: Si $x=1$ y $\dot{y}=0$, entonces $y = 0.9 x^2 = 0.9$. El libro muestra $1.111$ (que es $1/0.9$). Posible error de tipografía en el texto original. |
@@ -94,4 +94,4 @@ A continuación se comparan los equilibrios reportados en el libro (Tabla de Cap
 | **sprott_p** | $\dot{x}=2.7y+z$, $\dot{y}=-x+y^2$, $\dot{z}=x+y$ | $(0,0,0)$, $(1,-1,2.7)$ | $(0,0,0)$, $(1,-1,2.7)$ | Coincide. |
 | **sprott_q** | $\dot{x}=-z$, $\dot{y}=x-y$, $\dot{z}=3.1x+y^2+0.5z$ | $(0,0,0)$, $(-3.1,-3.1,0)$ | $(0,0,0)$, $(-3.1,-3.1,0)$ | Coincide. |
 | **sprott_r** | $\dot{x}=0.9-y$, $\dot{y}=0.4+z$, $\dot{z}=xy-z$ | $(-0.444, 1.111, -0.4)$ | $(-0.4444, 0.9, -0.4)$ | **Discrepancia detectada**: Si $\dot{x}=0$, entonces $y=0.9$. El libro muestra $1.111$ (que es $1/0.9$). Posible error de tipografía. |
-| **sprott_s** | $\dot{x}=x-4y$, $\dot{y}=x+z^2$, $\dot{z}=1+x$ | $(-1, 0.25, 1)$, $(-1, 0.25, -1)$ | $(-1, -0.25, 1)$, $(-1, -0.25, -1)$ | **Discrepancia detectada**: Si $x=-1$ y $\dot{x}=0$, entonces $x-4y = 0 \implies y = -0.25$. El libro reporta $0.25$. |
+| **sprott_s** | $\dot{x}=-x-4y$, $\dot{y}=x+z^2$, $\dot{z}=1+x$ | $(-1, 0.25, 1)$, $(-1, 0.25, -1)$ | $(-1, 0.25, 1)$, $(-1, 0.25, -1)$ | Coincide. |

@@ -626,7 +626,7 @@
     state_variables: [x, y, z]
     parameters: {}
     equations_latex: |
-      \dot{x}=0.2y
+      \dot{x}=-0.2y
       \dot{y}=x+z
       \dot{z}=x+y^2-z
   reported_dynamics:
@@ -1078,7 +1078,7 @@
     state_variables: [x, y, z]
     parameters: {}
     equations_latex: |
-      \dot{x}=x-4y
+      \dot{x}=-x-4y
       \dot{y}=x+z^2
       \dot{z}=1+x
   reported_dynamics:
@@ -1101,6 +1101,6 @@
     simulation_status: implemented
   validation:
     equation_verified_against_pdf: true
-    equilibria_verified: false
+    equilibria_verified: true
     smoke_simulation_passed: true
-    notes: "Discrepancia en la coordenada y del equilibrio (calculada = -0.25, reportada = 0.25)"
+    notes: "La implementación coincide con la definición clásica y con los equilibrios reportados."

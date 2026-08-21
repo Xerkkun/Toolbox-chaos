@@ -142,12 +142,17 @@ def test_startup_probe_records_first_real_paint(tmp_path: Path):
     _APP.processEvents()
 
 
-def test_pyside_qtpdf_loads_the_bundled_dictionary():
+def test_pyside_qtpdf_loads_the_user_manual():
     if not QT_PDF_AVAILABLE:
         pytest.skip("PySide6-Addons is required for the embedded PDF viewer")
 
-    pdf = Path(__file__).resolve().parents[1] / "assets" / "chaos_dictionary.pdf"
-    viewer = PdfViewerWidget(pdf, "Diccionario")
+    pdf = (
+        Path(__file__).resolve().parents[1]
+        / "assets"
+        / "manuals"
+        / "manual_usuario_toolbox_chaos.pdf"
+    )
+    viewer = PdfViewerWidget(pdf, "Manual de usuario")
 
     assert viewer._pdf_document is not None
     assert viewer._pdf_document.pageCount() > 0

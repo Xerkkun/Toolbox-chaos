@@ -1,0 +1,511 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage[margin=1.85cm,headheight=15pt]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+
+\graphicspath{{../screenshots/}{../doc_figures/}{../sprott/images/generated/}}
+
+\definecolor{AzulProfundo}{HTML}{17365D}
+\definecolor{AzulMedio}{HTML}{2C6E9B}
+\definecolor{Turquesa}{HTML}{198F8A}
+\definecolor{Naranja}{HTML}{E28A36}
+\definecolor{FondoAzul}{HTML}{EDF5FA}
+\definecolor{FondoVerde}{HTML}{EEF8F5}
+\definecolor{FondoNaranja}{HTML}{FFF5E9}
+\definecolor{GrisTexto}{HTML}{27313B}
+\definecolor{GrisClaro}{HTML}{F5F7F9}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=AzulProfundo,
+  urlcolor=AzulMedio,
+  citecolor=Turquesa,
+  pdftitle={Manual de usuario de Toolbox Chaos},
+  pdfauthor={Maria Fernanda Moreno Lopez},
+  pdfsubject={Guia pedagogica para operar Toolbox Chaos}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.48em}
+\setlength{\emergencystretch}{2em}
+\setlist[itemize]{leftmargin=1.5em,itemsep=0.18em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.7em,itemsep=0.25em,topsep=0.25em}
+\renewcommand{\arraystretch}{1.18}
+
+\titleformat{\section}
+  {\Large\bfseries\color{AzulProfundo}}{\thesection}{0.65em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{AzulMedio}}{\thesubsection}{0.55em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{Turquesa}}{}{0pt}{}
+\titleformat{\paragraph}[block]
+  {\normalsize\bfseries\color{Turquesa}}{}{0pt}{}
+\titlespacing*{\paragraph}{0pt}{0.8em}{0.25em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Toolbox Chaos}
+\fancyhead[R]{\small Manual de usuario}
+\fancyfoot[L]{\small Fyskode}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\small v0.1.0}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[L]{\small Toolbox Chaos}
+  \fancyhead[R]{\small Manual de usuario}
+  \fancyfoot[L]{\small Fyskode}
+  \fancyfoot[C]{\thepage}
+  \fancyfoot[R]{\small v0.1.0}
+}
+
+\newcommand{\boton}[1]{\textsf{\itshape #1}}
+\newcommand{\campo}[1]{\textsf{#1}}
+\newcommand{\archivo}[1]{\nolinkurl{#1}}
+\newcommand{\urlimpresa}[1]{\href{#1}{\nolinkurl{#1}}}
+\newcommand{\paso}[1]{\textcolor{AzulProfundo}{\bfseries #1}}
+\newcommand{\manualteorico}{\href{run:manual_teorico_pedagogico.pdf}{\emph{Manual teórico pedagógico}} (\nolinkurl{manual_teorico_pedagogico.pdf})}
+\newcommand{\manualsprott}{\href{run:manual_explorador_sprott.pdf}{\emph{Manual pedagógico del Explorador Sprott}} (\nolinkurl{manual_explorador_sprott.pdf})}
+
+\newenvironment{cajaazul}[1]
+{\begin{center}\begin{minipage}{0.93\linewidth}\color{GrisTexto}
+\textcolor{AzulMedio}{\rule{\linewidth}{0.8pt}}\par\smallskip
+\textcolor{AzulProfundo}{\bfseries #1}\par\smallskip}
+{\par\smallskip\textcolor{AzulMedio}{\rule{\linewidth}{0.8pt}}\end{minipage}\end{center}}
+
+\newenvironment{cajaverde}[1]
+{\begin{center}\begin{minipage}{0.93\linewidth}\color{GrisTexto}
+\textcolor{Turquesa}{\rule{\linewidth}{0.8pt}}\par\smallskip
+\textcolor{Turquesa}{\bfseries #1}\par\smallskip}
+{\par\smallskip\textcolor{Turquesa}{\rule{\linewidth}{0.8pt}}\end{minipage}\end{center}}
+
+\newenvironment{cajaalerta}[1]
+{\begin{center}\begin{minipage}{0.93\linewidth}\color{GrisTexto}
+\textcolor{Naranja}{\rule{\linewidth}{0.8pt}}\par\smallskip
+\textcolor{Naranja}{\bfseries #1}\par\smallskip}
+{\par\smallskip\textcolor{Naranja}{\rule{\linewidth}{0.8pt}}\end{minipage}\end{center}}
+
+\newcommand{\capturacompleta}[2]{
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\linewidth]{#1}
+  \caption{#2}
+\end{figure}}
+
+\newcommand{\figuradidactica}[2]{
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.94\linewidth,height=0.42\textheight,keepaspectratio]{#1}
+  \caption{#2}
+\end{figure}}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\color{GrisTexto}
+\vspace*{0.35cm}
+{\Huge\bfseries\color{AzulProfundo} Manual de usuario de Toolbox Chaos\par}
+\vspace{0.35cm}
+ {\Large Instalación, simulación, análisis y exportación reproducible de sistemas dinámicos\par}
+\vspace{0.55cm}
+{\large Fyskode Chaotic Systems Toolbox 0.1.0\par}
+\vspace{0.8cm}
+\includegraphics[width=\linewidth]{gui_attractor_3d.png}
+\vfill
+\begin{cajaazul}{Instalación y uso de Toolbox Chaos}
+Este documento enseña a operar la interfaz gráfica desde la instalación hasta la exportación de resultados. Las explicaciones matemáticas extensas se encuentran en el \manualteorico; el tratamiento especializado de códigos compactos se encuentra en el \manualsprott.
+\end{cajaazul}
+\vfill
+{\large Maria Fernanda Moreno Lopez (Fer Moreno)\par}
+{\small \urlimpresa{https://search.fyskode.com/toolbox_chaos}\par}
+{\small Agosto de 2026\par}
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\section{Instalación y controles de Toolbox Chaos}
+
+Toolbox Chaos organiza el trabajo en trece pestañas. El proyecto se presenta públicamente con ese nombre, mientras que la barra de título y el acceso directo muestran \emph{Chaos Toolbox}; ambas denominaciones identifican la misma aplicación gráfica. Varias pestañas comparten el selector de sistema, parámetros, condiciones iniciales y paso temporal; otras reúnen laboratorios especializados. El uso se explica a partir de una trayectoria de Lorenz que se conserva para generar distintas representaciones. A partir de ese cálculo se introducen los barridos de parámetros, las cuencas de atracción, los exponentes de Lyapunov, la coexistencia y la definición de modelos propios.
+
+Los nombres de controles aparecen en letra sans serif cursiva, por ejemplo \boton{Generar atractor 3D}. Cuando el texto indica \emph{pulse}, se refiere a activar ese control en la interfaz. Los nombres de archivos y comandos aparecen en letra monoespaciada.
+
+\begin{cajaverde}{Operaciones descritas en el manual}
+La persona usuaria podrá reproducir una simulación, conservar sus parámetros, generar figuras comparables, distinguir entre una visualización y una conclusión científica, y preparar un paquete mínimo de datos para compartir su experimento.
+\end{cajaverde}
+
+Antes de instalar conviene distinguir los tres documentos que acompañan el software. Esta separación evita interrumpir un procedimiento de uso con una demostración extensa y, al mismo tiempo, permite continuar el estudio cuando una gráfica necesita fundamento adicional.
+
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.25\linewidth}X}
+\toprule
+Documento & Contenido principal \\
+\midrule
+\emph{Manual de usuario} (este archivo) & ¿Qué control debo usar y en qué orden para obtener, guardar y repetir un resultado? \\
+\manualteorico & ¿Qué significan matemáticamente las trayectorias, atractores, espectros, bifurcaciones, cuencas, autovalores y exponentes de Lyapunov? \\
+\manualsprott & ¿Cómo se decodifican, simulan, interpretan y documentan los códigos compactos inspirados en Sprott? \\
+\bottomrule
+\end{tabularx}
+
+\paragraph{Instalación en Windows.}
+
+El instalador de Windows integra la aplicación, el entorno de Python y las bibliotecas necesarias para ejecutar la distribución empaquetada. Por ello, la instalación habitual se completa con el ejecutable distribuido.
+
+\begin{enumerate}
+  \item Abra la página de versiones: \urlimpresa{https://github.com/Xerkkun/Toolbox-chaos/releases}.
+  \item Descargue \archivo{chaos-toolbox-v0.1.0-windows-x64-setup.exe}.
+  \item Compruebe que el archivo provenga de la página anterior. Si la publicación incluye una suma SHA-256, compárela antes de ejecutar el instalador.
+  \item Ejecute el archivo, acepte la ubicación propuesta o elija otra carpeta y complete el asistente.
+  \item Abra \emph{Chaos Toolbox} desde el menú Inicio o el acceso directo creado por el instalador.
+\end{enumerate}
+
+\begin{cajaalerta}{Advertencias de reputación en Windows}
+Windows puede mostrar una advertencia de reputación cuando un ejecutable carece de una firma reconocida por el equipo. Compruebe el origen: continúe con el instalador obtenido desde la URL oficial indicada arriba y, cuando esté disponible, verifique su suma de comprobación.
+\end{cajaalerta}
+
+\paragraph{Instalación con Python.}
+
+Esta ruta es útil para docencia, desarrollo o entornos donde se administran paquetes de Python. Requiere Python 3.11 o posterior.
+
+Desde PyPI:
+\begin{verbatim}
+python -m pip install --upgrade pip
+python -m pip install chaos-toolbox
+chaos-toolbox
+\end{verbatim}
+
+Página explícita del paquete: \urlimpresa{https://pypi.org/project/chaos-toolbox/}.
+
+Desde el repositorio:
+\begin{verbatim}
+git clone https://github.com/Xerkkun/Toolbox-chaos.git
+cd Toolbox-chaos
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install .
+chaos-toolbox
+\end{verbatim}
+
+La instalación normal declara e instala la versión compatible de \archivo{hidden-attractors-fo}; este paquete funciona como motor matemático. La persona usuaria opera Toolbox Chaos mediante su interfaz para seguir los laboratorios de este manual.
+
+\paragraph{Inicio de la aplicación.}
+
+La ventana muestra la barra de menús \campo{Archivo} y \campo{Ayuda}, trece pestañas y una barra de estado inferior. En \campo{Atractor 3D}, el selector inicial incluye \campo{Lorenz [listo]}. Cuando el área gráfica esté vacía, pulse \boton{Generar atractor 3D} para iniciar el primer cálculo.
+
+\paragraph{Pestañas y funciones de la interfaz.}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.20\linewidth}>{\raggedright\arraybackslash}p{0.27\linewidth}>{\raggedright\arraybackslash}p{0.43\linewidth}}
+\toprule
+Pestaña & Producto principal & Cuándo usarla \\
+\midrule
+\endhead
+\campo{Atractor 3D} & Trayectoria tridimensional & Primer reconocimiento geométrico de un flujo o de una trayectoria con tres componentes. \\
+\campo{Retratos 2D} & Proyecciones por pares & Comparar planos de fase y revelar estructura que puede ocultarse en una vista 3D. \\
+\campo{Series temporales} & Estado contra tiempo o iteración & Examinar transitorios, amplitud, alternancia, saturación y escalas temporales. \\
+\campo{Comparar metodos} & Tres series por integrador & Comprobar sensibilidad numérica entre Euler, Heun y RK4 con el mismo contrato. \\
+\campo{Espectro} & PSD de Welch o espectro de amplitud & Localizar componentes dominantes y comparar contenido frecuencial después de retirar un transitorio. \\
+\campo{Lyapunov} & Espectro finito y curvas de convergencia & Estimar separación de perturbaciones en flujos ODE enteros de tres dimensiones registrados. \\
+\campo{Bifurcación} & Barrido de un parámetro & Reconocer cambios cualitativos, ventanas y coexistencia al variar un parámetro. \\
+\campo{Cuenca de atracción} & Clasificación de una malla de condiciones iniciales & Estudiar sensibilidad al estado inicial y fronteras entre destinos calculados. \\
+\campo{Autovalores} & Equilibrios y plano complejo & Revisar estabilidad local de equilibrios de flujos ODE compatibles. \\
+\campo{Coexistencia} & Atractores reportados para un mismo conjunto de parámetros & Reproducir casos catalogados y enviarlos a otras pestañas. \\
+\campo{Manuales} & Usuario, teoría y Explorador Sprott & Consultar dentro de la aplicación los tres documentos pedagógicos que acompañan el trabajo. \\
+\campo{Crear sistema} & Trayectoria de un flujo o mapa definido sin código Python & Probar ecuaciones propias mediante el analizador restringido y guardar la definición en JSON. \\
+\campo{Explorador Sprott} & Decodificación, simulación, estilo y galería de códigos compactos & Recuperar con fines didácticos el método de exploración de Sprott y extenderlo con herramientas actuales. \\
+\bottomrule
+\end{longtable}
+
+\capturacompleta{gui_full_window_current.png}{Ventana completa de Toolbox Chaos. Las pestañas forman una ruta de trabajo común y el panel izquierdo conserva el sistema, los parámetros y el contrato numérico de la vista activa.}
+
+\begin{cajaazul}{Datos locales y trayectoria compartida}
+Las pestañas con el panel \campo{Modelo e integrador} mantienen sus propios valores. Seleccionar un sistema carga los valores predeterminados de esa pestaña. En cambio, los botones \boton{Usar última trayectoria} recuperan explícitamente la trayectoria compartida más reciente para visualizar el cálculo ya realizado.
+\end{cajaazul}
+
+\section{Trayectoria de Lorenz y reutilización de datos}
+
+El primer ejercicio genera una trayectoria reproducible con los valores predeterminados y permite reconocer la relación entre el modelo, el integrador, las condiciones iniciales y la malla temporal.
+
+\begin{enumerate}
+  \item Abra \campo{Atractor 3D}.
+  \item En \campo{Sistema}, elija \campo{Lorenz [listo]}.
+  \item En \campo{Método}, elija \campo{Runge--Kutta 4 [C]}.
+  \item Confirme los parámetros \(\sigma=10\), \(\rho=28\) y \(\beta=2.666667\).
+  \item Confirme \(x(0)=y(0)=z(0)=0.1\), \campo{dt} = 0.01 y \campo{Tiempo total T} = 40.
+  \item Elija un \campo{Color atractor}. Active \campo{Superponer proyecciones} si desea ver sombras geométricas sobre los planos coordenados.
+  \item Pulse \boton{Generar atractor 3D}.
+\end{enumerate}
+
+La barra inferior debe informar que se generó el atractor y el área derecha debe mostrar los dos lóbulos característicos. El punto inicial y el final ayudan a seguir el sentido de la trayectoria.
+
+\capturacompleta{gui_attractor_3d.png}{Pestaña \campo{Atractor 3D} después de calcular el sistema de Lorenz con RK4. El panel izquierdo conserva el contrato numérico necesario para repetir la figura.}
+
+\begin{cajaalerta}{Límites de la visualización del atractor}
+La identificación de caos y atracción requiere comparar integradores, retirar el transitorio y revisar la convergencia de los exponentes de Lyapunov. La forma de la curva orienta esa revisión inicial.
+\end{cajaalerta}
+
+\paragraph{Retratos 2D, series temporales y espectro.}
+
+La simulación de Lorenz calculada en la sección anterior queda disponible como última trayectoria. Reutilizarla permite comparar visualizaciones sin introducir diferencias por una nueva ejecución.
+
+En \campo{Retratos 2D}, pulse \boton{Usar última trayectoria}. En \campo{Proyecciones 2D} puede conservar únicamente las parejas que necesite; para tres variables se ofrecen \(x\)-\(y\), \(x\)-\(z\) y \(y\)-\(z\). El selector \campo{Color} modifica la presentación y conserva los datos calculados. Cuando la composición sea adecuada, \boton{Guardar gráfica...} exporta el panel. \boton{Generar retratos 2D} calcula una trayectoria nueva con los valores locales de la pestaña, mientras que \boton{Usar última trayectoria} dibuja los datos ya compartidos.
+
+\capturacompleta{gui_phase_portraits_2d.png}{Retratos de fase del mismo experimento de Lorenz en tres planos. Las proyecciones muestran el mismo conjunto de estados desde pares de coordenadas distintos.}
+
+Continúe en \campo{Series temporales} y pulse \boton{Usar última trayectoria}. Las vistas separadas de \(x(t)\), \(y(t)\) y \(z(t)\) permiten reconocer el tramo inicial de adaptación y compararlo con el resto de la simulación. Los selectores de color ayudan a distinguir variables sin alterar la trayectoria; \boton{Guardar gráfica...} conserva la composición mostrada.
+
+\capturacompleta{gui_time_series.png}{Series temporales de Lorenz. La vista extendida en el eje horizontal permite reconocer el transitorio inicial y la evolución irregular posterior.}
+
+La misma trayectoria puede examinarse por variable de estado en \campo{Espectro}. Después de pulsar \boton{Usar última trayectoria}, seleccione en \campo{Método} la opción \campo{PSD de Welch (recomendado)} y ajuste \campo{Descartar transitorio (s)} para excluir el arranque. Durante la primera lectura es razonable dejar \campo{Frecuencia mínima (0=auto)} y \campo{Frecuencia máxima (0=auto)} en cero. \boton{Calcular FFT/PSD} vuelve a calcular desde el panel de la pestaña y \boton{Guardar gráfica...} exporta la salida. Para analizar amplitudes de la transformada rápida de Fourier, repita la observación con \campo{Espectro de amplitud}.
+
+\capturacompleta{gui_welch_psd.png}{PSD de Welch para cada variable del sistema de Lorenz. La pestaña también ofrece el espectro de amplitud de una FFT unilateral.}
+
+\begin{cajaverde}{Estabilidad del contenido espectral}
+¿Los máximos espectrales se conservan al aumentar el tiempo total? Describa como dependiente del contrato numérico toda característica que cambie con la longitud de la señal o el transitorio descartado, y reserve la confirmación para las que persisten bajo esas variaciones.
+\end{cajaverde}
+
+\paragraph{Comparación de integradores.}
+
+En sistemas caóticos, dos trayectorias numéricas pueden separarse aunque los métodos sean correctos. La comparación estudia el efecto de la discretización mediante la escala global, la estructura de fase y los diagnósticos declarados. Abra \campo{Comparar metodos}, seleccione \campo{Lorenz [listo]} y reproduzca los parámetros, condiciones iniciales, \campo{dt} y \campo{Tiempo total T} del laboratorio. En \campo{Integradores a comparar}, active \campo{Euler explícito}, \campo{Heun / Euler mejorado (RK2)} y \campo{Runge--Kutta 4}, asigne colores distintos y pulse \boton{Comparar integradores}. Una segunda ejecución con \campo{dt} menor permite comparar cuánto tiempo permanecen próximas las curvas y si se conserva la escala global de cada variable.
+
+\capturacompleta{gui_method_comparison.png}{Comparación de Euler, Heun y RK4 para las tres variables de Lorenz. La separación tardía debe interpretarse junto con el paso, el horizonte y la sensibilidad dinámica.}
+
+\begin{cajaazul}{Datos necesarios para reproducir la simulación}
+Anote siempre sistema, parámetros, estado inicial, método, \(dt\), tiempo total, versión del programa y fecha de ejecución. Ese contrato permite repetir el cálculo y revisar la figura en su contexto numérico.
+\end{cajaazul}
+
+\section{Bifurcaciones, cuencas, Lyapunov y equilibrios}
+
+Una trayectoria permite reconocer la evolución de un estado inicial, pero muchas preguntas de investigación requieren relacionar varias trayectorias, parámetros o escalas locales. Las siguientes herramientas se presentan en un orden deliberado: primero se estudia el cambio producido por un parámetro, después la dependencia respecto al estado inicial y, finalmente, se combinan diagnósticos globales y locales.
+
+\paragraph{Diagrama de bifurcación.}
+
+La pestaña \campo{Bifurcación} barre un parámetro del sistema, descarta un transitorio y conserva eventos o últimos valores de la variable observada. Es una herramienta para localizar regiones que merecen simulaciones más detalladas.
+
+Para el ejercicio, seleccione \campo{Logistico [listo]}, elija \campo{r} como \campo{Parámetro de bifurcación} y \campo{x} como \campo{Variable observada}. \campo{Mínimo}, \campo{Máximo} y \campo{N (Parámetros)} determinan el intervalo y su muestreo; conviene empezar con pocos parámetros y aumentar la resolución solo después de confirmar que el intervalo es informativo. Antes de pulsar \boton{Calcular bifurcación}, revise \campo{dt integrador}, \campo{Transitorio descartado}, \campo{Tiempo útil} y \campo{Máx cruces por param}. En la primera ejecución mantenga desactivado \campo{Usar continuación}; si lo activa, el estado final de un valor alimenta al siguiente. Registre esa decisión y guarde la salida con \boton{Guardar gráfica...}.
+
+\capturacompleta{gui_bifurcation.png}{Diagrama de bifurcación del mapa logístico. Cada columna reúne las iteraciones conservadas después del transitorio para un valor del parámetro \(r\).}
+
+Los controles que modifican el muestreo, el transitorio y la continuidad del barrido se resumen a continuación.
+
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.28\linewidth}X}
+\toprule
+Control & Efecto operativo \\
+\midrule
+\campo{N (Parámetros)} & Aumenta la resolución horizontal y el costo total del barrido. \\
+\campo{Transitorio descartado} & Reduce la influencia del arranque; un valor insuficiente puede mezclar adaptación y comportamiento persistente. \\
+\campo{Tiempo útil} & Aumenta la ventana usada para detectar eventos o conservar valores. \\
+\campo{Máx cruces por param} & Limita la densidad vertical almacenada para cada parámetro. \\
+\campo{Usar continuación} & Explora una rama dependiente de la dirección del barrido; compárela con ejecuciones desde condiciones iniciales fijas. \\
+\bottomrule
+\end{tabularx}
+
+\paragraph{Cuenca de atracción.}
+
+La pestaña \campo{Cuenca de atracción} construye una malla de condiciones iniciales en el plano \((x_0,y_0)\) y mantiene \(z_0\) fijo. Cada celda recibe la clase detectada por el clasificador disponible para el sistema.
+
+Al seleccionar un sistema compatible, revise primero los valores cargados en \campo{Región y resolución}. Los campos \campo{x0 mín}, \campo{x0 máx}, \campo{y0 mín}, \campo{y0 máx} y \campo{z0 fijo} fijan el plano que se estudiará. Una malla inicial con \campo{Nx (ancho)} y \campo{Ny (alto)} bajos permite verificar la región sin asumir de entrada un costo elevado; después puede aumentarse la resolución. Revise también \campo{dt integrador} y \campo{Tiempo total}, active \campo{Superponer equilibrios} cuando necesite ubicar los puntos compatibles y pulse \boton{Calcular cuenca}. La leyenda y el cuadro \campo{Equilibrios} deben leerse antes de exportar la figura.
+
+\capturacompleta{gui_basin.png}{Cuenca de Lorenz en un plano de condiciones iniciales. La leyenda expresa clases numéricas calculadas dentro del horizonte elegido.}
+
+\begin{cajaalerta}{Resolución y clasificación de la cuenca}
+La certificación de caos requiere los diagnósticos y la evidencia correspondientes. Una celda clasificada como acotada o residual aporta el resultado del clasificador bajo su contrato; para estudiar una zona fronteriza, amplíe la región local y repita con una malla más fina, variando resolución, paso temporal, tiempo total y criterio de clasificación.
+\end{cajaalerta}
+
+\paragraph{Exponentes de Lyapunov.}
+
+La pestaña \campo{Lyapunov} calcula un espectro finito mediante QR--Benettin para flujos ODE enteros de tres dimensiones registrados. Muestra las estimaciones acumuladas y su evolución temporal.
+
+Seleccione \campo{Lorenz [listo]} y conserve los parámetros y el estado inicial del laboratorio base. El panel identifica \campo{RK4 fijo (estado y sistema variacional)}; \campo{dt integrador} determina el paso, \campo{Burn-in time} separa el transitorio previo a la medición, \campo{Tiempo final} fija el horizonte medido y \campo{QR cada N pasos} controla la reortonormalización. Después de pulsar \boton{Calcular exponentes de Lyapunov}, observe conjuntamente los valores finales y sus curvas de convergencia. Antes de reportar cifras, repita con mayor tiempo final y con un paso menor.
+
+\capturacompleta{gui_lyapunov.png}{Espectro finito de Lyapunov de Lorenz y evolución de cada estimación. El pie de la interfaz conserva método, paso, burn-in, tiempo de medición e intervalo QR.}
+
+\begin{cajaverde}{Convergencia del cálculo de Lyapunov}
+Un exponente máximo positivo es evidencia numérica de separación local dentro del cálculo realizado. La estabilidad de sus dígitos frente a cambios razonables de \(dt\), burn-in, horizonte e intervalo QR es más informativa que un único valor aislado.
+\end{cajaverde}
+
+\paragraph{Equilibrios y autovalores.}
+
+Abra \campo{Autovalores}, seleccione un flujo ODE compatible, revise sus parámetros y pulse \boton{Calcular equilibrios y autovalores}. En \campo{Equilibrio}, la opción \campo{Todos} permite comparar los puntos; una selección específica centra la figura y el resumen textual en un solo equilibrio. La posición de los autovalores en el plano complejo resume el comportamiento lineal local, cuyas condiciones y límites se desarrollan en el \manualteorico. Una vez registrada la selección, use \boton{Guardar gráfica...}.
+
+\capturacompleta{gui_equilibria_eigenvalues.png}{Equilibrios y autovalores en el plano complejo. El texto inferior reporta coordenadas, valores y clasificación local calculada.}
+
+La estabilidad global requiere analizar órbitas y cuencas además de la estabilidad local; dos sistemas con la misma clasificación local pueden evolucionar de forma distinta lejos del equilibrio.
+
+\paragraph{Atractores coexistentes.}
+
+\campo{Coexistencia} reúne casos reportados con varias condiciones iniciales para un mismo conjunto de parámetros. El propósito es repetir el caso de referencia y comparar destinos sin transcribir manualmente todos los valores.
+
+Elija un \campo{Caso reportado} y lea primero \campo{Bibliografía y notas}; después seleccione un \campo{Atractor} y ajuste \campo{dt} y \campo{Tiempo T} si el protocolo lo requiere. Los cálculos toman automáticamente el conjunto de parámetros registrado para el caso. \boton{Simular atractor seleccionado} calcula una condición inicial, mientras que \boton{Simular todos los atractores} superpone las trayectorias del caso. \boton{Calcular cuenca para este caso} inicia la clasificación asociada. Si la pregunta continúa en otra herramienta, \boton{Enviar a Atractor 3D}, \boton{Enviar a Cuencas} y \boton{Enviar a Bifurcación} trasladan el caso; los valores deben revisarse en la pestaña de destino antes de ejecutar.
+
+\capturacompleta{gui_coexistence.png}{Caso de coexistencia con varias trayectorias calculadas a partir de condiciones iniciales distintas y el mismo conjunto de parámetros.}
+
+\begin{cajaalerta}{Límite de una prueba de coexistencia}
+La coexistencia numérica observada respalda la multestabilidad del caso calculado. La clasificación global de los destinos requiere conservar las condiciones iniciales, el horizonte, el método y las pruebas de refinamiento antes de formular una conclusión más amplia.
+\end{cajaalerta}
+
+\section{Sistemas personalizados y códigos Sprott}
+
+El trabajo con modelos registrados puede extenderse en dos direcciones complementarias. \campo{Crear sistema} permite ensayar ecuaciones propias mediante el editor de expresiones, mientras que \campo{Explorador Sprott} conduce desde códigos compactos hasta ecuaciones, simulaciones y figuras. La pestaña \campo{Manuales} acompaña la interpretación durante ambas rutas.
+
+\paragraph{Definición del sistema Genesio--Tesi en \campo{Crear sistema}.}
+
+\campo{Crear sistema} acepta variables, parámetros y una ecuación por variable. El analizador restringido procesa el lenguaje de expresiones documentado. La simulación se realiza con el motor matemático Hidden Attractors FO.
+
+Para introducir los parámetros y las ecuaciones del sistema, abra \campo{Crear sistema} y capture exactamente los siguientes valores:
+
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.31\linewidth}X}
+\toprule
+Campo literal & Contenido del laboratorio \\
+\midrule
+\campo{Nombre} & \archivo{Genesio-Tesi} \\
+\campo{Tipo} & \campo{Flujo continuo} \\
+\campo{Variables (separadas por coma)} & \archivo{x, y, z} \\
+\campo{Parametros (nombre=valor)} & \archivo{a=1.2}, \archivo{b=2.92}, \archivo{c=6.0}; una asignación por línea. \\
+\campo{Ecuaciones (una por variable)} & \archivo{y}; \archivo{z}; \archivo{-c*x-b*y-a*z+x**2}; una expresión por línea y en el mismo orden que las variables. \\
+\campo{Estado inicial} & \archivo{0.2, 0.2, 0.2} \\
+\campo{Metodo del flujo} & \archivo{rk4} \\
+\campo{Paso h} & \archivo{0.005000} \\
+\campo{Duracion} & \archivo{500.0000} \\
+\campo{Muestras transitorias} & \archivo{5000} \\
+\campo{Umbral de divergencia} & \archivo{1000000.00} \\
+\bottomrule
+\end{tabularx}
+
+\begin{enumerate}
+  \item Pulse \boton{Validar definicion}. Corrija cualquier discrepancia entre el número de variables, ecuaciones y valores iniciales.
+  \item Pulse \boton{Simular y graficar}. La barra de resultado debe informar el estado, los pasos completados y el motor utilizado.
+  \item Pulse \boton{Guardar JSON} para conservar la definición. Use \boton{Abrir JSON} en otra sesión para recuperarla.
+  \item Después de simular, abra \campo{Retratos 2D}, \campo{Series temporales} o \campo{Espectro} y pulse \boton{Usar última trayectoria}.
+\end{enumerate}
+
+\capturacompleta{gui_genesio_tesi_custom_system.png}{Sistema de Genesio--Tesi introducido en \campo{Crear sistema}. La captura muestra la definición, el contrato numérico y la trayectoria resultante en la misma ventana.}
+
+La trayectoria de un sistema personalizado puede reutilizarse en las vistas 2D, temporales y espectrales. La definición conserva su propio contrato; la incorporación al catálogo requiere la curación que proporciona equilibrios, Jacobiano, análisis de caos y atracción global, barridos, cuencas y análisis de Lyapunov.
+
+\paragraph{Uso inicial del Explorador Sprott.}
+
+El \campo{Explorador Sprott} es un laboratorio didáctico para recuperar y modernizar el método de códigos compactos presentado por Julien C. Sprott en \emph{Strange Attractors: Creating Patterns in Chaos}. Incluye ejemplos sintéticos públicos, decodificación, simulación, estilos, exportación y una galería local.
+
+La primera ruta comienza en \campo{Inicio} con \boton{1. Probar ejemplo}. El programa conduce a \campo{Ejemplos}, donde un ejemplo recomendado puede ejecutarse con \boton{Simular con estilo recomendado}; conviene leer su objetivo de aprendizaje antes de modificar la apariencia. \campo{Codigos} permite escribir o pegar un código y usar \boton{Decodificar} para revisar familia, dimensión, orden, coeficientes y ecuaciones. Con esa lectura previa, \campo{Exploracion} ofrece un \campo{Preset}, \boton{Generar codigo} y \boton{Simular y graficar}. El estilo se actualiza con \boton{Aplicar estilo}; la figura, los metadatos y los datos se conservan respectivamente mediante \boton{Exportar imagen actual}, \boton{Exportar metadatos JSON} y \boton{Exportar datos CSV}. Los resultados seleccionados pueden añadirse a \campo{Galeria} junto con el código y la configuración que documentan cada imagen.
+
+\capturacompleta{gui_sprott_explorer.png}{Ventana del Explorador Sprott en \campo{Exploracion}. El panel reúne el código, el contrato de simulación y el estilo visual, mientras el lienzo muestra la trayectoria calculada.}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.60\linewidth]{sprott_map4d_turbo_white.png}
+\caption{Ejemplo sintético público de una proyección \(x\)-\(y\) de un mapa 4D, con una paleta continua gobernada por \(w\). El color y la proyección son decisiones de visualización que deben registrarse junto con el código.}
+\end{figure}
+\thispagestyle{fancy}
+
+Los archivos históricos de Sprott, sus figuras, ejecutables y diccionarios originales se consultan desde las páginas oficiales. La persona usuaria puede cargar localmente sus propios archivos \archivo{.DIC}; la aplicación los lee en su ubicación de origen.
+
+La página del libro es \urlimpresa{https://sprott.physics.wisc.edu/SA.HTM} y el manuscrito en línea se encuentra en \urlimpresa{https://sprott.physics.wisc.edu/fractals/booktext/SABOOK.HTM}. El paquete editorial del disco puede consultarse en \urlimpresa{https://sprott.physics.wisc.edu/fractals/bookdisk/SADISK.ZIP}; su directorio oficial es \urlimpresa{https://sprott.physics.wisc.edu/fractals/bookdisk/}.
+
+Para aprender la gramática, el fundamento algebraico de las familias, el significado de los filtros y el modo de lectura del libro, continúe en el \manualsprott.
+
+\paragraph{Consulta de manuales en la aplicación.}
+
+\campo{Manuales} reúne tres subpestañas. \campo{Usuario} abre este manual de operación; \campo{Teoría y diccionario} presenta la secuencia formativa de conceptos, definiciones, ecuaciones e interpretación de gráficas; y \campo{Explorador Sprott} abre el manual especializado en códigos compactos, simulación y lectura del libro. Esta organización permite consultar el nivel de explicación requerido sin salir de la aplicación. Los mismos documentos pueden abrirse como archivos independientes mediante el \manualteorico y el \manualsprott.
+
+El menú \campo{Ayuda} reúne \boton{Documentacion}, que abre directamente el Manual de usuario; \boton{Buscar actualizaciones}, que realiza una comprobación manual cuando existe una fuente configurada; \boton{Revisar actualizaciones automaticamente}, que controla la comprobación periódica; y \boton{Acerca de}, donde se muestran versión, autoría, licencia y créditos de dependencias. Los otros dos documentos se eligen en la pestaña \campo{Manuales}. En \campo{Archivo}, \boton{Abrir carpeta de resultados} abre la ubicación predeterminada de resultados del usuario.
+
+\input{chapters/manual_usuario_recetario_ampliado}
+
+\section{Exportación y documentación de simulaciones}
+
+La etapa final de una exploración consiste en dejar un registro suficiente para que otra persona pueda reconstruirla y evaluar sus límites. Esta sección reúne la exportación, la lectura de resultados, la solución de problemas y las vías para solicitar una capacidad nueva.
+
+\paragraph{Exportación y reproducibilidad.}
+
+Para que otra persona pueda reconstruir un resultado, el registro debe contener el nombre exacto del sistema y la versión de Toolbox Chaos; parámetros y condiciones iniciales con cifras suficientes; método, paso temporal, tiempo total, transitorio y controles específicos; la figura exportada y, cuando existan, datos CSV o metadatos JSON; además de la fecha, el sistema operativo, el propósito del cálculo y la fuente bibliográfica cuando se reproduzca un caso publicado.
+
+\begin{cajaverde}{Nombres de los archivos}
+Use nombres como \archivo{lorenz_rho28_rk4_h001_T40_series.png} y acompañe la figura con \archivo{lorenz_rho28_rk4_h001_T40_metadata.json}. Evite nombres genéricos como \archivo{grafica-final.png}.
+\end{cajaverde}
+
+Antes de compartir los resultados, repita el cálculo con un paso menor o una resolución mayor, según corresponda, y compare al menos dos métodos cuando la trayectoria sea sensible al integrador. Aumentar el transitorio descartado y el horizonte ayuda a comprobar que la lectura cualitativa se conserva. Después de cualquier cambio, exporte una figura nueva con su contrato actualizado y formule la conclusión como evidencia numérica dentro del registro.
+
+\paragraph{Alcance de los resultados numéricos.}
+
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}X}
+\toprule
+Resultado & Evidencia que aporta & Evidencia adicional requerida \\
+\midrule
+Trayectoria 3D o retrato 2D & La órbita calculada visita una región con cierta geometría durante el horizonte elegido. & Que existe un atractor global o que la dinámica es caótica. \\
+Serie temporal & Se observan amplitudes, transitorio y regularidad aparente en la muestra. & Que la señal es aleatoria o aperiódica para todo tiempo. \\
+FFT o PSD & La señal finita tiene contenido frecuencial distribuido de la forma mostrada. & Que un espectro ancho prueba caos. \\
+Bifurcación & La respuesta numérica cambia al barrer el parámetro bajo ese protocolo. & Que cada rama es única o independiente de la dirección y del estado inicial. \\
+Cuenca & La malla fue clasificada en destinos bajo el paso, horizonte y tolerancias usados. & Que la frontera continua tiene exactamente la forma de los píxeles. \\
+Lyapunov finito & El algoritmo estimó tasas de separación y muestra una trayectoria de convergencia. & Refinamiento del horizonte, del paso y de la frecuencia QR para establecer la estabilidad del signo y los dígitos reportados. \\
+Autovalores & Se obtuvo la estabilidad lineal local de equilibrios compatibles. & Que se conoce la dinámica global. \\
+\bottomrule
+\end{tabularx}
+
+\paragraph{Solución de problemas.}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.27\linewidth}>{\raggedright\arraybackslash}p{0.30\linewidth}>{\raggedright\arraybackslash}p{0.34\linewidth}}
+\toprule
+Síntoma & Comprobación & Acción \\
+\midrule
+\endhead
+El acceso directo requiere iniciar la aplicación desde el menú Inicio & Verifique que el instalador terminó y que el archivo provino de la versión oficial. & Abra desde el menú Inicio. Si persiste, reinstale el mismo artefacto y conserve el mensaje de error para reportarlo. \\
+\boton{Usar última trayectoria} requiere una trayectoria compartida & Genere una trayectoria compartida en esta sesión. & Ejecute \boton{Generar atractor 3D} o \boton{Simular y graficar} en \campo{Crear sistema}. \\
+La integración rechaza \(T\) y \(dt\) & \(T/dt\) debe ser un número entero dentro de la tolerancia. & Elija valores compatibles, por ejemplo \(T=40\), \(dt=0.01\). \\
+La trayectoria diverge o contiene valores no finitos & Paso grande, parámetro equivocado o condición inicial fuera del dominio útil. & Revise la transcripción, reduzca el paso y acorte primero el horizonte. Mantenga el umbral como criterio de detección de divergencia. \\
+La figura cambia mucho al repetir con otro método & El horizonte caótico amplifica diferencias de discretización. & Compare escalas y diagnósticos estadísticos; reduzca \(dt\) y reporte el intervalo de acuerdo. \\
+La cuenca tarda demasiado & \(Nx\times Ny\), tiempo total o región son grandes. & Haga una exploración de baja resolución, recorte la región de interés y aumente después la malla. \\
+Lyapunov indica \campo{No disponible} & El análisis admite flujos ODE enteros registrados de dimensión 3. & Use un sistema compatible o realice el análisis requerido en un script de investigación validado. \\
+\campo{Crear sistema} marca definición inválida & Variables, ecuaciones y estado inicial requieren una correspondencia uno a uno; el analizador acepta su sintaxis documentada. & Mantenga una ecuación por variable, nombres consistentes y expresiones matemáticas admitidas; pulse de nuevo \boton{Validar definicion}. \\
+El visor PDF integrado requiere una apertura externa & El componente QtPdf puede requerir el visor externo del sistema. & Use el botón de apertura externa del visor o abra el PDF desde la carpeta instalada. \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Solicitudes de funciones y contribuciones.}
+
+Una solicitud útil describe el problema de investigación, el resultado esperado y un ejemplo reproducible. Incluya sistema, ecuaciones o referencia, datos de entrada, parámetros, método, salida esperada y criterio con el que podría validarse.
+
+El contacto por correo es \href{mailto:fer.moreno@inaoep.mx}{\nolinkurl{fer.moreno@inaoep.mx}}. El repositorio está en \urlimpresa{https://github.com/Xerkkun/Toolbox-chaos}; una función nueva puede proponerse en \urlimpresa{https://github.com/Xerkkun/Toolbox-chaos/issues/new}, las incidencias existentes se consultan en \urlimpresa{https://github.com/Xerkkun/Toolbox-chaos/issues} y las contribuciones de código en \urlimpresa{https://github.com/Xerkkun/Toolbox-chaos/pulls}. El registro académico y los materiales se encuentran en \urlimpresa{https://osf.io/gqmjr}, con DOI \urlimpresa{https://doi.org/10.17605/OSF.IO/GQMJR}.
+
+\begin{samepage}
+Para un pull request, cree una rama, añada pruebas y documentación, ejecute la batería del repositorio y explique el contrato numérico de la nueva capacidad. Incluya únicamente material propio o autorizado y referencias a los archivos históricos de Sprott, bases \archivo{.DIC} y ejecutables.
+\end{samepage}
+
+\begin{cajaazul}{Información para solicitar una función}
+\emph{Necesidad}: qué pregunta científica o didáctica se quiere resolver.\par
+\emph{Entrada}: sistema, datos, parámetros y condiciones iniciales.\par
+\emph{Salida}: gráfica, tabla, archivo o métrica requerida.\par
+\emph{Validación}: artículo, caso de referencia o prueba cuantitativa.\par
+\emph{Reproducibilidad}: plataforma, versión y ejemplo mínimo.
+\end{cajaazul}
+
+La referencia del software es: Maria Fernanda Moreno Lopez (Fer Moreno), \emph{Fyskode Chaotic Systems Toolbox}, versión 0.1.0, licencia MIT. Repositorio: \urlimpresa{https://github.com/Xerkkun/Toolbox-chaos}. DOI: \urlimpresa{https://doi.org/10.17605/OSF.IO/GQMJR}.
+
+\vfill
+\begin{center}
+\color{AzulProfundo}\rule{0.78\linewidth}{0.5pt}\par
+\small Una salida numérica aporta evidencia computacional dentro de un protocolo; una demostración matemática requiere su desarrollo formal correspondiente.
+\end{center}
+
+\end{document}

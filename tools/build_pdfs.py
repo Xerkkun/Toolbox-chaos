@@ -6,6 +6,12 @@ import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLED_DOCS = ROOT / "resources" / "bundled" / "docs"
+OUTPUT_PDF = ROOT / "output" / "pdf"
+MANUAL_SOURCES = (
+    Path("assets/manuals/manual_usuario_toolbox_chaos.tex"),
+    Path("assets/manuals/manual_teorico_pedagogico.tex"),
+    Path("assets/manuals/manual_explorador_sprott.tex"),
+)
 
 def build_pdf(tex_relative_path, runs=3):
     tex_path = ROOT / tex_relative_path
@@ -74,14 +80,18 @@ def build_pdf(tex_relative_path, runs=3):
         print(f"Successfully compiled {pdf_filename} ({size_bytes} bytes)")
 
 def main():
-    # Build chaos_dictionary.tex
-    build_pdf("assets/chaos_dictionary.tex")
-    
-    # Build sprott_theory.tex
-    build_pdf("assets/sprott/sprott_theory.tex")
+    for source in MANUAL_SOURCES:
+        build_pdf(source)
 
     BUNDLED_DOCS.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PDF.mkdir(parents=True, exist_ok=True)
+    current_manuals = tuple(ROOT / source.with_suffix(".pdf") for source in MANUAL_SOURCES)
+    for source in current_manuals:
+        shutil.copy2(source, OUTPUT_PDF / source.name)
+
     for source in (
+        *current_manuals,
+        # Legacy files remain bundled for backwards compatibility.
         ROOT / "assets" / "chaos_dictionary.pdf",
         ROOT / "assets" / "sprott" / "sprott_theory.pdf",
         ROOT / "assets" / "sprott" / "sprott_explorer_guide.pdf",

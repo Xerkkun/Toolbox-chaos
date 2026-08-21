@@ -1,0 +1,326 @@
+% Plan curricular. Se incluye desde manual_teorico_pedagogico.tex.
+
+\subsection*{Programa de sistemas dinámicos y caos}
+\phantomsection
+\addcontentsline{toc}{subsection}{Plan de curso: de los modelos a la evidencia dinámica}
+
+\begin{objectivebox}
+Al concluir esta ruta de dieciséis unidades, la persona estudiante podrá formular y
+adimensionalizar modelos, analizar equilibrios y bifurcaciones, distinguir flujos de
+mapas, interpretar retratos, series y diagramas, y construir diagnósticos de caos con
+controles numéricos explícitos. El producto final será un expediente reproducible que
+conecte ecuaciones, algoritmos, gráficas y límites
+de la evidencia.
+\end{objectivebox}
+
+\paragraph{Duración, modalidad y perfil de ingreso.}
+El curso está diseñado para licenciatura avanzada, ingeniería o primer posgrado. Se
+propone una duración de dieciséis semanas, con dos horas de teoría, una de discusión y
+dos de laboratorio por semana. Puede impartirse en catorce semanas fusionando las
+unidades 1--2 y 14--15. Cada práctica conserva sistema, parámetros, condición inicial,
+integrador, paso, horizonte, transitorio y versión del software.
+
+\paragraph{Prerrequisitos verificables.}
+El curso comienza con una introducción al caos. Se requieren cálculo diferencial e integral,
+álgebra lineal elemental, números complejos y lectura de ecuaciones diferenciales de
+primer orden. Antes de iniciar se debe poder: calcular traza, determinante y
+autovalores de una matriz \(2\times2\); derivar un polinomio; distinguir unidades de
+valores numéricos; representar \(y=f(x)\); y reconocer sus intersecciones con \(y=x\).
+
+\begin{activitybox}{Diagnóstico de entrada}
+Para \(A=\left(\begin{smallmatrix}0&1\\-2&-3\end{smallmatrix}\right)\), calcule
+\(\operatorname{tr}A\), \(\det A\) y los autovalores. Para
+\(\dot x=x(1-x)\), encuentre los equilibrios y determine el signo de \(\dot x\) en
+los intervalos que separan. Finalmente explique por qué \(x(t)\) contra \(t\) y
+\(y\) contra \(x\) responden preguntas distintas. El diagnóstico asigna lecturas de
+nivelación y se mantiene separado de la calificación.
+\end{activitybox}
+
+\lecturaseccion{Nivelación: Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+3.\textsuperscript{a} ed., capítulo 1, ``First-Order Equations'', y capítulos 2--4,
+``Planar Linear Systems'', ``Phase Portraits for Planar Systems'' y
+``Classification of Planar Systems''; Steven H. Strogatz, \emph{Nonlinear Dynamics
+and Chaos with Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 2.1, ``A Geometric Way of Thinking'', y 5.1,
+``Definitions and Examples''.}
+
+\paragraph{Competencias evaluables.}
+\begin{description}
+  \item[RA1.] Traducir una situación a variables, parámetros, ecuaciones y escalas
+  adimensionales, declarando las hipótesis del modelo.
+  \item[RA2.] Analizar flujos unidimensionales con líneas de fase, estabilidad,
+  potenciales y formas normales.
+  \item[RA3.] Clasificar sistemas lineales planos y usar el Jacobiano para formular
+  predicciones locales en sistemas no lineales.
+  \item[RA4.] Construir nullclines, retratos y mapas de retorno, y aplicar criterios
+  de existencia o exclusión de ciclos.
+  \item[RA5.] Reconocer bifurcaciones y rutas al caos, distinguiendo un barrido
+  numérico con una demostración.
+  \item[RA6.] Analizar mapas mediante iteración, telarañas, multiplicadores y
+  dinámica simbólica.
+  \item[RA7.] Comparar Lorenz, Rössler, Chua y Duffing--Ueda desde ecuaciones,
+  disipación, simetrías, series y proyecciones.
+  \item[RA8.] Interpretar Lyapunov, FFT/PSD y dimensiones con estudios de
+  convergencia y sensibilidad.
+  \item[RA9.] Delimitar modelos con retardo, alta dimensión, dinámica conservativa,
+  caos transitorio, sincronización, control y memoria fraccionaria.
+  \item[RA10.] Comunicar un experimento con datos suficientes para repetirlo y
+  auditar sus afirmaciones.
+\end{description}
+
+\paragraph{Evaluación.}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.29\linewidth}
+                  >{\centering\arraybackslash}p{0.11\linewidth}
+                  >{\raggedright\arraybackslash}p{0.50\linewidth}}
+\toprule
+Producto & Peso & Evidencia mínima \\
+\midrule
+\endhead
+Problemas analíticos & \(15\%\) & Derivación, hipótesis, unidades y clasificación.\\
+Ocho bitácoras de laboratorio & \(25\%\) & Contrato numérico, datos, figura,
+interpretación y contraste.\\
+Dos estudios de caso & \(20\%\) & Un mapa y un flujo, cada uno con tres vistas y un
+indicador cuantitativo.\\
+Examen conceptual y algebraico & \(15\%\) & Definiciones operativas, cálculos locales
+y lectura crítica de gráficas.\\
+Proyecto integrador & \(25\%\) & Pregunta, protocolo, reproducción cruzada, datos,
+discusión de incertidumbre y defensa.\\
+\bottomrule
+\end{longtable}
+
+\begin{evidencebox}{Regla transversal de suficiencia}
+Una captura aislada sólo demuestra que se produjo una imagen. Una conclusión dinámica
+requiere el sistema identificado, el contrato numérico, al menos un contraste
+pertinente y una interpretación compatible con el algoritmo. En todo el curso se
+separan observación, diagnóstico numérico y afirmación matemática.
+\end{evidencebox}
+
+\paragraph{Secuencia de las dieciséis unidades.}
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{>{\centering\arraybackslash}p{0.045\linewidth}
+                  >{\raggedright\arraybackslash}p{0.23\linewidth}
+                  >{\raggedright\arraybackslash}p{0.30\linewidth}
+                  >{\raggedright\arraybackslash}p{0.27\linewidth}}
+\toprule
+U & Núcleo & Resultado observable & Laboratorio \\
+\midrule
+\endhead
+1 & Estado, órbita, flujo y mapa & Distingue tiempo, iteración y proyección &
+Lorenz en tres vistas coordinadas.\\
+2 & Modelado y escalamiento & Obtiene grupos adimensionales & Duffing en
+\gui{Crear sistema}.\\
+3 & Flujos 1D y formas normales & Construye líneas de fase &
+\(\dot x=\mu-x^2\) y \(\dot x=\mu x-x^3\).\\
+4 & Sistemas lineales 2D & Usa el plano traza--determinante & Nodo, silla, centro y
+foco.\\
+5 & Jacobiano y nullclines & Conecta geometría global y predicción local &
+Modelo de interacción de dos poblaciones.\\
+6 & Osciladores y ciclos límite & Aplica Poincaré--Bendixson y retorno & Normal radial
+y van der Pol.\\
+7 & Bifurcaciones locales & Clasifica saddle--node, transcrítica, pitchfork y Hopf &
+Barridos manuales y \gui{Bifurcación}.\\
+8 & Integración y error & Separa sensibilidad de error numérico &
+\gui{Comparar metodos} con Lorenz.\\
+9 & Logística y Hénon & Usa telarañas, multiplicadores y órbitas & Mapas 1D y 2D.\\
+10 & Rutas al caos y Lyapunov & Relaciona cascadas, ventanas y expansión &
+\gui{Bifurcación} y \gui{Lyapunov}.\\
+11 & Flujos clásicos & Compara mecanismos y geometrías & Lorenz, Rössler, Chua y
+Duffing--Ueda.\\
+12 & Fractales, cuencas y dimensión & Estima escalamiento y discute fronteras &
+\gui{Cuenca de atracción}.\\
+13 & Series, FFT y reconstrucción & Distingue espectro de reconstrucción &
+\gui{Espectro} y retardos.\\
+14 & Retardo, alta dimensión y transitorios & Reconoce estado-historia e hipercaos &
+Mackey--Glass y Lorenz--96.\\
+15 & Conservación, sincronía, control y ocultos & Delimita métodos y afirmaciones &
+Energía, error de sincronía y cuencas.\\
+16 & Proyecto integrador & Defiende una cadena completa de evidencia &
+Reproducción cruzada.\\
+\bottomrule
+\end{longtable}
+}
+
+\subsubsection*{Unidades 1--2. Lenguaje de estado, modelado y escalamiento}
+\textbf{Resultado.} Dado un fenómeno, la persona identifica un estado suficiente,
+distingue flujo \(\dot{\mathbf{x}}=\mathbf f(\mathbf{x};\boldsymbol\mu)\) de mapa
+\(\mathbf{x}_{n+1}=\mathbf F(\mathbf{x}_n;\boldsymbol\mu)\), y obtiene escalas
+\(x=L u\), \(t=t_c\tau\). \textbf{Práctica.} Genere Lorenz con
+\((\sigma,\rho,\beta)=(10,28,8/3)\), \(\mathbf{x}_0=(1,1,1)\), RK4,
+\(dt=0.01\), \(T=50\); use la misma trayectoria en \gui{Atractor 3D},
+\gui{Retratos 2D} y \gui{Series temporales}. Después adimensionalice Duffing y
+programe su forma de primer orden en \gui{Crear sistema}.
+\textbf{Lectura de gráfica.} Un cruce en \(x\)-\(y\) puede separar estados distintos
+en \(z\); una amplitud adimensional debe traducirse mediante \(L\).
+\textbf{Criterio de interpretación.} El caos requiere diagnósticos adicionales a una proyección, y la adimensionalización debe acompañarse de un análisis de la incertidumbre del modelo.
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., capítulo 1 y sección 6.1, ``Phase Portraits''; Robert C.
+Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists and
+Engineers}, 2.\textsuperscript{a} ed., capítulo 3 y apéndice G, ``The Duffing
+Oscillator''; Tamás Tél y Márton Gruiz, \emph{Chaotic Dynamics: An Introduction
+Based on Classical Mechanics}, apéndice A, apartados sobre ecuaciones adimensionales.}
+
+\subsubsection*{Unidades 3--4. Flujos elementales y clasificación lineal}
+\textbf{Resultado.} Para \(\dot x=f(x;\mu)\), se construyen línea de fase y
+estabilidad mediante \(f'(x^*)\). Para \(\dot{\mathbf{x}}=A\mathbf{x}\), se usan
+\(\tau=\operatorname{tr}A\), \(\Delta=\det A\) y
+\(\tau^2-4\Delta\). \textbf{Práctica.} Simule \(\dot x=\mu-x^2\) para
+\(\mu=-0.25,0,0.25\). Después compare la silla
+\(\operatorname{diag}(1,-1)\), el nodo \(\operatorname{diag}(-1,-2)\), el centro
+\(\left(\begin{smallmatrix}0&-1\\1&0\end{smallmatrix}\right)\) y el foco
+\(\left(\begin{smallmatrix}-1&2\\-2&-1\end{smallmatrix}\right)\).
+\textbf{Lectura de gráfica.} La dirección de flechas y el acercamiento al equilibrio
+deben coincidir con los signos calculados. \textbf{Evidencia de convergencia.} Una serie casi
+horizontal en tiempo finito requiere una prueba de convergencia; la clasificación lineal
+aporta una descripción del entorno local de un campo no lineal.
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 2.1--2.4, 3.1--3.4 y 5.1--5.2; Morris W.
+Hirsch, Stephen Smale y Robert L. Devaney, \emph{Differential Equations, Dynamical
+Systems, and an Introduction to Chaos}, 3.\textsuperscript{a} ed., capítulos 2--4.}
+
+\subsubsection*{Unidades 5--7. Geometría plana, oscilaciones y bifurcaciones}
+\textbf{Resultado.} Se trazan nullclines, se calcula el Jacobiano y se distinguen
+familias conservativas de ciclos límite aislados. Se derivan las ramas de las formas
+normales saddle--node, transcrítica, pitchfork y Hopf.
+\textbf{Práctica.} Estudie
+\(\dot x=x(1-x-y)\), \(\dot y=y(x-\tfrac12)\), y la normal
+\(\dot r=r(1-r^2)\), \(\dot\theta=1\). Para cada bifurcación use
+\(\mu=-0.2,0,0.2\); contraste Lorenz a ambos lados de \(\rho=1\) en
+\gui{Autovalores}. \textbf{Lectura de gráfica.} Una nullcline marca una componente nula,
+mientras que un ciclo estable atrae transversalmente.
+\textbf{Evidencia de forma normal.} Una nube de barrido requiere ecuaciones reducidas,
+hipótesis de no degeneración y verificación de genericidad.
+\lecturaseccion{Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+3.\textsuperscript{a} ed., capítulos 8--10; Steven H. Strogatz,
+\emph{Nonlinear Dynamics and Chaos with Applications to Physics, Biology, Chemistry,
+and Engineering}, 2.\textsuperscript{a} ed., secciones 6.2--6.3, 7.2--7.6 y
+8.1--8.2.}
+
+\subsubsection*{Unidad 8. Integración, transitorios y refinamiento}
+\textbf{Resultado.} Se distingue el error de discretización de la separación dinámica.
+\textbf{Práctica.} En \gui{Comparar metodos}, calcule Lorenz con Euler, Heun y RK4
+para \(dt=0.02,0.01,0.005\), manteniendo \(T\) y el estado inicial. Compare tiempo de
+separación y una estadística después del transitorio.
+\textbf{Lectura de gráfica.} Las curvas pueden separarse tarde y conservar distribución
+y geometría. \textbf{Criterio de refinamiento.} La validez se apoya en observables
+convergentes, pasos refinados y horizontes ampliados.
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, apéndice B, apartados sobre
+solución de EDO, error y paso adaptativo; Robert L. Devaney, \emph{A First Course in
+Chaotic Dynamical Systems: Theory and Experiment}, 2.\textsuperscript{a} ed.,
+sección 3.6, ``The Computer May Lie''.}
+
+\subsubsection*{Unidades 9--10. Mapas, rutas al caos y expansión}
+\textbf{Resultado.} Se usa \(|f'(x^*)|\) para puntos fijos y
+\(\lambda_N=N^{-1}\sum_{n=0}^{N-1}\log|f'(x_n)|\) para expansión finita.
+\textbf{Práctica.} Itere la logística con \(x_0=0.2\),
+\(r=2.8,3.2,3.5,4\); descarte 500 y conserve 500 iteraciones. Compare con Hénon.
+Localice una ventana en \gui{Bifurcación}; para Lorenz repita \gui{Lyapunov} con dos
+pasos y dos horizontes. \textbf{Lectura de gráfica.} Telarañas muestran iteración;
+ramas muestran valores asintóticos muestreados.
+\textbf{Evidencia para flujos y expansión.} La interpretación distingue mapas de
+flujos y contrasta un exponente finito positivo con indicadores adicionales y refinamientos.
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, secciones 1.1--1.7, 3.1--3.2,
+5.1--5.3 y capítulo 12; Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 10.1--10.7 y 12.2.}
+
+\subsubsection*{Unidad 11. Cuatro flujos canónicos}
+\textbf{Resultado.} Se comparan términos, disipación, simetrías, forzamiento y
+geometría de Lorenz, Rössler, Chua y Duffing--Ueda.
+\textbf{Práctica.} Use los presets registrados; anote valores cargados; genere
+\gui{Atractor 3D}, \gui{Retratos 2D} y \gui{Series temporales}; repita con \(dt/2\).
+\textbf{Lectura de gráfica.} El número de lóbulos y la apariencia de espiral funcionan
+como descriptores visuales. \textbf{Equivalencia entre representaciones.} Proyecciones
+parecidas requieren verificar las condiciones de conjugación y equivalencia física.
+\lecturaseccion{Julien C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic
+Flows}, capítulos 2--3, apartados sobre Duffing, Lorenz, Rössler, sistemas de Sprott
+y Chua; Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, capítulo 9, apartados sobre
+Lorenz, Rössler, Chua y flujos forzados.}
+
+\subsubsection*{Unidades 12--13. Geometría fractal y señales}
+\textbf{Resultado.} Se estima
+\(D_B\simeq\Delta\log N(\varepsilon)/\Delta\log(1/\varepsilon)\), se distingue FFT
+de PSD y se construyen vectores de retardo
+\(\mathbf y_n=(s_n,s_{n-\tau},\ldots,s_{n-(m-1)\tau})\).
+\textbf{Práctica.} Refine una \gui{Cuenca de atracción} de \(100^2\) a \(200^2\).
+Reutilice Lorenz en \gui{Espectro}, compare Welch y amplitud, y construya una nube
+\((x_n,x_{n-\tau})\) desde datos exportados.
+\textbf{Lectura de gráfica.} Busque intervalos de escala, picos, banda y estructura
+que persista. \textbf{Criterio de interpretación.} La fractalidad, el caos y la dimensión \(m\) requieren pruebas específicas además de rugosidad, banda ancha o una reconstrucción visual.
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, secciones 4.1, 4.4--4.7 y
+capítulo 13; Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction
+for Scientists and Engineers}, 2.\textsuperscript{a} ed., capítulos 9--10 y
+apéndice A, ``Fourier Analysis''.}
+
+\subsubsection*{Unidades 14--15. Extensiones y límites de alcance}
+\textbf{Resultado.} Se establecen las historias requeridas por ecuaciones con retardo,
+los criterios para identificar hipercaos y la adaptación de los análisis a sistemas
+conservativos, sincronizados, controlados o con memoria fraccionaria.
+\textbf{Práctica.} Compare Mackey--Glass y Lorenz--96; duplique \(T\) antes de
+clasificar una irregularidad larga. Mida la deriva de
+\(H=(x^2+v^2)/2\) en el oscilador armónico y un error de sincronía
+\(\|\mathbf x_1-\mathbf x_2\|\). Examine \gui{Coexistencia} separando observación,
+clasificación numérica y afirmación matemática.
+\textbf{Lectura de gráfica.} Una proyección pierde dimensiones y un transitorio puede
+imitar un atractor. \textbf{Alcance de la interfaz.} Toolbox Chaos organiza simulaciones;
+la estabilidad global y la eficacia de control requieren sus análisis y evidencias específicas.
+\lecturaseccion{Julien C. Sprott, \emph{Elegant Chaos: Algebraically Simple Chaotic
+Flows}, capítulos 4, 6, 8 y 9; Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics:
+An Introduction for Scientists and Engineers}, 2.\textsuperscript{a} ed., capítulos
+8 y 12; Kai Diethelm, \emph{The Analysis of Fractional Differential Equations},
+capítulos sobre problemas de Caputo y métodos predictor--corrector.}
+
+\subsubsection*{Unidad 16. Proyecto integrador}
+\textbf{Resultado.} Cada equipo conecta predicción algebraica, protocolo, tres
+representaciones, indicador, control de robustez y límites de la conclusión.
+\textbf{Práctica.} Otro equipo recibe la carpeta, repite el protocolo a partir de la
+bitácora escrita, registra ambigüedades y compara un observable acordado.
+\textbf{Producto.} Informe con pregunta, antecedentes, ecuaciones, hipótesis, cálculo,
+configuración, datos, pies autosuficientes, discusión y conclusiones graduadas.
+\textbf{Alcance de la reproducción.} La inferencia empírica se sustenta con ejecuciones
+reproducibles y conserva un alcance distinto del de una demostración teórica.
+\lecturaseccion{Edward N. Lorenz, \emph{The Essence of Chaos}, capítulos 1--5 y
+apéndices ``The Butterfly Effect'', ``Mathematical Excursions'' y ``Glossary'';
+Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An Introduction for Scientists
+and Engineers}, 2.\textsuperscript{a} ed., capítulos 9--10.}
+
+\paragraph{Rúbrica común.}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.20\linewidth}
+                  >{\raggedright\arraybackslash}p{0.34\linewidth}
+                  >{\raggedright\arraybackslash}p{0.36\linewidth}}
+\toprule
+Criterio & Desempeño sólido & Señal de revisión \\
+\midrule
+\endhead
+Modelo y álgebra & Ecuaciones, símbolos, unidades e hipótesis comprobables &
+Modelo implícito o cálculo con hipótesis aún por declarar.\\
+Reproducibilidad & Estado, método, paso, tiempo, transitorio y versión &
+Captura aislada o valores pendientes de registrar.\\
+Lectura de gráficas & Ejes, variable, proyección, régimen y rasgo señalado &
+Descripción estética desconectada de la ecuación.\\
+Robustez & Refinamiento, horizonte o semilla comparados con criterio &
+Una ejecución tratada como definitiva.\\
+Alcance & Conclusión graduada y evidencia pendiente por documentar &
+Uso de prueba, atractor o caos más allá de la evidencia.\\
+\bottomrule
+\end{longtable}
+
+\begin{warningbox}
+Cada pestaña opera dentro de un conjunto definido de sistemas. Algunas herramientas aceptan
+flujos ODE enteros registrados o dimensiones específicas. El estado
+\gui{No disponible} comunica el contrato del algoritmo y orienta la selección de una
+herramienta compatible con la afirmación que se desea evaluar.
+\end{warningbox}
+
+\paragraph{Plantilla de bitácora.}
+Cada entrada responde, en este orden: pregunta; ecuación y parámetros; predicción
+algebraica; configuración de Toolbox Chaos; datos y figura; observación; diagnóstico;
+prueba de robustez; conclusión acotada; y siguiente experimento.

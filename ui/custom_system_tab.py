@@ -156,12 +156,6 @@ class NoCodeSystemTab(QWidget):
         self.canvas = FigureCanvasQTAgg(self.figure)
         plot_layout.addWidget(self.canvas)
 
-        note = QLabel(
-            "Una trayectoria numerica no prueba por si sola caos, estabilidad ni existencia de un atractor."
-        )
-        note.setWordWrap(True)
-        plot_layout.addWidget(note)
-
         splitter.addWidget(controls)
         splitter.addWidget(plot_panel)
         splitter.setStretchFactor(0, 0)

@@ -1,0 +1,604 @@
+% Fundamentos ampliados. Se incluye desde manual_teorico_pedagogico.tex.
+
+\section{Modelado, estabilidad y plano de fases}
+
+\begin{objectivebox}
+Construir la base analítica que debe preceder a cualquier diagnóstico de caos:
+formulación y escalamiento de modelos, dinámica unidimensional, clasificación lineal
+plana, linealización no lineal, nullclines, ciclos límite y bifurcaciones locales.
+Cada tema termina con un cálculo reproducible en Toolbox Chaos y con una delimitación
+explícita de la evidencia que aporta la gráfica y de la que exige cálculos adicionales.
+\end{objectivebox}
+
+\subsection{Modelado, variables de estado y adimensionalización}
+
+\paragraph{Variables de estado y escalas.}
+Un \term{modelo dinámico} especifica un estado \(\mathbf{x}\), parámetros
+\(\boldsymbol\mu\), una ley de evolución y las hipótesis bajo las cuales esa ley es
+válida. Elegir el estado incorpora las variables observables y la
+información necesaria para continuar el movimiento. Por ejemplo, la posición de una
+masa requiere también su velocidad. La forma de primer orden de una
+ecuación de orden \(k\) amplía el estado hasta contener las derivadas requeridas.
+
+La \term{adimensionalización} introduce escalas características y reemplaza
+magnitudes con unidad por cocientes sin dimensión. Esto reduce el número de
+parámetros independientes, permite comparar experimentos de distinta escala y evita
+interpretar como esencial un valor que depende de la unidad elegida. Esta
+operación identifica las razones físicas que controlan el régimen.
+
+\paragraph{Ecuación dimensional y transformación.}
+Considérese el oscilador de Duffing forzado
+\[
+ m\ddot x+c\dot x+kx+\alpha x^3=F\cos(\Omega t),
+ \qquad m>0,\quad k>0.
+\]
+Se eligen
+\[
+ \omega_0=\sqrt{\frac{k}{m}},\qquad
+ \tau=\omega_0t,\qquad x=L u,\qquad
+ L=\sqrt{\frac{k}{|\alpha|}}.
+\]
+Como \(\dot x=L\omega_0u'\) y
+\(\ddot x=L\omega_0^2u''\), al dividir entre \(kL\) resulta
+\[
+ u''+2\zeta u'+u+s u^3=f\cos(\nu\tau),
+\]
+donde las primas representan derivación respecto de \(\tau\) y
+\[
+ \zeta=\frac{c}{2\sqrt{mk}},\qquad
+ s=\operatorname{sgn}(\alpha),\qquad
+ f=\frac{F}{kL},\qquad
+ \nu=\frac{\Omega}{\omega_0}.
+\]
+Los cinco parámetros dimensionales \(m,c,k,\alpha,F,\Omega\) quedan organizados en
+cuatro combinaciones que separan amortiguamiento, signo de la rigidez cúbica,
+intensidad y frecuencia relativa del forzamiento.
+
+\paragraph{Ejemplo de adimensionalización.}
+Sea \(m=1\), \(k=4\), \(c=0.8\), \(\alpha=2\), \(F=1\) y \(\Omega=3\), en unidades
+compatibles. Entonces
+\[
+ \omega_0=2,\qquad L=\sqrt2,\qquad
+ \zeta=\frac{0.8}{2(2)}=0.2,\qquad
+ s=1,
+\]
+\[
+ f=\frac{1}{4\sqrt2}\simeq0.1767767,\qquad
+ \nu=\frac32.
+\]
+La ecuación adimensional queda
+\[
+ u''+0.4u'+u+u^3=0.1767767\cos(1.5\tau).
+\]
+Para convertirla en un flujo autónomo se define \(v=u'\) y una fase
+\(\phi=\nu\tau\):
+\[
+ u'=v,\qquad
+ v'=-0.4v-u-u^3+0.1767767\cos\phi,\qquad
+ \phi'=1.5.
+\]
+La fase crece sin cota, pero el forzamiento depende de ella módulo \(2\pi\). Una
+sección \(\phi=0\pmod{2\pi}\) produce el mapa estroboscópico del oscilador.
+
+\begin{activitybox}{Práctica reproducible: Duffing adimensional}
+Abra \gui{Crear sistema}. Use las variables \texttt{u, v, phi}; parámetros
+\texttt{zeta=0.2}, \texttt{s=1}, \texttt{f=0.176776695},
+\texttt{nu=1.5}; y ecuaciones, en ese orden,
+\texttt{v},
+\texttt{-2*zeta*v-u-s*u**3+f*cos(phi)} y \texttt{nu}.
+Use estado inicial \((0.1,0,0)\), método RK4, paso \(h=0.005\), duración \(200\),
+5000 muestras transitorias y umbral de divergencia \(10^6\). Pulse
+\gui{Validar definicion} y \gui{Simular y graficar}; después reutilice la trayectoria
+en \gui{Retratos 2D} y \gui{Series temporales}. Repita con \(h=0.0025\).
+\end{activitybox}
+
+\paragraph{Lectura de las variables escaladas.}
+En \(u(\tau)\) se observan transitorio, amplitud y modulación; en el retrato
+\((u,v)\), rotación, deformación por el término cúbico y posible acercamiento a un
+régimen. La fase representa la variable que hace autónomo el forzamiento y se integra
+en el estado ampliado del sistema. Dos trayectorias que se separan tarde pueden
+conservar amplitudes, sección estroboscópica y distribución semejantes.
+
+\begin{warningbox}
+La validación de hipótesis físicas requiere su contraste experimental o teórico, y la
+existencia de un atractor requiere evidencia adicional a una trayectoria acotada. La
+comparación entre \(u\) y \(x\) incorpora el factor \(L\), mientras que la fase creciente
+se interpreta mediante el forzamiento periódico del oscilador.
+\end{warningbox}
+
+\lecturaseccion{Robert C. Hilborn, \emph{Chaos and Nonlinear Dynamics: An
+Introduction for Scientists and Engineers}, 2.\textsuperscript{a} ed., capítulo 3,
+``An Introduction to Flows'', y apéndice G, ``The Duffing Oscillator''; Tamás Tél y
+Márton Gruiz, \emph{Chaotic Dynamics: An Introduction Based on Classical Mechanics},
+apéndice A, apartados sobre ecuaciones adimensionales, integración de EDO y programas
+de ejemplo; Frank C. Hoppensteadt, \emph{Analysis and Simulation of Chaotic Systems},
+2.\textsuperscript{a} ed., sección 6.2, apartados sobre Duffing y simulación.}
+
+\subsection{Flujos de una dimensión, potenciales y formas normales}
+
+\paragraph{Campo vectorial en una dimensión.}
+Un flujo autónomo unidimensional tiene la forma
+\[
+ \dot x=f(x;\mu).
+\]
+Los equilibrios satisfacen \(f(x^*;\mu)=0\). Entre dos ceros consecutivos, la
+continuidad de \(f\) mantiene su signo: \(f>0\) orienta la línea de fase hacia la
+derecha y \(f<0\) hacia la izquierda. Si el equilibrio es hiperbólico,
+\[
+ f_x(x^*;\mu)<0\ \Longrightarrow\ \text{estable},\qquad
+ f_x(x^*;\mu)>0\ \Longrightarrow\ \text{inestable}.
+\]
+La unicidad impide que dos soluciones distintas se crucen y descarta órbitas
+periódicas no constantes en la recta.
+
+\paragraph{Representación mediante potencial.}
+Toda ecuación escalar puede escribirse formalmente como
+\[
+ \dot x=-\frac{\mathrm dV}{\mathrm dx},
+ \qquad
+ V(x)=-\int^x f(s)\,\mathrm ds.
+\]
+A lo largo de una solución,
+\[
+ \frac{\mathrm dV}{\mathrm dt}=V'(x)\dot x=-[f(x)]^2\leq0.
+\]
+Los mínimos locales de \(V\) corresponden a equilibrios estables; los máximos, a
+inestables. Su extensión a un sistema general de varias dimensiones requiere una
+justificación específica.
+
+\paragraph{Ejemplo algebraico resuelto: saddle--node.}
+Para
+\[
+ \dot x=\mu-x^2
+\]
+y \(\mu=1/4\), los equilibrios son \(x_\pm=\pm1/2\). Como
+\(f_x=-2x\),
+\[
+ f_x(-1/2)=1>0,\qquad f_x(1/2)=-1<0.
+\]
+Por tanto, \(x_-=-1/2\) es inestable y \(x_+=1/2\) estable. El potencial
+\[
+ V(x)=\frac{x^3}{3}-\mu x
+\]
+tiene un máximo en \(-1/2\) y un mínimo en \(1/2\). Para \(\mu=0\) ambos puntos
+colisionan en \(x=0\), donde \(f_x=0\) y la prueba lineal es inconclusa; para
+\(\mu<0\) ya no hay equilibrio real.
+
+\paragraph{Las tres formas normales escalares.}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.23\linewidth}
+                  >{\raggedright\arraybackslash}p{0.27\linewidth}
+                  >{\raggedright\arraybackslash}p{0.40\linewidth}}
+\toprule
+Mecanismo & Forma normal & Ramas y cambio cualitativo \\
+\midrule
+\endhead
+Saddle--node & \(\dot x=\mu-x^2\) &
+Ninguna rama para \(\mu<0\); dos ramas \(x=\pm\sqrt\mu\) para \(\mu>0\).\\
+Transcrítica & \(\dot x=\mu x-x^2\) &
+Las ramas \(x=0\) y \(x=\mu\) intercambian estabilidad en \(\mu=0\).\\
+Pitchfork supercrítica & \(\dot x=\mu x-x^3\) &
+\(x=0\) pierde estabilidad y nacen \(x=\pm\sqrt\mu\) estables para \(\mu>0\).\\
+\bottomrule
+\end{longtable}
+Estas ecuaciones son representantes locales después de cambios de coordenadas y
+escalas; su uso en un sistema real requiere establecer las hipótesis que conducen a esos polinomios.
+
+\begin{activitybox}{Práctica reproducible: líneas de fase}
+En \gui{Crear sistema}, defina una variable \texttt{x}, un parámetro
+\texttt{mu} y la ecuación \texttt{mu-x**2}. Para
+\(\mu=-0.25,0,0.25\), use los estados iniciales
+\(-1,-0.6,-0.4,0,0.4,0.6,1\), paso \(h=0.01\) y duración \(20\).
+Guarde las series en escalas separadas. Repita para
+\texttt{mu*x-x**2} y \texttt{mu*x-x**3}; antes de simular, dibuje sus ramas y
+prediga el destino de cada condición.
+\end{activitybox}
+
+\paragraph{Lectura de potenciales y retratos lineales.}
+En una serie temporal, la aproximación monótona a un nivel concuerda con una flecha
+de la línea de fase; el escape rápido indica que el intervalo y el modelo deben
+revisarse. Cerca de una bifurcación aparece \term{ralentización crítica}: la tasa
+lineal es pequeña y el transitorio puede ser mucho más largo. Una gráfica contra
+\(\mu\) debe distinguir ramas estables e inestables; las ramas inestables requieren
+continuación o estados iniciales controlados para su representación.
+
+\begin{warningbox}
+Un equilibrio requiere un criterio de convergencia y una rama requiere continuación o
+barridos de parámetros que la localicen. En un
+punto no hiperbólico \(f'(x^*)=0\), el análisis conserva términos no lineales o
+incorpora un estudio de signos.
+\end{warningbox}
+
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 2.1--2.4, 2.7--2.8 y 3.1--3.6; Morris W.
+Hirsch, Stephen Smale y Robert L. Devaney, \emph{Differential Equations, Dynamical
+Systems, and an Introduction to Chaos}, 3.\textsuperscript{a} ed., capítulo 1,
+apartados sobre ecuación logística, cosecha y bifurcaciones.}
+
+\subsection{Sistemas lineales planos y plano traza--determinante}
+
+\paragraph{Matriz del sistema y solución espectral.}
+Para el sistema homogéneo
+\[
+ \dot{\mathbf x}=A\mathbf x,\qquad
+ A=\begin{pmatrix}a&b\\c&d\end{pmatrix},
+\]
+la solución es \(\mathbf x(t)=e^{At}\mathbf x_0\). Los autovalores satisfacen
+\[
+ p(\lambda)=\lambda^2-\tau\lambda+\Delta=0,\qquad
+ \tau=a+d,\quad \Delta=ad-bc.
+\]
+Así,
+\[
+ \lambda_{\pm}=\frac{\tau\pm\sqrt{\tau^2-4\Delta}}{2}.
+\]
+El signo de \(\Delta\) detecta una silla cuando es negativo. Si \(\Delta>0\), el
+signo de \(\tau\) decide atracción o repulsión y el discriminante
+\(\mathcal D=\tau^2-4\Delta\) separa autovalores reales de complejos.
+
+\paragraph{Clasificación algebraica.}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.27\linewidth}
+                  >{\raggedright\arraybackslash}p{0.28\linewidth}
+                  >{\raggedright\arraybackslash}p{0.35\linewidth}}
+\toprule
+Condición & Tipo hiperbólico & Lectura local \\
+\midrule
+\endhead
+\(\Delta<0\) & Silla & Una dirección entra y otra sale.\\
+\(\Delta>0,\ \mathcal D>0,\ \tau<0\) & Nodo estable & Dos tasas reales de
+contracción.\\
+\(\Delta>0,\ \mathcal D>0,\ \tau>0\) & Nodo inestable & Dos tasas reales de
+expansión.\\
+\(\Delta>0,\ \mathcal D<0,\ \tau<0\) & Foco estable & Rotación con contracción.\\
+\(\Delta>0,\ \mathcal D<0,\ \tau>0\) & Foco inestable & Rotación con expansión.\\
+\(\tau=0,\ \Delta>0\) & Centro lineal & Órbitas periódicas neutrales en el sistema
+lineal.\\
+\bottomrule
+\end{longtable}
+Las fronteras \(\Delta=0\) y \(\mathcal D=0\) contienen casos degenerados; la recta
+\(\tau=0\) requiere especial cuidado en problemas no lineales.
+
+\paragraph{Ejemplo de clasificación por traza y determinante.}
+Sea
+\[
+ A=\begin{pmatrix}-1&2\\-2&-1\end{pmatrix}.
+\]
+Entonces \(\tau=-2\), \(\Delta=5\) y
+\(\mathcal D=4-20=-16\), de modo que
+\(\lambda_\pm=-1\pm2i\): el origen es un foco estable. Además,
+\[
+ \frac{\mathrm d}{\mathrm dt}(x^2+y^2)
+ =2x(-x+2y)+2y(-2x-y)=-2(x^2+y^2),
+\]
+por lo que \(r(t)=r_0e^{-t}\). La velocidad angular es
+\[
+ \dot\theta=\frac{x\dot y-y\dot x}{x^2+y^2}=-2.
+\]
+La órbita gira en sentido horario, con periodo angular \(\pi\), mientras su radio
+decrece exponencialmente. Este cálculo explica tanto la forma como la orientación.
+
+\begin{activitybox}{Práctica reproducible: atlas de sistemas lineales}
+En \gui{Crear sistema}, use variables \texttt{x, y} y ecuaciones \texttt{a*x+b*y},
+\texttt{c*x+d*y}. Ejecute: silla \((a,b,c,d)=(1,0,0,-1)\); nodo estable
+\((-1,0,0,-2)\); centro \((0,-1,1,0)\); y foco estable
+\((-1,2,-2,-1)\). Use condiciones \((1,0)\), \((0,1)\), \((1,1)\) y
+\((-1,1)\), RK4, \(h=0.01\), \(T=15\). Reutilice cada trayectoria en
+\gui{Retratos 2D} y verifique sentido de giro y tasas.
+\end{activitybox}
+
+\paragraph{Lectura del plano traza--determinante.}
+En un nodo, las órbitas se alinean con la dirección propia de contracción más lenta;
+en una silla, salvo sobre la variedad estable, terminan dominadas por la dirección
+inestable. En un foco, el espacio entre vueltas cambia exponencialmente. Una escala
+automática puede ocultar esa contracción: conviene fijar límites comparables o usar
+también \(r(t)\).
+
+\begin{warningbox}
+El plano traza--determinante clasifica matrices reales \(2\times2\). El análisis de
+sistemas de otra dimensión requiere herramientas acordes con su Jacobiano. Un centro
+lineal requiere términos de orden superior para determinar si aparece una espiral débil
+o un ciclo límite, y la orientación de giro se obtiene del campo completo además de
+\(\tau\) y \(\Delta\).
+\end{warningbox}
+
+\lecturaseccion{Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+3.\textsuperscript{a} ed., capítulos 2--4, con énfasis en retratos y clasificación
+traza--determinante; Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 5.1--5.2.}
+
+\subsection{Jacobiano, linealización y nullclines}
+
+\paragraph{Jacobiano, linealización y nullclines.}
+Para
+\[
+ \dot x=f(x,y),\qquad \dot y=g(x,y),
+\]
+las \term{nullclines} son los conjuntos \(f=0\) y \(g=0\). Sobre la primera, el
+vector es vertical; sobre la segunda, horizontal. Sus intersecciones son equilibrios.
+El \term{Jacobiano}
+\[
+ J(x,y)=
+ \begin{pmatrix}
+ f_x&f_y\\g_x&g_y
+ \end{pmatrix}
+\]
+produce la aproximación
+\(\dot{\boldsymbol\xi}=J(x^*,y^*)\boldsymbol\xi+O(\|\boldsymbol\xi\|^2)\).
+Si el equilibrio es hiperbólico, la clasificación lineal conserva la estructura
+local cualitativa; si algún autovalor tiene parte real cero, se requieren criterios adicionales.
+
+\paragraph{Ejemplo de Jacobiano y puntos críticos.}
+Considérese
+\[
+ \dot x=x(1-x-y),\qquad
+ \dot y=y\left(x-\frac12\right).
+\]
+Las nullclines son
+\[
+ x=0\ \text{o}\ y=1-x,\qquad
+ y=0\ \text{o}\ x=\frac12.
+\]
+Sus intersecciones relevantes son
+\[
+ E_0=(0,0),\qquad E_1=(1,0),\qquad E_c=(1/2,1/2).
+\]
+El Jacobiano es
+\[
+ J(x,y)=
+ \begin{pmatrix}
+ 1-2x-y&-x\\
+ y&x-\tfrac12
+ \end{pmatrix}.
+\]
+En \(E_0\), \(J=\operatorname{diag}(1,-1/2)\): es una silla. En \(E_1\),
+\[
+ J(E_1)=\begin{pmatrix}-1&-1\\0&1/2\end{pmatrix},
+\]
+también una silla. En \(E_c\),
+\[
+ J(E_c)=
+ \begin{pmatrix}-1/2&-1/2\\1/2&0\end{pmatrix},
+\quad
+ \tau=-\frac12,\quad\Delta=\frac14,\quad
+ \mathcal D=-\frac34.
+\]
+Los autovalores son
+\[
+ \lambda_\pm=-\frac14\pm i\frac{\sqrt3}{4},
+\]
+así que el equilibrio de coexistencia es un foco estable local.
+
+\paragraph{Campo de signos.}
+En el primer cuadrante, \(x\) aumenta debajo de \(y=1-x\) y disminuye encima;
+\(y\) aumenta a la derecha de \(x=1/2\) y disminuye a la izquierda. Esta tabla de
+signos predice el giro alrededor de \(E_c\) antes de integrar. También muestra que los
+ejes son invariantes porque los factores \(x\) y \(y\) impiden cruzarlos desde datos
+positivos.
+
+\begin{activitybox}{Práctica reproducible: nullclines y linealización}
+En \gui{Crear sistema}, use variables \texttt{x, y} y ecuaciones
+\texttt{x*(1-x-y)} y \texttt{y*(x-0.5)}. Simule con RK4,
+\(h=0.01\), \(T=60\), desde \((0.1,0.1)\), \((0.9,0.1)\), \((0.2,0.8)\),
+\((0.8,0.8)\), \((1.4,0.2)\) y \((0.4,1.2)\). En una copia del retrato, dibuje las
+cuatro nullclines y marque los tres equilibrios. Compare la orientación numérica con
+la tabla de signos y repita una trayectoria con \(h/2\).
+\end{activitybox}
+
+\paragraph{Lectura del campo y las nullclines.}
+Las órbitas cruzan una nullcline con tangente vertical u horizontal, salvo en un
+equilibrio. Cerca de \(E_c\), la espiral observada debe contraerse con tasa compatible
+con \(\Re\lambda=-1/4\); lejos de él, la curvatura depende del campo completo. Las
+separatrices de las sillas organizan regiones del plano; una trayectoria
+numérica genérica aproxima esa variedad unidimensional con una precisión dependiente del integrador.
+
+\begin{warningbox}
+Una nullcline localiza donde una componente de la velocidad se anula; la trayectoria y
+las barreras invariantes se determinan a partir del campo completo. El Jacobiano informa
+en una vecindad del equilibrio, mientras que la descripción de cuencas globales y coexistencia exige
+la evidencia correspondiente sobre ciclos. Cuando el estado simulado abandona el dominio físico,
+la revisión del modelo incorpora esa salida y la conserva visible en la gráfica.
+\end{warningbox}
+
+\lecturaseccion{Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+3.\textsuperscript{a} ed., capítulo 8, secciones 8.1--8.5, y capítulo 9, apartados
+sobre nullclines, estabilidad, sistemas gradiente y hamiltonianos; Steven H.
+Strogatz, \emph{Nonlinear Dynamics and Chaos with Applications to Physics, Biology,
+Chemistry, and Engineering}, 2.\textsuperscript{a} ed., secciones 6.1--6.3 y 6.8.}
+
+\subsection{Osciladores, ciclos límite y Poincaré--Bendixson}
+
+\paragraph{Ciclos límite y osciladores planos.}
+Una \term{órbita periódica} satisface
+\(\mathbf x(t+T)=\mathbf x(t)\) para algún \(T>0\). Un \term{ciclo límite} es una
+órbita periódica aislada: las órbitas cercanas pueden aproximarse a ella o alejarse.
+Un centro lineal, en cambio, posee una familia continua de órbitas cerradas y ninguna
+es aislada.
+
+El teorema de Poincaré--Bendixson, en una formulación útil, afirma que si una órbita
+de un flujo plano permanece en una región compacta, su conjunto límite no contiene
+equilibrios y se satisfacen las hipótesis regulares, entonces dicho conjunto es una
+órbita periódica. El teorema delimita los comportamientos posibles al excluir caos determinista sostenido
+en flujos autónomos suaves de dos dimensiones, pero exige demostrar acotación y
+ausencia de equilibrios en el conjunto límite.
+
+\paragraph{Ejemplo algebraico resuelto: normal radial.}
+Considérese
+\[
+ \dot x=(1-x^2-y^2)x-y,\qquad
+ \dot y=x+(1-x^2-y^2)y.
+\]
+Con \(r^2=x^2+y^2\),
+\[
+ \dot r=\frac{x\dot x+y\dot y}{r}=r(1-r^2),\qquad
+ \dot\theta=\frac{x\dot y-y\dot x}{r^2}=1.
+\]
+Los radios equilibrados son \(r=0\) y \(r=1\). Como
+\[
+ g'(r)=1-3r^2,\qquad g'(0)=1,\qquad g'(1)=-2,
+\]
+el origen es inestable y el círculo \(r=1\) es un ciclo límite estable. El periodo es
+\(T=2\pi\). Para una perturbación radial pequeña \(\eta=r-1\),
+\(\dot\eta\simeq-2\eta\), de modo que el multiplicador aproximado de retorno es
+\[
+ M=e^{-2T}=e^{-4\pi}<1.
+\]
+Esto cuantifica la atracción transversal y la distingue de la contracción a un punto.
+
+\paragraph{Exclusión de ciclos.}
+Si la divergencia
+\[
+ \nabla\cdot\mathbf f=f_x+g_y
+\]
+mantiene signo estricto en una región simplemente conexa, el criterio de
+Bendixson--Dulac excluye órbitas periódicas contenidas en ella. Un signo que cambia
+requiere un criterio adicional para decidir la existencia de un ciclo.
+
+\begin{activitybox}{Práctica reproducible: ciclo estable y periodo}
+En \gui{Crear sistema}, use variables \texttt{x, y} y ecuaciones
+\texttt{(1-x**2-y**2)*x-y} y
+\texttt{x+(1-x**2-y**2)*y}. Elija puntos con radios \(0.2,0.8,1.2,2\), por ejemplo
+\((0.2,0)\), \((0.8,0)\), \((1.2,0)\), \((2,0)\). Integre con RK4,
+\(h=0.01\), \(T=30\). En \gui{Series temporales}, estime el periodo con diez máximos;
+en \gui{Retratos 2D}, compruebe acercamiento desde dentro y fuera. Repita con
+\(h=0.005\) y compare periodo y radio medio de las últimas cinco vueltas.
+\end{activitybox}
+
+\paragraph{Lectura de ciclos límite.}
+Una espiral que se acumula sobre una curva cerrada sugiere atracción orbital. La serie
+temporal permite comprobar amplitud y periodo; el retrato muestra aislamiento. Para
+una evidencia más directa se fija una sección transversal y se grafica
+\(r_{n+1}\) contra \(r_n\): un cruce con la diagonal y pendiente de módulo menor que
+uno corresponde a un punto fijo estable del mapa de retorno.
+
+\begin{warningbox}
+Una curva cerrada trazada con pocas muestras puede ser un polígono numérico. Observar
+varias vueltas exige verificar aislamiento y estabilidad. Poincaré--Bendixson se
+aplica directamente a mapas, flujos tridimensionales, campos discontinuos o
+proyecciones planas de una órbita 3D.
+\end{warningbox}
+
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 7.2, 7.3, 7.4, 7.5, 7.6 y 8.7; Morris W.
+Hirsch, Stephen Smale y Robert L. Devaney, \emph{Differential Equations, Dynamical
+Systems, and an Introduction to Chaos}, 3.\textsuperscript{a} ed., capítulo 10,
+apartados sobre conjuntos límite, mapas de Poincaré y teorema de
+Poincaré--Bendixson, y capítulo 12, apartados sobre Liénard y van der Pol.}
+
+\subsection{Bifurcaciones locales y forma normal de Hopf}
+
+\paragraph{Parámetro y cambio de estabilidad.}
+Una \term{bifurcación} es un cambio cualitativo de la dinámica al variar un
+parámetro. En una bifurcación local de equilibrio, la linealización pierde
+hiperbolicidad: un autovalor real cruza cero o un par complejo conjugado cruza el eje
+imaginario. La condición espectral señala el posible punto de bifurcación; las condiciones de
+transversalidad y no degeneración deciden si aparece la forma normal genérica.
+
+\paragraph{Mecanismos de bifurcación local.}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.25\linewidth}
+                  >{\raggedright\arraybackslash}p{0.30\linewidth}
+                  >{\raggedright\arraybackslash}p{0.35\linewidth}}
+\toprule
+Bifurcación & Firma lineal & Consecuencia de la forma normal \\
+\midrule
+\endhead
+Saddle--node & Un autovalor simple pasa por \(0\) &
+Creación o destrucción de dos equilibrios.\\
+Transcrítica & Un autovalor pasa por \(0\), con ramas preexistentes &
+Dos ramas intercambian estabilidad.\\
+Pitchfork & Autovalor \(0\) y simetría apropiada &
+Una rama simétrica se divide o se reúne.\\
+Hopf & \(\lambda_{1,2}(\mu)=\alpha(\mu)\pm i\omega(\mu)\),
+\(\alpha(0)=0\), \(\omega(0)\ne0\) &
+Nace o muere un ciclo pequeño; su estabilidad depende del término cúbico.\\
+\bottomrule
+\end{longtable}
+
+\paragraph{Ejemplo algebraico resuelto: Hopf supercrítica.}
+La ecuación compleja
+\[
+ \dot z=(\mu+i\omega)z-|z|^2z,\qquad \omega>0,
+\]
+equivale, con \(z=re^{i\theta}\), a
+\[
+ \dot r=\mu r-r^3,\qquad \dot\theta=\omega.
+\]
+En el origen, los autovalores son \(\mu\pm i\omega\). Para \(\mu<0\), el origen es
+estable y no hay radio positivo equilibrado. Para \(\mu>0\), el origen es inestable
+y aparece
+\[
+ r_*=\sqrt{\mu},\qquad T=\frac{2\pi}{\omega}.
+\]
+Como \(\partial_r(\mu r-r^3)|_{r_*}=\mu-3\mu=-2\mu<0\), el ciclo es estable. Si
+\(\mu=0.09\) y \(\omega=2\), entonces \(r_*=0.3\), \(T=\pi\) y el multiplicador
+radial lineal por vuelta es
+\[
+ M=e^{-2\mu T}=e^{-0.18\pi}\simeq0.568.
+\]
+La amplitud sigue la ley de escala \(\sqrt\mu\) respecto de \(\mu\).
+
+\begin{activitybox}{Práctica reproducible: cruce de Hopf}
+En \gui{Crear sistema}, use variables \texttt{x, y}, parámetros
+\texttt{mu} y \texttt{omega=2}, y ecuaciones
+\texttt{mu*x-omega*y-(x**2+y**2)*x} y
+\texttt{omega*x+mu*y-(x**2+y**2)*y}. Ejecute
+\(\mu=-0.09,0,0.09,0.25\) desde \((0.05,0)\) y \((0.8,0)\), con RK4,
+\(h=0.005\), \(T=80\). Estime en cada caso el radio tardío y el periodo. Grafique
+\(r^2\) contra \(\mu\): la predicción exacta de la forma normal es
+\(r^2=\mu\) para \(\mu>0\).
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\linewidth]{hopf_bifurcation_example.png}
+\caption{Ejemplo generado para Toolbox Chaos de un cambio tipo Hopf. La lectura
+correcta combina la estabilidad del equilibrio, la amplitud de la órbita y el
+parámetro; la identificación de condiciones de genericidad requiere proyecciones y pruebas adicionales.}
+\label{fig:hopf-fundamentos-ampliados}
+\end{figure}
+
+\paragraph{Interpretación de la gráfica de bifurcación.}
+En un diagrama amplitud--parámetro, la rama \(r=0\) cambia de estabilidad en
+\(\mu=0\) y la rama \(r=\sqrt\mu\) nace con tangente vertical. En una simulación, el
+tiempo de relajación crece cerca de cero porque la tasa \(|2\mu|\) disminuye. Si el
+transitorio se mantiene fijo durante un barrido, ese retraso puede deformar la rama o
+hacer parecer que existe histéresis.
+
+\begin{warningbox}
+Un par de autovalores con parte real próxima a cero motiva la verificación de una
+bifurcación de Hopf mediante cruce transversal, no degeneración y presencia
+del ciclo. Un barrido en ambas direcciones distingue transitorio, coexistencia e
+histéresis; la estabilidad de una rama requiere un criterio adicional a los estados visitados.
+\end{warningbox}
+
+\lecturaseccion{Steven H. Strogatz, \emph{Nonlinear Dynamics and Chaos with
+Applications to Physics, Biology, Chemistry, and Engineering},
+2.\textsuperscript{a} ed., secciones 3.1--3.6 y 8.1--8.4; John Guckenheimer y Philip
+Holmes, \emph{Nonlinear Oscillations, Dynamical Systems, and Bifurcations of Vector
+Fields}, capítulo 3, apartados sobre variedades centrales, formas normales y
+bifurcaciones locales; Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+3.\textsuperscript{a} ed., sección 8.5, ``Bifurcations'', y capítulo 12, apartado
+sobre bifurcación de Hopf.}
+
+\subsection*{Criterios de análisis para sistemas planos}
+\addcontentsline{toc}{subsection}{Síntesis operativa de los fundamentos}
+
+\begin{evidencebox}{Cadena mínima antes de hablar de caos}
+Primero declare el estado y escale el modelo. Después determine equilibrios,
+nullclines y Jacobiano; construya una predicción local y un retrato global; compruebe
+el integrador y retire el transitorio. Con esa cadena establecida, calcule
+bifurcaciones, exponentes, espectros o dimensiones. Esta secuencia permite
+distinguir un mecanismo dinámico de un artefacto de modelado o de discretización.
+\end{evidencebox}
+
+\begin{activitybox}{Problema integrador de fundamentos}
+Elija un sistema plano propio. Entregue: variables y unidades; forma adimensional;
+equilibrios; Jacobiano; clasificación traza--determinante; nullclines; regiones de
+signo; una afirmación sobre ciclos basada en Poincaré--Bendixson o Bendixson--Dulac;
+cuatro trayectorias reproducibles en \gui{Crear sistema}; y una comparación con
+\(h/2\). Termine con dos columnas: ``evidencia disponible'' y ``evidencia adicional requerida''.
+\end{activitybox}

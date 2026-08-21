@@ -812,7 +812,7 @@ def vector_field(system_key: str, state, params):
     if system_key == 'sprott_h':
         return np.array([-x[1] + x[2] ** 2, x[0] + 0.5 * x[1], x[0] - x[2]])
     if system_key == 'sprott_i':
-        return np.array([0.2 * x[1], x[0] + x[2], x[0] + x[1] ** 2 - x[2]])
+        return np.array([-0.2 * x[1], x[0] + x[2], x[0] + x[1] ** 2 - x[2]])
     if system_key == 'sprott_j':
         return np.array([2.0 * x[2], -2.0 * x[1] + x[2], -x[0] + x[1] + x[1] ** 2])
     if system_key == 'sprott_k':
@@ -832,7 +832,7 @@ def vector_field(system_key: str, state, params):
     if system_key == 'sprott_r':
         return np.array([0.9 - x[1], 0.4 + x[2], x[0] * x[1] - x[2]])
     if system_key == 'sprott_s':
-        return np.array([x[0] - 4.0 * x[1], x[0] + x[2] ** 2, 1.0 + x[0]])
+        return np.array([-x[0] - 4.0 * x[1], x[0] + x[2] ** 2, 1.0 + x[0]])
     if system_key == 'thomas':
         b = p[0]
         return np.array([np.sin(x[1]) - b * x[0], np.sin(x[2]) - b * x[1], np.sin(x[0]) - b * x[2]])
@@ -1239,12 +1239,40 @@ def bifurcation_generic_python(system_key, initial, params, param_idx, param_min
     return out_param[:out_count].copy(), out_value[:out_count].copy()
 
 
+def _native_initial_state3(system_key, initial):
+    """Return the three-slot state expected by the native ABI.
+
+    One- and two-dimensional maps expose only their active coordinates in the
+    GUI.  The native backend nevertheless uses a fixed three-double state, so
+    the inactive coordinates are filled with zero at this boundary.  Existing
+    callers that already provide three values remain supported.
+    """
+    values = np.asarray(initial, dtype=float).reshape(-1)
+    dimension = int(SYSTEM_REGISTRY[system_key].get('dimension', values.size))
+    if values.size == 3:
+        return values
+    if dimension <= 3 and values.size == dimension:
+        padded = np.zeros(3, dtype=float)
+        padded[:dimension] = values
+        return padded
+    raise ValueError(
+        f'initial debe contener {dimension} valores activos o el estado nativo de 3 componentes.'
+    )
+
+
 def simulate_system(system_key, initial, params, dt, T, method_key='rk4'):
     meta = SYSTEM_REGISTRY[system_key]
     dim = meta.get('dimension', len(initial))
     if dim > 3:
         return simulate_system_python(system_key, initial, params, dt, T, method_key)
-    return simulate_system_native(system_key, initial, _as_params(system_key, params), dt, T, method_key)
+    return simulate_system_native(
+        system_key,
+        _native_initial_state3(system_key, initial),
+        _as_params(system_key, params),
+        dt,
+        T,
+        method_key,
+    )
 
 
 def _local_maxima_values(values, max_points):
@@ -1275,7 +1303,7 @@ def bifurcation_generic(system_key, initial, params, param_idx, param_min, param
         )
     return bifurcation_generic_native(
         system_key,
-        initial,
+        _native_initial_state3(system_key, initial),
         _as_params(system_key, params),
         param_idx,
         param_min,

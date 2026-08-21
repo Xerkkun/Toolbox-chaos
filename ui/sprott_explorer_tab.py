@@ -890,46 +890,9 @@ class SprottExplorerTab(QWidget):
     def _build_tutorial_tab(self):
         widget = QWidget()
         layout = QGridLayout(widget)
-        text = (
-            '# Tutorial Sprott\n\n'
-            '## 1. Ver una figura rapidamente\n'
-            'Pulsa **▶ Simular ejemplo rápido** en la pestaña Exploración. También puedes ir a Ejemplos, '
-            'cargar `SELECTED.DIC`, filtrar `solo simulables`, seleccionar un codigo y pulsar '
-            '**Simular con estilo recomendado**. Después cambia `Color por` a `z` o `tiempo` y exporta.\n\n'
-            '## 2. Entender un codigo\n'
-            'Copia el codigo, abre Codigos, decodifica y compara familia, dimension, orden y ecuaciones con la trayectoria.\n\n'
-            '## 3. Crear una imagen propia\n'
-            'En Exploracion usa `map`, dimension 3, orden 2, genera un codigo, busca candidato, aumenta iteraciones '
-            'y prueba color por `z`, `radio` o `tiempo`.\n\n'
-            '## 4. Mejorar una imagen pobre\n'
-            'Si parece una linea simple, aumenta iteraciones/transitorio o cambia proyeccion. Si diverge, reduce `h` '
-            'en flujos o usa RK4. Si esta muy dispersa, baja tamano de punto y opacidad.\n\n'
-            '## 5. Exportar y citar\n'
-            'Exporta PNG/CSV/JSON o agrega la imagen a Galeria con el botón **💾 Guardar en galería** junto a la gráfica. '
-            'Cita a Sprott y no redistribuyas archivos originales.\n\n'
-            '## Como leer el libro con la toolbox\n'
-            'Puedes usar el libro fisico de Sprott como guia de navegacion por los codigos del .DIC local:\n'
-            '- Pulsa **📖 Modo lectura del libro físico** abajo para ir directamente al modo lectura.\n'
-            '- Carga `BOOKFIGS.DIC` con **Cargar BOOKFIGS.DIC completo** para ver los 350+ códigos.\n'
-            '- Usa **Capítulo (lineas)** para filtrar el rango de lineas del capitulo que estas leyendo.\n'
-            '- Selecciona un codigo y pulsa **Simular con estilo recomendado**.\n'
-            '- Si la figura coincide con el libro, marca **Visto**.\n'
-            '- Si no coincide todavia, marca **No coincide** y escribe una nota con el numero de pagina.\n'
-            '- Al terminar el capitulo, cambia el filtro a **solo pendientes** para ver que falta.\n'
-            '- Guarda con **💾 Guardar en galería**: el JSON incluye la linea del .DIC, las marcas y la cita a Sprott.\n\n'
-            '## Receta: Quiero una imagen bonita rapido\n'
-            'Pulsa **Preset Color por profundidad** abajo — navega a Exploracion y simula automáticamente. O ve a Ejemplos, '
-            'elige **Primera imagen bonita** y pulsa **Simular con estilo recomendado**.\n\n'
-            '## Receta: Quiero algo parecido al espiritu visual del libro\n'
-            'Usa un ejemplo 3D, proyeccion `x-y`, color por `z`, paleta `Turbo`, fondo negro, puntos pequenos, muchas iteraciones y sin ejes.\n\n'
-            '## Receta: Quiero bandas\n'
-            'Usa un ejemplo 4D o de bandas, color por `w` o `radio`, `band_count=12` o `16`, fondo negro y paleta ciclica.\n\n'
-            '## Receta: Quiero explorar mis archivos de Sprott\n'
-            'Carga `SELECTED.DIC`, filtra simulables, simula con estilo recomendado y guarda en Galeria local. Para lotes, usa **Generar galeria local desde este .DIC**.\n\n'
-            '## Receta: Quiero crear ejemplos nuevos\n'
-            'Usa Buscar candidato con mas intentos, guarda el codigo, ajusta estilo y exporta metadatos. Los scripts en `tools/` ayudan a proponer y promover ejemplos sinteticos.'
-        )
-        layout.addWidget(self._markdown_browser(text), 0, 0, 1, 2)
+        # The complete pedagogical tutorial lives in the compiled manual so the
+        # embedded view, external PDF and distributed documentation stay equal.
+        layout.addWidget(self._pdf_guide_or_browser(), 0, 0, 1, 2)
         actions = QGroupBox('Acciones rapidas')
         action_layout = QVBoxLayout(actions)
 
@@ -1096,7 +1059,7 @@ class SprottExplorerTab(QWidget):
         return make_pdf_viewer(pdf_path, title, fallback_html)
 
     def _theory_page_browser(self):
-        pdf_path = bundled_doc_path('sprott_theory.pdf')
+        pdf_path = bundled_doc_path('manual_teorico_pedagogico.pdf')
         if not QT_PDF_AVAILABLE and not pdf_path.exists():
             # No PDF and no viewer: fall back to markdown text
             text = (
@@ -1107,11 +1070,11 @@ class SprottExplorerTab(QWidget):
             return self._markdown_browser(text)
         return self._make_pdf_viewer(
             pdf_path,
-            title='Teor\u00eda del Explorador Sprott',
+            title='Manual te\u00f3rico pedag\u00f3gico',
         )
 
     def _pdf_guide_or_browser(self):
-        pdf_path = bundled_doc_path('sprott_explorer_guide.pdf')
+        pdf_path = bundled_doc_path('manual_explorador_sprott.pdf')
         if not QT_PDF_AVAILABLE and not pdf_path.exists():
             text = (
                 self._read_asset('theory_intro.md') + '\n\n'
@@ -1121,7 +1084,7 @@ class SprottExplorerTab(QWidget):
             return self._markdown_browser(text)
         return self._make_pdf_viewer(
             pdf_path,
-            title='Gu\u00eda del Explorador Sprott',
+            title='Manual pedag\u00f3gico del Explorador Sprott',
         )
 
     def apply_preset(self):

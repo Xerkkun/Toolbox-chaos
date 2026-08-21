@@ -793,7 +793,7 @@ static void rhs3_generic(int system_id, double x, double y, double z,
         return;
     }
     if (system_id == SYS_SPROTT_I) {
-        *dx = 0.2 * y;
+        *dx = -0.2 * y;
         *dy = x + z;
         *dz = x + y * y - z;
         return;
@@ -853,7 +853,7 @@ static void rhs3_generic(int system_id, double x, double y, double z,
         return;
     }
     if (system_id == SYS_SPROTT_S) {
-        *dx = x - 4.0 * y;
+        *dx = -x - 4.0 * y;
         *dy = x + z * z;
         *dz = 1.0 + x;
         return;

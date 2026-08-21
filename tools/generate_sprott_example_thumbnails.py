@@ -66,7 +66,10 @@ def render_example_thumbnail(example: dict, output_path: str | Path, *, app: QAp
         trajectory = result['trajectory']
     config = SprottVisualConfig.from_dict(example.get('visual', {}))
     canvas = Sprott2DCanvas()
-    canvas.plot_trajectory(trajectory, config, title=example.get('starter_label') or example.get('name', example['id']))
+    # The surrounding manual or web card supplies the explanatory caption.
+    # Keeping the raster titleless prevents duplicated headings and gives the
+    # trajectory the full plotting area.
+    canvas.plot_trajectory(trajectory, config, title='')
     canvas.export_thumbnail(target)
     canvas.deleteLater()
     app.processEvents()
@@ -99,12 +102,20 @@ def generate_thumbnails(
     examples_file: str | Path | None = None,
     output_dir: str | Path | None = None,
     update_json: bool = True,
+    ids: Iterable[str] | None = None,
     limit: int | None = None,
 ) -> list[Path]:
     source = Path(examples_file) if examples_file else examples_path()
     output = Path(output_dir) if output_dir else default_thumbnail_dir()
     data = _read_examples_document(source)
     examples = list(data.get('examples', []))
+    requested_ids = set(ids or [])
+    if requested_ids:
+        examples = [example for example in examples if example.get('id') in requested_ids]
+        found_ids = {example.get('id') for example in examples}
+        missing_ids = sorted(requested_ids - found_ids)
+        if missing_ids:
+            raise ValueError(f"Example ids not found: {', '.join(missing_ids)}")
     if limit is not None:
         examples = examples[: int(limit)]
     app = QApplication.instance() or QApplication([])
@@ -129,12 +140,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--examples', default=str(examples_path()), help='Path to synthetic_examples.json.')
     parser.add_argument('--output-dir', default=str(default_thumbnail_dir()), help='Directory for PNG thumbnails.')
     parser.add_argument('--no-update-json', action='store_true', help='Do not update thumbnail fields in the JSON.')
+    parser.add_argument('--ids', nargs='*', default=[], help='Render only these example ids.')
     parser.add_argument('--limit', type=int, default=None, help='Render only the first N examples.')
     args = parser.parse_args(argv)
     paths = generate_thumbnails(
         examples_file=args.examples,
         output_dir=args.output_dir,
         update_json=not args.no_update_json,
+        ids=args.ids,
         limit=args.limit,
     )
     for path in paths:

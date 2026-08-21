@@ -29,7 +29,9 @@ DEFAULT_RELEASE_API_URL = (
     'https://api.github.com/repos/Xerkkun/toolbox-chaos/releases/latest'
 )
 UPDATE_CHECK_INTERVAL_DAYS = 7
-DOCUMENTATION_ENTRY = 'docs/user-guide.md'
+DOCUMENTATION_ENTRY = (
+    'resources/bundled/docs/manual_usuario_toolbox_chaos.pdf'
+)
 
 
 def project_root() -> Path:

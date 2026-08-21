@@ -12,6 +12,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QLabel, QSizePolicy
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib import colormaps
 from matplotlib.figure import Figure
 from matplotlib.colors import ListedColormap
 
@@ -101,8 +102,19 @@ class Sprott2DCanvas(FigureCanvas):
             self.ax.hexbin(x, y, gridsize=170, cmap=cmap, mincnt=1, linewidths=0, alpha=cfg.alpha)
         else:
             if cfg.draw_mode in {'linea', 'linea + puntos'}:
-                line_color = constant_color if cvals is None else '#94a3b8'
-                self.ax.plot(x, y, color=line_color, linewidth=max(0.25, cfg.point_size * 0.55), alpha=min(0.95, cfg.alpha))
+                if cvals is None:
+                    line_color = constant_color
+                elif cfg.background in {'negro', 'azul oscuro'}:
+                    line_color = '#e2e8f0'
+                else:
+                    line_color = '#475569'
+                self.ax.plot(
+                    x,
+                    y,
+                    color=line_color,
+                    linewidth=max(0.65, cfg.point_size * 0.7),
+                    alpha=min(1.0, cfg.alpha),
+                )
             if cfg.draw_mode in {'puntos', 'linea + puntos'}:
                 if cvals is None:
                     self.ax.scatter(x, y, s=cfg.point_size, color=constant_color, alpha=cfg.alpha, linewidths=0, rasterized=True)
@@ -225,7 +237,13 @@ class Sprott2DCanvas(FigureCanvas):
     def _colormap(self, cfg: SprottVisualConfig):
         if cfg.palette == 'Sprott clasica':
             return ListedColormap(['#111827', '#1d4ed8', '#f59e0b', '#f8fafc'])
-        return mpl_colormap_name(cfg.palette)
+        cmap = colormaps[mpl_colormap_name(cfg.palette)]
+        if cfg.background in {'negro', 'azul oscuro'}:
+            # Sequential maps often start almost black.  On a dark canvas that
+            # erases a sizeable part of the orbit, so keep the informative,
+            # luminous portion of the same palette.
+            return ListedColormap(cmap(np.linspace(0.38, 1.0, 256)))
+        return cmap
 
     def export_image(self, path: str | Path, *, dpi: int | None = None):
         target = Path(path)

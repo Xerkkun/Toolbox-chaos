@@ -240,7 +240,52 @@ if (-not (Test-Path -LiteralPath $exePath)) {
 }
 
 $selfTestOutput = Join-Path $repoRoot "build\pyinstaller\windows-self-test.json"
-Invoke-Checked -FilePath $exePath -Arguments @('--self-test-output', $selfTestOutput)
+$selfTestRuntime = Join-Path $repoRoot "build\pyinstaller\windows-self-test-runtime"
+$selfTestCache = Join-Path $selfTestRuntime "numba-cache"
+$selfTestTemp = Join-Path $selfTestRuntime "temp"
+Clear-GeneratedDirectory -Path $selfTestRuntime
+New-Item -ItemType Directory -Force -Path $selfTestCache, $selfTestTemp | Out-Null
+if (Test-Path -LiteralPath $selfTestOutput) {
+    Remove-Item -LiteralPath $selfTestOutput -Force
+}
+
+$selfTestEnvironment = @(
+    "NUMBA_CACHE_DIR",
+    "NUMBA_NUM_THREADS",
+    "NUMBA_THREADING_LAYER",
+    "QT_QPA_PLATFORM",
+    "TEMP",
+    "TMP"
+)
+$savedSelfTestEnvironment = @{}
+foreach ($name in $selfTestEnvironment) {
+    $savedSelfTestEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
+}
+
+try {
+    $env:NUMBA_CACHE_DIR = $selfTestCache
+    $env:NUMBA_NUM_THREADS = "2"
+    $env:NUMBA_THREADING_LAYER = "workqueue"
+    $env:QT_QPA_PLATFORM = "offscreen"
+    $env:TEMP = $selfTestTemp
+    $env:TMP = $selfTestTemp
+
+    $selfTestProcess = Start-Process -FilePath $exePath -ArgumentList @(
+        '--self-test-output',
+        "`"$selfTestOutput`""
+    ) -WorkingDirectory $repoRoot -PassThru -Wait -WindowStyle Hidden
+    if ($selfTestProcess.ExitCode -ne 0) {
+        throw "Packaged self-test failed with exit code $($selfTestProcess.ExitCode)."
+    }
+} finally {
+    foreach ($name in $selfTestEnvironment) {
+        [Environment]::SetEnvironmentVariable(
+            $name,
+            $savedSelfTestEnvironment[$name],
+            "Process"
+        )
+    }
+}
 Invoke-Checked -FilePath $venvPython -Arguments @(
     (Join-Path $repoRoot 'scripts\validate_self_test_output.py'),
     $selfTestOutput

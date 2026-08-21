@@ -1,0 +1,1212 @@
+% Geometría, topología y memoria. Se incluye desde manual_teorico_pedagogico.tex.
+
+\section{Geometría, topología y memoria en sistemas dinámicos}
+\label{sec:geometria-topologia-memoria}
+
+\begin{objectivebox}
+Construir una lectura universitaria del sistema dinámico como objeto geométrico:
+identificar el espacio donde vive, pasar del problema de valor inicial al flujo,
+reconocer invariancia y atracción, estudiar la deformación local de perturbaciones y
+reducir órbitas periódicas a mapas de retorno. La última parte explica qué cambia
+cuando la evolución conserva memoria mediante una derivada de Caputo y deriva el
+esquema ABM--PECE desde la ecuación integral de Volterra.
+\end{objectivebox}
+
+Este capítulo reúne ideas que suelen estudiarse en cursos distintos. La topología
+aporta el vocabulario de vecindad, frontera, continuidad y compacidad. La geometría
+diferencial permite interpretar un campo como una dirección tangente en cada estado.
+La teoría cualitativa de ecuaciones diferenciales organiza órbitas, conjuntos límite,
+variedades invariantes y retornos. El análisis numérico convierte esas construcciones
+en experimentos y conserva sus hipótesis explícitas. El propósito es aprender a moverse
+entre esos cuatro niveles con sus funciones diferenciadas.
+
+La secuencia de trabajo será siempre la misma. Primero se declara el espacio de
+fases y el modelo; después se obtiene una propiedad analítica; luego se decide qué
+gráfica puede hacerla visible; finalmente se delimita el alcance de la evidencia disponible.
+Esta disciplina vincula cada figura con las conclusiones que su método sostiene.
+
+\subsection{Topología del espacio de fases}
+
+\paragraph{Abiertos, vecindades y continuidad.}
+Una topología sobre un conjunto $X$ es una familia $\mathcal T$ de subconjuntos,
+llamados abiertos, que contiene a $\varnothing$ y a $X$, es cerrada bajo uniones
+arbitrarias y bajo intersecciones finitas. Una vecindad de $x$ es cualquier conjunto
+que contiene un abierto al que pertenece $x$. Esta definición parece abstracta, pero
+responde una pregunta concreta: ¿qué significa que dos estados sean próximos y que
+una solución dependa continuamente de su condición inicial?
+
+En $\R^n$ se usa normalmente la topología inducida por la distancia euclídea
+
+\begin{equation}
+ d_2(x,y)=\left(\sum_{j=1}^{n}|x_j-y_j|^2\right)^{1/2}.
+ \label{eq:gt-metrica-euclidea}
+\end{equation}
+
+Una función $h:X\to Y$ es continua si la preimagen de todo abierto de $Y$ es abierta
+en $X$. La formulación por preimágenes no depende de coordenadas particulares y por
+eso resulta adecuada al comparar modelos escritos con variables distintas.
+
+\paragraph{Interior, clausura y frontera.}
+Para $A\subset X$, el interior $\operatorname{int}A$ reúne los puntos que poseen una
+vecindad contenida en $A$; la clausura $\overline A$ añade todos sus puntos de
+acumulación. La frontera es
+
+\begin{equation}
+ \partial A=\overline A\setminus\operatorname{int}A.
+ \label{eq:gt-frontera}
+\end{equation}
+
+Toda vecindad de un punto de $\partial A$ encuentra puntos de $A$ y de su
+complemento. Una frontera calculada sobre una malla sólo aproxima esta definición:
+el último píxel de un color sólo registra una aproximación del conjunto matemático
+$\partial A$.
+
+\paragraph{Compacidad y conexidad.}
+Un conjunto compacto de $\R^n$ es cerrado y acotado. Esta equivalencia no se
+traslada automáticamente a espacios generales, pero en el curso será una herramienta
+frecuente: permite extraer subsucesiones convergentes y evita que una órbita salga a
+distancias arbitrarias dentro del conjunto considerado. Un conjunto conexo no puede
+separarse en dos abiertos relativos, disjuntos y no vacíos. Compacidad controla la
+posibilidad de tomar límites; conexidad controla la posibilidad de separar el objeto.
+
+\paragraph{Producto y cociente.}
+Algunos espacios de fases adoptan una geometría distinta de $\R^n$. En un péndulo, el ángulo satisface
+$\theta\sim\theta+2\pi k$; por ello el estado natural es
+$S^1\times\R$, no un rectángulo con dos bordes físicos diferentes. Una distancia
+angular compatible es
+
+\begin{equation}
+ d_{S^1}(\theta_1,\theta_2)
+ =\min_{k\in\mathbb Z}|\theta_1-\theta_2+2\pi k|.
+ \label{eq:gt-distancia-circular}
+\end{equation}
+
+Si una curva cruza el borde derecho de una gráfica angular y reaparece en el
+izquierdo, no ha saltado en el espacio de fases: la discontinuidad pertenece a la
+carta usada para dibujarla. Esta distinción es decisiva al interpretar trayectorias,
+retornos y distancias.
+
+\begin{activitybox}{Práctica reproducible: una frontera exacta y su aproximación}
+En \gui{Crear sistema} defina las variables \code{x,y,z}, sin parámetros, con
+ecuaciones \code{x-x**3}, \code{-y} y \code{-z}. Use RK4,
+$h=0.01$, $T=20$ y los estados iniciales
+$(0.25,0.5,0.2)$, $(-0.25,0.5,0.2)$, $(0.01,0.5,0.2)$ y
+$(-0.01,0.5,0.2)$. Guarde las series y los retratos con nombres que incluyan el
+signo de $x_0$. Antes de simular, demuestre con una línea de fase que $x=0$ es la
+frontera entre los destinos $x=1$ y $x=-1$. Después explique por qué cuatro
+trayectorias ilustran esa conclusión, pero no la sustituyen.
+\end{activitybox}
+
+\paragraph{Lectura topológica de las gráficas.}
+Una serie temporal informa cómo se recorre el estado; un retrato de fase informa qué
+región se visita; una gráfica de condiciones iniciales informa qué destino se asignó
+a cada punto. Ninguna vista contiene por sí sola las otras dos. Si una separación
+parece brusca, hay que preguntar si procede de la dinámica, de la identificación de
+coordenadas, de una tolerancia del clasificador o de la resolución elegida.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{topology_neighborhood_boundary.png}
+\caption{Lectura mínima de un conjunto en el espacio de fases: (a) una vecindad
+abierta alrededor de un punto, (b) interior y frontera, y (c) clausura frente al
+complemento. El trazo de la frontera es información geométrica; la pertenencia y la
+apertura son propiedades del conjunto y de la topología elegida.}
+\label{fig:gt-topologia-minima}
+\end{figure}
+
+\lecturaseccion{Eduardo Nahmad-Achar, \emph{Topología y geometría diferencial con
+aplicaciones a la física}, capítulos sobre espacios topológicos, variedades y campos;
+Morris W. Hirsch, Stephen Smale y Robert L. Devaney, \emph{Differential Equations,
+Dynamical Systems, and an Introduction to Chaos}, capítulos 1--3.}
+
+\subsection{Problema de valor inicial y flujo}
+
+Considérese una ecuación autónoma
+
+\begin{equation}
+ \dot x=f(x),\qquad x(0)=x_0,\qquad x\in U\subset\R^n.
+ \label{eq:gt-pvi}
+\end{equation}
+
+Si $f$ es localmente Lipschitz, el teorema de Picard--Lindelöf proporciona una
+solución local única. La palabra \emph{local} importa: un campo polinómico puede
+tener solución sólo hasta un tiempo finito si no se dispone de una cota que impida
+el crecimiento sin límite. Cuando la solución existe en el intervalo requerido se
+define
+
+\begin{equation}
+ \Phi_t(x_0)=x(t;x_0).
+ \label{eq:gt-flujo-def}
+\end{equation}
+
+La autonomía y la unicidad producen la ley de composición
+
+\begin{equation}
+ \Phi_0=\operatorname{id},\qquad
+ \Phi_{t+s}=\Phi_t\circ\Phi_s.
+ \label{eq:gt-ley-flujo}
+\end{equation}
+
+La derivación es breve. Las funciones $u(t)=\Phi_{t+s}(x_0)$ y
+$v(t)=\Phi_t(\Phi_s(x_0))$ resuelven la misma ecuación y comparten el dato inicial
+$u(0)=v(0)=\Phi_s(x_0)$. Por unicidad, coinciden. Si cada solución puede prolongarse
+hacia tiempos positivos y negativos, $\Phi_t$ es un flujo; si sólo se dispone de
+$t\geq0$, se habla de semiflujo.
+
+\paragraph{Órbita e invariancia.}
+La órbita de $x_0$ es el conjunto de estados visitados,
+
+\begin{equation}
+ \mathcal O(x_0)=\{\Phi_t(x_0):t\in I_{x_0}\}.
+ \label{eq:gt-orbita}
+\end{equation}
+
+Un conjunto $A$ es positivamente invariante si $\Phi_t(A)\subseteq A$ para todo
+$t\geq0$. Es invariante si la igualdad se conserva para todo tiempo admisible. La
+invariancia es una afirmación sobre todas las trayectorias que comienzan en $A$, no
+una impresión obtenida de una curva dibujada dentro de él.
+
+Para una región $N=\{x:h(x)\leq0\}$ con frontera regular, el signo de la derivada de
+Lie
+
+\begin{equation}
+ L_fh(x)=\nabla h(x)^{\mathsf T}f(x)
+ \label{eq:gt-derivada-lie}
+\end{equation}
+
+indica si el campo entra o sale. Si $L_fh<0$ en $\partial N$, el campo apunta
+estrictamente hacia el interior y $N$ es positivamente invariante. Una integral
+promedio negativa sobre la frontera requiere controlar el signo punto
+por punto o usar un argumento global distinto.
+
+\paragraph{Ejemplo resuelto: contracción anisótropa.}
+Para
+
+\begin{equation}
+ \dot x=-x,\qquad \dot y=-2y,
+ \label{eq:gt-lineal-contractivo}
+\end{equation}
+
+la solución es
+
+\begin{equation}
+ \Phi_t(x_0,y_0)=(e^{-t}x_0,e^{-2t}y_0).
+ \label{eq:gt-flujo-contractivo}
+\end{equation}
+
+Cada eje y cada cuadrante cerrado son positivamente invariantes. Las órbitas se
+aproximan al origen, pero no lo hacen a la misma velocidad: la componente $y$ pierde
+una fracción fija más rápido. En un retrato de fase se obtiene
+$y=Cx^2$ dentro de cada región de signo constante. La geometría de la curva elimina
+el tiempo; la serie temporal conserva las tasas.
+
+\begin{activitybox}{Ejercicio con pista: flujo e invariancia}
+Para \eqref{eq:gt-lineal-contractivo}, compruebe directamente
+\eqref{eq:gt-ley-flujo}. Después use
+$V(x,y)=x^2+y^2$ y calcule $\dot V$. ¿Qué discos son positivamente invariantes?
+\textbf{Pista:} $\dot V=-2x^2-4y^2$; compare el signo en cada circunferencia y no
+confunda invariancia del disco con invariancia de cada circunferencia.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{flow_invariance_trapping.png}
+\caption{Dos lecturas complementarias del flujo contractivo: (a) órbitas orientadas
+por el campo y (b) transporte de una región $D$ hacia $\varphi_t(D)$. Que la imagen
+quede contenida en $D$ expresa invariancia positiva de la región, no invariancia de
+cada curva dibujada en su interior.}
+\label{fig:gt-flujo-invariancia}
+\end{figure}
+
+\lecturaseccion{Jessica Angélica Jaurez Rosas, Laura Ortiz Bobadilla, Jesús Alberto
+Palma Márquez y Ernesto Rosales González, \emph{Teoría geométrica de ecuaciones
+diferenciales I}, capítulos sobre existencia, unicidad y flujo; Steven H. Strogatz,
+\emph{Nonlinear Dynamics and Chaos}, capítulos 2 y 5.}
+
+\subsection{Conjuntos límite, atracción y regiones atrapantes}
+
+Una trayectoria larga puede continuar moviéndose aunque deje de visitar regiones
+nuevas. El conjunto $\omega$-límite registra lo que permanece accesible a tiempos
+arbitrariamente grandes:
+
+\begin{equation}
+ \omega(x)=\bigcap_{T\geq0}
+ \overline{\{\Phi_t(x):t\geq T\}}.
+ \label{eq:gt-omega}
+\end{equation}
+
+Si la semiórbita positiva está contenida en un compacto, $\omega(x)$ no es vacío,
+es compacto y es positivamente invariante. El descarte de un transitorio en el
+software aproxima la operación $t\geq T$, pero una ventana finita no ejecuta la
+intersección para todos los $T$.
+
+\paragraph{Atracción y cuenca.}
+Sea $A$ un compacto invariante. Se dice que atrae a $x$ si
+
+\begin{equation}
+ \dist(\Phi_t(x),A)\longrightarrow0\qquad(t\to\infty).
+ \label{eq:gt-atraccion}
+\end{equation}
+
+La cuenca correspondiente es
+
+\begin{equation}
+ \mathcal B(A)=\{x:\dist(\Phi_t(x),A)\to0\}.
+ \label{eq:gt-cuenca}
+\end{equation}
+
+Esta definición separa el conjunto asintótico de los estados que llegan a él. Dos
+atractores geométricamente parecidos pueden tener cuencas muy distintas; una cuenca
+extensa tampoco vuelve más compleja la dinámica que ocurre dentro del atractor.
+
+\paragraph{Región atrapante.}
+Un compacto $N$ es atrapante si existe $t_*>0$ tal que
+$\Phi_{t_*}(N)\subset\operatorname{int}N$. El conjunto
+
+\begin{equation}
+ A_N=\bigcap_{t\geq0}\Phi_t(N)
+ \label{eq:gt-maximo-invariante}
+\end{equation}
+
+es el máximo conjunto invariante que permanece dentro de $N$, siempre que el flujo y
+la compacidad permitan esta construcción. La región atrapante brinda una cota global;
+requiere diagnósticos adicionales para clasificar $A_N$ como equilibrio, ciclo o conjunto más
+complicado.
+
+\paragraph{Ejemplo resuelto: oscilación radial autosostenida.}
+Considérese
+
+\begin{equation}
+ \dot x=x-y-x(x^2+y^2),\qquad
+ \dot y=x+y-y(x^2+y^2).
+ \label{eq:gt-normal-radial}
+\end{equation}
+
+Con $r^2=x^2+y^2$ y $\theta=\operatorname{atan2}(y,x)$,
+
+\begin{equation}
+ \dot r=r(1-r^2),\qquad \dot\theta=1.
+ \label{eq:gt-radial-polar}
+\end{equation}
+
+Para $0<a<1<b$, en $r=a$ se tiene $\dot r>0$ y en $r=b$ se tiene
+$\dot r<0$. El anillo $a\leq r\leq b$ es atrapante. Toda condición con $r_0>0$
+se aproxima a la circunferencia $r=1$, mientras el origen permanece como equilibrio
+inestable. El retrato muestra una espiral hacia una curva cerrada; la serie temporal
+muestra una oscilación cuya amplitud se estabiliza; la gráfica de $r(t)$ revela de
+forma más directa la atracción radial.
+
+\begin{activitybox}{Práctica reproducible: región atrapante y observable adecuada}
+Introduzca \eqref{eq:gt-normal-radial} en \gui{Crear sistema} con variables
+\code{x,y}, RK4, $h=0.01$ y $T=25$. Simule desde $(0.2,0)$, $(0.8,0)$,
+$(1.4,0)$ y $(2,0)$. Use \gui{Retratos 2D} y \gui{Series temporales}; exporte
+los datos y añada la columna $r=\sqrt{x^2+y^2}$. Compare $r(t)$ con la predicción
+de signos de \eqref{eq:gt-radial-polar}. Repita con $h/2$ y registre el máximo de
+$|r(t)-1|$ en la última cuarta parte de la simulación.
+\end{activitybox}
+
+\paragraph{Lectura de una cuenca calculada.}
+Cada celda representa una condición inicial y una clasificación obtenida con un
+horizonte, un paso y tolerancias. Una franja de celdas sin clasificación estable puede
+deberse a una frontera fina, a transitorios largos o a un criterio demasiado rígido.
+Antes de describir geometría, conviene seleccionar puntos a ambos lados de la franja,
+duplicar el horizonte y refinar la malla localmente.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{omega_limit_trapping_region.png}
+\caption{Región atrapante y conjunto $\omega$-límite del ejemplo radial: (a) una
+órbita entra al anillo y se aproxima al ciclo $r=1$; (b) la distancia al conjunto
+límite decrece sin que la trayectoria converja a un punto fijo. La segunda vista
+evita confundir atracción hacia un conjunto con convergencia de cada coordenada.}
+\label{fig:gt-omega-atrapante}
+\end{figure}
+
+\lecturaseccion{Kathleen T. Alligood, Tim D. Sauer y James A. Yorke,
+\emph{Chaos: An Introduction to Dynamical Systems}, secciones sobre conjuntos
+límite, cuencas y fronteras; Tamás Tél y Márton Gruiz, \emph{Chaotic Dynamics: An
+Introduction Based on Classical Mechanics}, capítulos sobre dinámica transitoria y
+cuencas.}
+
+\subsection{Conjugación topológica y equivalencia orbital}
+
+Dos ecuaciones escritas de forma distinta pueden representar la misma organización de
+órbitas. La noción precisa depende de cuánto se desea conservar.
+
+\paragraph{Conjugación.}
+Los flujos $\Phi_t$ sobre $X$ y $\Psi_t$ sobre $Y$ son topológicamente conjugados si
+existe un homeomorfismo $h:X\to Y$ tal que
+
+\begin{equation}
+ h\circ\Phi_t=\Psi_t\circ h
+ \qquad\text{para todo }t.
+ \label{eq:gt-conjugacion}
+\end{equation}
+
+La conjugación conserva el reloj: estados correspondientes se observan en el mismo
+tiempo. Transporta equilibrios, periodicidad, invariancia y estructura de conjuntos
+límite. No conserva longitudes, ángulos ni tasas expresadas en una métrica arbitraria.
+
+Si $h$ es un difeomorfismo y $y=h(x)$, la regla de la cadena da el campo transformado
+
+\begin{equation}
+ g(y)=Dh(h^{-1}(y))f(h^{-1}(y)).
+ \label{eq:gt-empuje-campo}
+\end{equation}
+
+El factor $Dh$ es esencial. Cambiar sólo el nombre de las variables no transporta el
+campo.
+
+\paragraph{Equivalencia orbital.}
+Si se permite una reparametrización creciente del tiempo, basta que $h$ lleve órbitas
+orientadas en órbitas orientadas. Multiplicar el campo por una función positiva
+$\alpha(x)$,
+
+\begin{equation}
+ \dot x=\alpha(x)f(x),\qquad \alpha(x)>0,
+ \label{eq:gt-reparametrizacion}
+\end{equation}
+
+conserva las curvas integrales orientadas, pero cambia la rapidez con que se recorren.
+Por eso la equivalencia orbital no conserva periodos ni exponentes por unidad de
+tiempo.
+
+\paragraph{Ejemplo de conjugación lineal.}
+Para $\dot x=-x$, la solución es $x(t)=e^{-t}x_0$. Tome
+$h(x)=x^3$, homeomorfismo de $\R$. Entonces
+
+\begin{equation}
+ y(t)=h(x(t))=e^{-3t}y_0,\qquad \dot y=-3y.
+ \label{eq:gt-conjugacion-cubica}
+\end{equation}
+
+Los dos flujos son conjugados por $h$: tienen un equilibrio globalmente atractivo y la
+misma organización de semiórbitas. Sus tasas lineales son diferentes. El ejemplo
+advierte que una tasa numérica se presenta con su métrica y sus unidades, en vez de como invariante topológico.
+
+\begin{activitybox}{Ejercicio con pista: transporte de una región}
+Sea $x=Tz+c$, con $T$ invertible. Demuestre que la bola
+$\|x-x_e\|_2\leq r$ se transforma en
+$(z-z_e)^{\mathsf T}T^{\mathsf T}T(z-z_e)\leq r^2$.
+Explique por qué una malla cuadrada en las coordenadas $z$ no representa en general
+una malla cuadrada en $x$. \textbf{Pista:} sustituya
+$x-x_e=T(z-z_e)$ antes de elevar la norma al cuadrado.
+\end{activitybox}
+
+\paragraph{Interpretación de gráficas comparadas.}
+Dos retratos conjugados pueden verse estirados, inclinados o curvados. Lo importante
+es si conservan la correspondencia entre órbitas, equilibrios y conexiones. Si además
+se comparan series temporales, hay que aclarar si el reloj se conservó. Superponer
+curvas sin transportar coordenadas y tiempo mezcla dos preguntas distintas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{conjugacy_orbital_equivalence.png}
+\caption{Correspondencias de órbitas: (a) una órbita de $\varphi_t$, (b) su
+deformación por un homeomorfismo $h$ con las mismas marcas temporales y (c) la misma
+órbita geométrica con marcas redistribuidas por $\theta(t)$. El último panel ilustra
+por qué equivalencia orbital conserva el recorrido, pero no necesariamente el reloj.}
+\label{fig:gt-conjugacion-orbital}
+\end{figure}
+
+\lecturaseccion{Morris W. Hirsch, Stephen Smale y Robert L. Devaney,
+\emph{Differential Equations, Dynamical Systems, and an Introduction to Chaos},
+capítulos sobre equivalencia y linealización; John Guckenheimer y Philip Holmes,
+\emph{Nonlinear Oscillations, Dynamical Systems, and Bifurcations of Vector Fields},
+capítulo 1.}
+
+\subsection{Variación, cambio de volumen y variedades invariantes}
+
+Una trayectoria describe la evolución de un estado. Para estudiar la evolución de
+una perturbación se deriva el flujo respecto de la condición inicial. Si
+$x(t)=\Phi_t(x_0)$ y $f$ es diferenciable, la matriz fundamental
+
+\begin{equation}
+ M(t)=D_{x_0}\Phi_t(x_0)
+ \label{eq:gt-matriz-fundamental}
+\end{equation}
+
+satisface la ecuación variacional
+
+\begin{equation}
+ \dot M(t)=Df(x(t))M(t),\qquad M(0)=I.
+ \label{eq:gt-variacional}
+\end{equation}
+
+Una perturbación pequeña se aproxima por $\delta x(t)=M(t)\delta x_0$. Los valores
+singulares de $M(t)$ describen los ejes principales del elipsoide obtenido al deformar
+una esfera infinitesimal. Los exponentes finitos se calculan a partir de sus tasas
+logarítmicas, pero dependen del horizonte y del tratamiento numérico.
+
+\paragraph{Fórmula de Liouville.}
+La identidad de Jacobi para el determinante da
+
+\begin{equation}
+ \frac{\dd}{\dd t}\det M
+ =\det M\,\operatorname{tr}(M^{-1}\dot M).
+ \label{eq:gt-jacobi-det}
+\end{equation}
+
+Al sustituir \eqref{eq:gt-variacional},
+$M^{-1}\dot M=M^{-1}Df(x(t))M$, cuya traza es
+$\operatorname{tr}Df(x(t))=\nabla\cdot f(x(t))$. Por integración,
+
+\begin{equation}
+ \det M(t)=
+ \exp\left(\int_0^t\nabla\cdot f(x(s))\dd s\right).
+ \label{eq:gt-liouville}
+\end{equation}
+
+La divergencia mide expansión instantánea de volumen. Divergencia negativa implica
+contracción de elementos de volumen a lo largo del flujo, pero no identifica por sí
+sola el conjunto al que llegan las trayectorias ni prueba que una región particular
+sea atrapante.
+
+\paragraph{Equilibrio hiperbólico y variedades.}
+Un equilibrio $e$ es hiperbólico si $Df(e)$ no tiene valores propios con parte real
+cero. El espacio tangente se separa como
+
+\begin{equation}
+ \R^n=E^s\oplus E^u,
+ \label{eq:gt-descomposicion-hiperbolica}
+\end{equation}
+
+donde $E^s$ corresponde a valores propios con parte real negativa y $E^u$ a parte
+real positiva. El teorema de la variedad estable proporciona objetos no lineales
+$W^s_{\mathrm{loc}}(e)$ y $W^u_{\mathrm{loc}}(e)$ tangentes a esos subespacios en
+$e$. La linealización determina la tangencia local, no la forma global completa.
+
+\paragraph{Ejemplo de variedad invariante curvada.}
+Considérese
+
+\begin{equation}
+ \dot x=x,\qquad \dot y=-y+x^2.
+ \label{eq:gt-silla-no-lineal}
+\end{equation}
+
+El origen tiene valores propios $1$ y $-1$. La recta $x=0$ es la variedad estable.
+Para buscar la variedad inestable como $y=h(x)=ax^2$, se impone invariancia:
+
+\begin{equation}
+ h'(x)\dot x=-h(x)+x^2.
+ \label{eq:gt-invariancia-grafica}
+\end{equation}
+
+Como $h'(x)\dot x=2ax^2$ y $-h(x)+x^2=(1-a)x^2$, se obtiene
+$2a=1-a$ y, por tanto,
+
+\begin{equation}
+ W^u_{\mathrm{loc}}(0):\quad y=\frac{x^2}{3}.
+ \label{eq:gt-variedad-inestable}
+\end{equation}
+
+El subespacio lineal $E^u$ es el eje $x$; la variedad verdadera se separa de él en
+orden cuadrático. Un retrato con escala amplia puede hacerlas parecer iguales.
+
+\begin{activitybox}{Práctica reproducible: tangencia local y curvatura}
+Defina \eqref{eq:gt-silla-no-lineal} en \gui{Crear sistema}. Use RK4,
+$h=0.002$, $T=6$ y condiciones $(0.02,0.02^2/3)$,
+$(-0.02,0.02^2/3)$, $(0.02,0)$ y $(0,0.2)$. En \gui{Retratos 2D}, superponga
+la parábola $y=x^2/3$ mediante datos exportados o puntos de referencia. Repita con
+$h/2$. Describa qué trayectorias permanecen cerca de la parábola y por qué la
+proximidad visual se complementa con la ecuación de invariancia.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\linewidth]{variational_volume_manifolds.png}
+\caption{Tres objetos del sistema variacional: (a) transporte de una perturbación por
+$D\varphi_t$, (b) cambio de un elemento de área gobernado por el determinante y
+(c) direcciones estable e inestable de una silla. Una elipse o un paralelogramo son
+aproximaciones lineales locales; las variedades globales pueden curvarse.}
+\label{fig:gt-variacion-volumen-variedades}
+\end{figure}
+
+\lecturaseccion{Jessica Angélica Jaurez Rosas, Laura Ortiz Bobadilla, Jesús Alberto
+Palma Márquez y Ernesto Rosales González, \emph{Teoría geométrica de ecuaciones
+diferenciales II}, secciones sobre primera variación y variedades invariantes; Steven
+H. Strogatz, \emph{Nonlinear Dynamics and Chaos}, capítulo 6.}
+
+\subsection{Sección de Poincaré, monodromía y teoría de Floquet}
+
+Una órbita periódica de periodo $T$ es una curva cerrada en el espacio de fases. Para
+estudiar su estabilidad se elige una hipersuperficie transversal
+
+\begin{equation}
+ \Sigma=\{x:h(x)=0\},\qquad
+ \nabla h(x)^{\mathsf T}f(x)\neq0
+ \label{eq:gt-seccion}
+\end{equation}
+
+en los cruces considerados. El primer retorno lleva $z\in\Sigma$ al siguiente cruce:
+
+\begin{equation}
+ P(z)=\Phi_{\tau(z)}(z).
+ \label{eq:gt-retorno}
+\end{equation}
+
+La órbita periódica se convierte en un punto fijo $P(p)=p$. Si los autovalores de
+$DP(p)$ tienen módulo menor que uno, el ciclo es localmente atractivo en direcciones
+transversales. Un conjunto de cruces apiñados sugiere un punto fijo; demostrarlo exige
+controlar el evento, el tiempo de retorno y el error.
+
+\paragraph{Monodromía y multiplicadores.}
+Sobre una solución periódica $\gamma(t)$, la ecuación variacional tiene coeficientes
+periódicos:
+
+\begin{equation}
+ \dot M(t)=Df(\gamma(t))M(t),\qquad M(0)=I.
+ \label{eq:gt-variacional-periodica}
+\end{equation}
+
+La matriz $M(T)$ es la matriz de monodromía y sus autovalores son los multiplicadores
+de Floquet. En un flujo autónomo aparece un multiplicador $1$ asociado al
+desplazamiento a lo largo de la órbita. Los multiplicadores restantes miden el
+comportamiento transversal y coinciden, bajo las identificaciones apropiadas, con los
+autovalores de $DP(p)$.
+
+En un sistema plano, Liouville permite obtener el multiplicador transversal sin
+integrar toda la matriz:
+
+\begin{equation}
+ \mu_\perp=
+ \exp\left(\int_0^T\nabla\cdot f(\gamma(t))\dd t\right).
+ \label{eq:gt-multiplicador-planar}
+\end{equation}
+
+\paragraph{Ejemplo de multiplicadores de Floquet.}
+En \eqref{eq:gt-normal-radial}, el ciclo $r=1$ tiene periodo $T=2\pi$. Si
+$r=1+\eta$, entonces
+
+\begin{equation}
+ \dot\eta=\left.\frac{\dd}{\dd r}[r(1-r^2)]\right|_{r=1}\eta
+ +O(\eta^2)=-2\eta+O(\eta^2).
+ \label{eq:gt-variacion-radial}
+\end{equation}
+
+Después de una vuelta, $\eta(T)\simeq e^{-4\pi}\eta(0)$; por tanto,
+$\mu_\perp=e^{-4\pi}$ y el ciclo es fuertemente atractivo en dirección radial.
+La curva cerrada del retrato no muestra por sí sola ese número: hace falta comparar
+retornos o resolver la variación.
+
+\begin{activitybox}{Práctica reproducible: construir un retorno desde datos}
+Use la trayectoria de \eqref{eq:gt-normal-radial} con $(x_0,y_0)=(1.4,0.1)$,
+RK4, $h=0.005$ y $T=30$. Exporte el CSV. Detecte cruces de $y<0$ a $y\geq0$
+con $x>0$ e interpole linealmente el valor de $x$ en cada cruce. Construya
+$x_{k+1}$ contra $x_k$ y compare $|x_k-1|$ entre vueltas consecutivas. Repita con
+$h/2$. Informe el cociente tardío y compárelo con $e^{-4\pi}$, señalando la
+limitación de la interpolación de eventos.
+\end{activitybox}
+
+\paragraph{Lectura de la gráfica de retorno.}
+La diagonal $P(z)=z$ permite localizar puntos fijos. La pendiente indica estabilidad
+en un mapa escalar: $|P'(z^*)|<1$ atrae y $|P'(z^*)|>1$ repele. Una nube gruesa puede
+proceder de dinámica compleja, de una sección mal definida, de cruces tangenciales o
+de muestreo insuficiente. Antes de interpretarla, deben revisarse orientación,
+transitorio y refinamiento del instante de cruce.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\linewidth]{poincare_floquet_geometry.png}
+\caption{Geometría de retorno y estabilidad orbital: (a) una sección transversal
+$\Sigma$ reduce el ciclo $\gamma$ a iteraciones discretas; (b) los multiplicadores de
+Floquet se leen respecto del círculo unidad. El multiplicador trivial $\mu_1=1$
+corresponde al desplazamiento de fase y no decide la estabilidad transversal.}
+\label{fig:gt-poincare-floquet}
+\end{figure}
+
+\lecturaseccion{Frank C. Hoppensteadt, \emph{Analysis and Simulation of Chaotic
+Systems}, secciones sobre estabilidad orbital y mapas de retorno; John Guckenheimer y
+Philip Holmes, \emph{Nonlinear Oscillations, Dynamical Systems, and Bifurcations of
+Vector Fields}, capítulos 1--3.}
+
+\subsection{Grado, puntos fijos y existencia}
+
+Los métodos topológicos de existencia no buscan necesariamente una fórmula cerrada.
+Transforman el problema en un cero o un punto fijo y usan continuidad, compacidad y
+comportamiento en la frontera para demostrar que el objeto debe existir.
+
+\paragraph{Contracción.}
+En un espacio métrico completo, una aplicación $T$ es contractiva si existe
+$0<L<1$ tal que
+
+\begin{equation}
+ d(Tx,Ty)\leq Ld(x,y).
+ \label{eq:gt-contraccion}
+\end{equation}
+
+El teorema de Banach garantiza un único punto fijo y la convergencia de
+$x_{n+1}=T(x_n)$. La conclusión combina existencia, unicidad y un algoritmo; si sólo
+se sabe que $T$ es continua sobre una región compacta, esas tres propiedades no se
+obtienen juntas.
+
+\paragraph{Brouwer y grado.}
+Toda aplicación continua de una bola cerrada de $\R^n$ en sí misma posee un punto
+fijo. El grado de Brouwer refina esta idea. Para
+$F:\overline\Omega\to\R^n$ y $0\notin F(\partial\Omega)$ se define un entero
+$\deg(F,\Omega,0)$. Si es distinto de cero, $F$ tiene al menos un cero en
+$\Omega$. Cuando los ceros son regulares y finitos,
+
+\begin{equation}
+ \deg(F,\Omega,0)=
+ \sum_{x\in F^{-1}(0)\cap\Omega}
+ \operatorname{sgn}\det DF(x).
+ \label{eq:gt-grado-regular}
+\end{equation}
+
+El grado se conserva durante una homotopía $F_\lambda$ mientras ningún cero cruce la
+frontera. Garantiza existencia, pero no decide estabilidad ni describe la cuenca.
+
+\paragraph{Ejemplo de punto fijo por contracción.}
+Para $F(x)=x-x^3$ en $\Omega=(-2,2)$, los ceros son $-1,0,1$ y
+$F'(x)=1-3x^2$. La suma de signos es
+
+\begin{equation}
+ \deg(F,(-2,2),0)=(-1)+(+1)+(-1)=-1.
+ \label{eq:gt-grado-cubico}
+\end{equation}
+
+El grado no nulo obliga a conservar al menos un cero bajo toda deformación admisible.
+Para saber cuáles de esos equilibrios atraen se necesita el signo de la linealización
+o un argumento no lineal adicional.
+
+\paragraph{Disparo y residual de retorno.}
+En el problema de frontera
+
+\begin{equation}
+ u''=G(t,u,u'),\qquad u(0)=a,\qquad u(T)=b,
+ \label{eq:gt-problema-frontera}
+\end{equation}
+
+se elige la pendiente inicial $s=u'(0)$ y se define
+
+\begin{equation}
+ S(s)=u(T;s)-b.
+ \label{eq:gt-residual-disparo}
+\end{equation}
+
+Un cero de $S$ resuelve el problema. Para una órbita periódica se usa de manera
+análoga el residual $R(z)=P(z)-z$. Aplicar grado a $R$ requiere que el retorno exista
+y sea continuo en la región; el cálculo de retornos debe acompañarse de la verificación explícita de esas hipótesis.
+
+\begin{activitybox}{Ejercicios con pistas: tres formas de existencia}
+\textbf{1.} Resuelva por disparo $u''+u=0$, $u(0)=0$,
+$u(\pi/2)=1$. \textbf{Pista:} con pendiente $s$, $u(t;s)=s\sin t$.
+
+\textbf{2.} Si $P:[a,b]\to[a,b]$ es continuo, pruebe que tiene un punto fijo.
+\textbf{Pista:} estudie los signos de $P(x)-x$ en los extremos.
+
+\textbf{3.} Calcule el grado de $x^3-x$ en intervalos pequeños alrededor de cada
+raíz y verifique aditividad al reunirlos.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\linewidth]{degree_fixed_point.png}
+\caption{Lectura geométrica del grado en el plano: el campo sobre la frontera rodea
+una vez al origen cuando el cero está dentro de $D$ y no lo rodea cuando está fuera.
+El dibujo orienta el cálculo; la conclusión de existencia requiere continuidad y
+ausencia de ceros sobre la frontera.}
+\label{fig:gt-grado-existencia}
+\end{figure}
+
+\lecturaseccion{Pablo Gustavo Amster, \emph{Métodos topológicos en el estudio de las
+ecuaciones diferenciales no lineales}, capítulos sobre disparo, punto fijo y grado;
+Jessica Angélica Jaurez Rosas et al., \emph{Teoría geométrica de ecuaciones
+diferenciales II}, secciones sobre existencia y continuación.}
+
+\subsection{Homoclinicidad, herradura y dinámica simbólica}
+
+Una conexión homoclínica aparece cuando una órbita sale de un objeto hiperbólico por
+su variedad inestable y regresa por su variedad estable. En un mapa, si $p$ es un
+punto fijo hiperbólico, una intersección
+
+\begin{equation}
+ q\in W^s(p)\cap W^u(p),\qquad
+ T_qW^s+T_qW^u=T_qX,
+ \label{eq:gt-homoclinica-transversal}
+\end{equation}
+
+es transversal. La transversalidad impide que la intersección desaparezca ante una
+perturbación pequeña. El teorema de Smale--Birkhoff establece que una intersección
+homoclínica transversal de un punto periódico hiperbólico genera, para alguna
+iteración, una dinámica tipo herradura sobre un conjunto invariante.
+
+\paragraph{Estirar, contraer y plegar.}
+La herradura toma una región, la estira en una dirección, la contrae en otra y la
+pliega de modo que dos tiras regresan a la región inicial. Cada órbita que permanece
+en el conjunto puede codificarse según la tira visitada:
+
+\begin{equation}
+ \ldots s_{-1}.s_0s_1s_2\ldots,\qquad s_k\in\{0,1\}.
+ \label{eq:gt-codigo-simbolico}
+\end{equation}
+
+El corrimiento $\sigma$ elimina el símbolo presente y desplaza la secuencia. En una
+métrica como
+
+\begin{equation}
+ d(s,r)=\sum_{k\in\mathbb Z}\frac{|s_k-r_k|}{2^{|k|+1}},
+ \label{eq:gt-metrica-secuencias}
+\end{equation}
+
+dos secuencias son próximas si coinciden alrededor del presente. El corrimiento posee
+órbitas periódicas densas, transitividad y sensibilidad. Esta construcción transforma
+geometría de intersecciones en una descripción combinatoria.
+
+\paragraph{Definiciones de caos.}
+Para un mapa continuo sobre un conjunto invariante, la definición de Devaney combina
+transitividad, densidad de puntos periódicos y sensibilidad. La entropía topológica
+mide crecimiento de órbitas distinguibles. Un exponente de Lyapunov positivo mide
+expansión promedio a lo largo de una trayectoria. Estas nociones se relacionan en
+contextos precisos, y cada una conserva su ámbito de aplicación.
+
+\paragraph{Evidencia requerida para interpretar una figura.}
+Un pliegue visible sugiere buscar variedades e intersecciones. Una nube de retornos
+sugiere estudiar un mapa iterado. Una banda ancha sugiere ausencia de una frecuencia
+dominante simple. Ninguna de esas señales encierra por sí misma una intersección
+transversal, una conjugación con el corrimiento o un valor exacto de entropía.
+
+\begin{activitybox}{Práctica reproducible: itinerarios del mapa logístico}
+En \gui{Bifurcación} seleccione \gui{Logistico [listo]}, use $x_0=0.2$ y estudie
+primero $r=3.2$ y después $r=4$. Para cada valor conserve 200 iteraciones después de
+descartar 1000. Exporte la sucesión y codifique $s_n=0$ si $x_n<1/2$ y $s_n=1$ si
+$x_n\geq1/2$. Repita desde $x_0+10^{-8}$. Compare la longitud del prefijo común,
+los bloques de símbolos y los puntos del retrato $x_{n+1}$ contra $x_n$. Esta
+práctica estudia itinerarios finitos; no presenta la muestra como demostración de una
+conjugación global.
+\end{activitybox}
+
+\begin{activitybox}{Ejercicio con pista: periodicidad simbólica}
+Construya las secuencias binarias de periodo primo $1$, $2$ y $3$ bajo el corrimiento.
+¿Cuántas palabras de longitud $n$ existen antes de identificar rotaciones?
+\textbf{Pista:} hay $2^n$ palabras; para contar órbitas de periodo primo hay que
+eliminar palabras de periodo divisor y después identificar desplazamientos cíclicos.
+\end{activitybox}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{horseshoe_symbolic_dynamics.png}
+\caption{Esquema docente de la herradura: (a) dos franjas codificadas, (b)
+estiramiento y contracción, y (c) plegamiento con un itinerario binario asociado.
+La figura explica el mecanismo y la codificación; verificar una herradura en un
+sistema concreto exige construir el mapa y demostrar las intersecciones necesarias.}
+\label{fig:gt-herradura-simbolica}
+\end{figure}
+
+\lecturaseccion{Robert L. Devaney, \emph{An Introduction to Chaotic Dynamical
+Systems}, capítulos sobre dinámica simbólica; Morris W. Hirsch, Stephen Smale y
+Robert L. Devaney, \emph{Differential Equations, Dynamical Systems, and an
+Introduction to Chaos}, capítulos 15--16; Kathleen T. Alligood, Tim D. Sauer y James
+A. Yorke, \emph{Chaos: An Introduction to Dynamical Systems}, capítulos sobre
+herraduras y órbitas homoclínicas.}
+
+\subsection{Estados con memoria y derivadas fraccionarias}
+
+En una ODE autónoma, conocer $x(t)$ basta para continuar la solución porque la ley de
+flujo permite reiniciar desde ese estado. Una ecuación de Caputo conserva información
+del intervalo recorrido desde el terminal inferior. Para $0<q<1$,
+
+\paragraph{Función Gamma e integración fraccionaria.}
+La función Gamma prolonga el factorial y fija la normalización de los operadores:
+
+\begin{equation}
+ \Gamma(z)=\int_0^\infty s^{z-1}e^{-s}\dd s,
+ \qquad \Gamma(z+1)=z\Gamma(z).
+ \label{eq:gt-gamma}
+\end{equation}
+
+Para $\alpha>0$, la integral izquierda de Riemann--Liouville con terminal inferior
+$t_0$ es
+
+\begin{equation}
+ (I_{t_0}^{\alpha}g)(t)=\frac{1}{\Gamma(\alpha)}
+ \int_{t_0}^{t}(t-s)^{\alpha-1}g(s)\dd s.
+ \label{eq:gt-integral-rl}
+\end{equation}
+
+La identidad beta--Gamma permite probar, bajo condiciones de integrabilidad que
+justifican intercambiar el orden de integración,
+
+\begin{equation}
+ I_{t_0}^{\alpha}I_{t_0}^{\beta}=I_{t_0}^{\alpha+\beta}.
+ \label{eq:gt-semigrupo-orden}
+\end{equation}
+
+La composición ocurre respecto del orden del operador. Su interpretación difiere de la composición
+temporal para el estado de un problema con memoria. Distinguir ambas afirmaciones
+evita atribuir a la solución una propiedad que sólo pertenece a las integrales.
+
+\paragraph{Definiciones de derivada fraccionaria.}
+Si $m-1<q<m$, las derivadas de Riemann--Liouville y de Caputo ordenan de modo
+distinto la derivación entera y la integración fraccionaria:
+
+\begin{equation}
+ {}^{\mathrm{RL}}D_{t_0}^{q}x
+ =\frac{\dd^m}{\dd t^m}I_{t_0}^{m-q}x,
+ \qquad
+ {}^{\mathrm C}D_{t_0}^{q}x
+ =I_{t_0}^{m-q}x^{(m)}.
+ \label{eq:gt-rl-caputo}
+\end{equation}
+
+Para $0<q<1$, Caputo anula una constante, mientras
+
+\begin{equation}
+ {}^{\mathrm{RL}}D_{t_0}^{q}c
+ =\frac{c(t-t_0)^{-q}}{\Gamma(1-q)}.
+ \label{eq:gt-rl-constante}
+\end{equation}
+
+La forma de Grünwald--Letnikov aproxima el operador mediante diferencias de todos los
+pasos anteriores:
+
+\begin{equation}
+ {}^{\mathrm{GL}}D_{t_0}^{q}x(t_n)
+ \approx h^{-q}\sum_{j=0}^{n}(-1)^j
+ \binom{q}{j}x(t_{n-j}),
+ \qquad
+ \binom{q}{j}=\frac{\Gamma(q+1)}{\Gamma(j+1)\Gamma(q-j+1)}.
+ \label{eq:gt-gl-discreta}
+\end{equation}
+
+Estas expresiones describen operadores distintos. Deben declararse el
+operador, el terminal inferior, la regularidad y la información inicial. Caputo es
+conveniente cuando se formulan datos ordinarios $x(t_0)$; Riemann--Liouville puede
+requerir datos expresados mediante integrales fraccionarias; Grünwald--Letnikov ofrece
+una ruta discreta que vuelve explícito el costo de conservar la historia.
+
+\begin{activitybox}{Ejercicio de lectura activa: una potencia como banco de prueba}
+Para $x(t)=(t-t_0)^\nu$, con $\nu>0$, use la identidad beta--Gamma para obtener
+la integral \eqref{eq:gt-integral-rl} y después las derivadas de
+Riemann--Liouville y Caputo cuando existan. Verifique por separado el caso constante.
+Compare la fórmula con \eqref{eq:gt-gl-discreta} para $q=0.6$, $h=0.1,0.05$ y
+$t-t_0=1$. La entrega debe indicar dominio de los parámetros y error relativo, no
+sólo valores decimales.
+\end{activitybox}
+
+\lecturaseccion{Shantanu Das, \emph{Kindergarten of Fractional Calculus}, capítulos
+1--3, para Gamma, generalización, integración y las formas de Grünwald--Letnikov,
+Riemann--Liouville y Caputo; Edmundo Capelas de Oliveira, \emph{Solved Exercises in
+Fractional Calculus}, capítulos 2--5, para funciones especiales, Mittag--Leffler,
+transformadas y comparación de operadores.}
+
+\paragraph{Terminal inferior e inicialización.}
+El valor $t_0$ marca el comienzo de la memoria
+incluida en el modelo. Cambiarlo modifica el operador. Si el proceso ya tenía historia
+antes de $t_0$, esa preparación debe incorporarse mediante un término de
+inicialización o una historia declarada. Reiniciar el cálculo en un tiempo intermedio
+con el transporte de esa información se define un problema equivalente. La pregunta correcta se formula como
+únicamente cuál es $x(t_0)$, sino qué preparación representa el dato inicial y desde
+qué instante se acumula la memoria.
+
+\lecturaseccion{Shantanu Das, \emph{Kindergarten of Fractional Calculus}, capítulo 5,
+sobre inicialización; Richard Herrmann, \emph{Fractional Calculus: An Introduction
+for Physicists}, capítulo 8, sobre no localidad y memoria.}
+
+Con este marco, la derivada de Caputo de orden $0<q<1$ se escribe
+
+\begin{equation}
+ {}^{\mathrm C}D_{0+}^{q}x(t)
+ =\frac{1}{\Gamma(1-q)}
+ \int_0^t(t-s)^{-q}\dot x(s)\dd s.
+ \label{eq:gt-caputo}
+\end{equation}
+
+El problema
+
+\begin{equation}
+ {}^{\mathrm C}D_{0+}^{q}x(t)=f(x(t)),\qquad x(0)=x_0
+ \label{eq:gt-pvi-caputo}
+\end{equation}
+
+es equivalente, bajo las hipótesis habituales, a la ecuación de Volterra
+
+\begin{equation}
+ x(t)=x_0+\frac{1}{\Gamma(q)}
+ \int_0^t(t-s)^{q-1}f(x(s))\dd s.
+ \label{eq:gt-volterra}
+\end{equation}
+
+La equivalencia se obtiene aplicando la integral fraccionaria de orden $q$ y usando
+$I^q\,{}^{\mathrm C}D^qx=x-x_0$. La integral de Volterra muestra la memoria de forma
+directa: cada valor pasado del campo participa en la continuación con un peso que
+depende de la distancia temporal.
+
+\paragraph{Perfil de memoria.}
+Fije un tiempo $t$ y escriba el futuro como $t+\theta$. Al separar
+\eqref{eq:gt-volterra} en $[0,t]$ y $[t,t+\theta]$, se obtiene
+
+\begin{align}
+ x(t+\theta)={}&m_t(\theta)
+ +\frac{1}{\Gamma(q)}
+ \int_0^\theta(\theta-u)^{q-1}f(x(t+u))\dd u,\label{eq:gt-volterra-desplazada}\\
+ m_t(\theta)={}&x_0+\frac{1}{\Gamma(q)}
+ \int_0^t(t+\theta-s)^{q-1}f(x(s))\dd s.\label{eq:gt-perfil-memoria}
+\end{align}
+
+El punto actual es sólo $m_t(0)=x(t)$. Reiniciar con el dato $x(t)$ sustituye la
+función $m_t(\theta)$ por un término constante y, en general, produce otra
+continuación. El estado adecuado puede representarse en un espacio de funciones, por
+ejemplo $\mathfrak C=C([0,\infty),\R^n)$ con convergencia uniforme en intervalos
+compactos. Sobre ese espacio puede recuperarse una ley de semiflujo para los perfiles,
+aunque no para las aplicaciones puntuales obtenidas al conservar sólo $x(t)$.
+
+\paragraph{Función de Mittag--Leffler y decaimiento fraccionario.}
+La ecuación escalar
+
+\begin{equation}
+ {}^{\mathrm C}D_{0+}^{q}x=\lambda x,\qquad x(0)=x_0
+ \label{eq:gt-caputo-lineal}
+\end{equation}
+
+tiene solución
+
+\begin{equation}
+ x(t)=x_0E_q(\lambda t^q),\qquad
+ E_q(z)=\sum_{k=0}^{\infty}\frac{z^k}{\Gamma(qk+1)}.
+ \label{eq:gt-mittag-leffler}
+\end{equation}
+
+Si la evolución puntual formara un semigrupo, tendría que cumplirse
+
+\begin{equation}
+ E_q(\lambda(t+s)^q)=E_q(\lambda t^q)E_q(\lambda s^q).
+ \label{eq:gt-falsa-composicion}
+\end{equation}
+
+Al comparar el término lineal en $\lambda$, el lado izquierdo contiene
+$(t+s)^q/\Gamma(q+1)$ y el derecho
+$(t^q+s^q)/\Gamma(q+1)$. Para $0<q<1$ y $t,s>0$ no coinciden. Cuando $q=1$,
+$E_1(z)=e^z$ y se recupera la composición ordinaria.
+
+Para $\lambda=-a<0$, la solución describe relajación. En vez del decaimiento
+exponencial $e^{-at}$ del caso entero, $E_q(-at^q)$ presenta una cola lenta. Una
+comparación útil muestra primero la escala lineal, donde domina el transitorio, y
+después una escala logarítmica, donde la cola se distingue con claridad. El orden
+$q$ cambia simultáneamente la forma del kernel y la ley de relajación; su interpretación debe
+interpretarse como un paso temporal.
+
+\begin{activitybox}{Ejercicio con pista: continuidad de la memoria}
+Tome $q=0.8$, $\lambda=-1$, $x_0=1$, $t=1$ y $s=1$. Evalúe
+$E_q[-(t+s)^q]$ y $E_q(-t^q)E_q(-s^q)$ truncando la serie cuando el siguiente
+término sea menor que $10^{-10}$. Repita con $q=1$.
+\textbf{Pista:} calcule cada serie con precisión suficiente y compare tanto el valor
+como la diferencia relativa; el caso $q=1$ sirve como control.
+\end{activitybox}
+
+\paragraph{Interpretación gráfica de la memoria.}
+El kernel $K_q(r)=r^{q-1}/\Gamma(q)$ es singular integrable en $r=0$ y decae
+lentamente. Una gráfica de $K_q$ para varios órdenes ayuda a comparar el peso de
+retardos recientes y antiguos, y se complementa con la memoria completa de una trayectoria:
+la contribución real es el producto del kernel con $f(x(s))$. Una proyección
+$(x_i,x_j)$ puede cruzarse porque perfiles distintos comparten las mismas dos
+coordenadas actuales; ese cruce no contradice unicidad en el espacio funcional.
+
+\lecturaseccion{Kai Diethelm, \emph{The Analysis of Fractional Differential
+Equations}, capítulos sobre problemas de valor inicial de Caputo y ecuaciones de
+Volterra; Igor Podlubny, \emph{Fractional Differential Equations}, capítulos 1--4;
+Richard Herrmann, \emph{Fractional Calculus: An Introduction for Physicists},
+capítulos 2--3, 5--6 y 8, para funciones, derivadas, cálculo, oscilación y memoria;
+Shantanu Das, \emph{Kindergarten of Fractional Calculus}, capítulos 6--7, para
+relajación de Mittag--Leffler y ecuaciones diferenciales fraccionarias.}
+
+\subsection{ABM--PECE de memoria completa}
+
+La ecuación de Volterra permite derivar un integrador sin tratar la derivada
+fraccionaria como una diferencia local. Sea $t_n=nh$ y
+$F_j=f(t_j,x_j)$. En $t_{n+1}$,
+
+\begin{equation}
+ x(t_{n+1})=x_0+
+ \frac{1}{\Gamma(q)}\sum_{j=0}^{n}
+ \int_{t_j}^{t_{j+1}}
+ (t_{n+1}-s)^{q-1}f(s,x(s))\dd s.
+ \label{eq:gt-volterra-intervalos}
+\end{equation}
+
+\paragraph{Predictor.}
+Al aproximar $f$ por la constante $F_j$ en cada subintervalo,
+
+\begin{equation}
+ \int_{t_j}^{t_{j+1}}(t_{n+1}-s)^{q-1}\dd s
+ =\frac{h^q}{q}\left[(n+1-j)^q-(n-j)^q\right].
+ \label{eq:gt-integral-peso-predictor}
+\end{equation}
+
+Como $q\Gamma(q)=\Gamma(q+1)$, el predictor es
+
+\begin{equation}
+ x_{n+1}^{\mathrm P}=x_0+
+ \frac{h^q}{\Gamma(q+1)}
+ \sum_{j=0}^{n}b_{j,n+1}F_j,\qquad
+ b_{j,n+1}=(n+1-j)^q-(n-j)^q.
+ \label{eq:gt-abm-predictor}
+\end{equation}
+
+\paragraph{Corrector.}
+Al integrar una interpolación lineal del campo y evaluar el extremo nuevo con el
+predictor,
+
+\begin{equation}
+ x_{n+1}=x_0+
+ \frac{h^q}{\Gamma(q+2)}
+ \left[f(t_{n+1},x_{n+1}^{\mathrm P})+
+ \sum_{j=0}^{n}a_{j,n+1}F_j\right],
+ \label{eq:gt-abm-corrector}
+\end{equation}
+
+donde
+
+\begin{equation}
+ a_{j,n+1}=
+ \begin{cases}
+ n^{q+1}-(n-q)(n+1)^q, & j=0,\\
+ (n-j+2)^{q+1}+(n-j)^{q+1}-2(n-j+1)^{q+1},
+ &1\leq j\leq n.
+ \end{cases}
+ \label{eq:gt-abm-pesos}
+\end{equation}
+
+PECE resume cuatro acciones: predecir, evaluar, corregir y evaluar otra vez. Las sumas
+comienzan en $j=0$ en todos los pasos; quitar términos antiguos cambia el modelo
+numérico y exige una aproximación de memoria corta con error declarado.
+
+Para $q=1$, los pesos del predictor valen uno y el corrector recupera la regla
+trapezoidal compuesta. Este límite es una prueba básica de implementación. También
+deben compararse $h$, $h/2$ y $h/4$, mantener fijo el terminal inferior y registrar
+
+\begin{equation}
+ \mathcal N=(q,h,T,x_0,\text{método},\text{política de memoria}).
+ \label{eq:gt-contrato-fraccionario}
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.94\linewidth]{fractional_memory_kernel_pece.png}
+\caption{Tres superficies de lectura para un problema de Caputo: (a) kernel de
+memoria para varios órdenes, (b) relajación de Mittag--Leffler comparada con el caso
+exponencial y (c) pesos históricos del predictor ABM. La altura de un peso representa una
+contribución que debe multiplicarse por la evaluación histórica correspondiente y sumarse
+desde el terminal inferior fijo.}
+\label{fig:gt-memoria-abm}
+\end{figure}
+
+\begin{activitybox}{Laboratorio numérico: relajación escalar}
+Implemente \eqref{eq:gt-abm-predictor}--\eqref{eq:gt-abm-pesos} para
+${}^{\mathrm C}D^qx=-x$, $x(0)=1$, $q=0.8$, $T=5$ y
+$h=0.05,0.025,0.0125$. Compare con $E_q(-t^q)$ y reporte el error máximo en una
+malla común. Como control dentro de Toolbox Chaos, defina $\dot x=-x$ en
+\gui{Crear sistema} y compare Euler, Heun y RK4 mediante \gui{Comparar metodos}:
+esta ejecución corresponde al límite entero; el cálculo con memoria conserva el historial completo.
+Conserve tabla, configuración y una gráfica de error; no entregue únicamente curvas
+superpuestas.
+\end{activitybox}
+
+\begin{warningbox}
+Un método que reinicia periódicamente desde el último valor de $x$ no implementa la
+misma ecuación de Caputo con terminal inferior fijo. Una coincidencia visual durante
+un intervalo corto no corrige esa diferencia. Antes de comparar dos soluciones deben
+coincidir operador, orden, terminal inferior, historia, política de memoria, paso y
+horizonte.
+\end{warningbox}
+
+\lecturaseccion{Kai Diethelm, \emph{The Analysis of Fractional Differential
+Equations}, sección del método predictor--corrector; K. Diethelm, N. J. Ford y A. D.
+Freed, ``A predictor-corrector approach for the numerical solution of fractional
+differential equations'', \emph{Nonlinear Dynamics}, 2002; Igor Podlubny,
+\emph{Fractional Differential Equations}, secciones numéricas.}
+
+\subsection{Comprobación de hipótesis y resultados}
+
+Los conceptos anteriores forman una cadena, no una colección de palabras. El espacio
+de fases fija qué estados y vecindades son legítimos. La existencia y unicidad
+permiten hablar de flujo. La invariancia y las regiones atrapantes organizan el
+comportamiento global. La variación describe perturbaciones; Poincaré convierte un
+ciclo en un punto fijo; Floquet mide su estabilidad transversal. El grado responde
+preguntas de existencia sin resolver necesariamente el objeto. Las intersecciones de
+variedades conectan geometría con dinámica simbólica. En Caputo, toda la cadena debe
+levantarse a un estado que conserve memoria.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.19\linewidth}
+                  >{\raggedright\arraybackslash}p{0.34\linewidth}
+                  >{\raggedright\arraybackslash}p{0.37\linewidth}}
+\toprule
+Objeto & Pregunta matemática & Comprobación antes de interpretar una gráfica\\
+\midrule
+\endhead
+Espacio de fases & ¿Qué representa un estado y qué puntos se identifican? & Unidades,
+periodicidad angular, dimensión y distancia elegida.\\
+Flujo & ¿Existe una evolución única y componible? & Regularidad del campo, intervalo
+de existencia y dependencia de la condición inicial.\\
+Invariancia & ¿Las trayectorias permanecen en el conjunto? & Signo del campo en la
+frontera o argumento exacto de conservación.\\
+Atracción & ¿La distancia al conjunto tiende a cero? & Varias condiciones iniciales,
+transitorio, horizonte y definición de distancia.\\
+Variedad estable & ¿Qué estados convergen al objeto hiperbólico? & Espectro local,
+tangencia y continuidad al ampliar la integración.\\
+Retorno & ¿El siguiente cruce define una función? & Sección, orientación, exclusión de
+tangencias e interpolación del evento.\\
+Floquet & ¿Cómo cambia una perturbación después de un periodo? & Periodo, integración
+variacional, multiplicador trivial y convergencia numérica.\\
+Grado & ¿Debe existir un cero o punto fijo dentro de la región? & Ausencia de ceros en
+la frontera y continuidad durante la homotopía.\\
+Dinámica simbólica & ¿Existe una codificación compatible con la iteración? & Región
+invariante, partición, cobertura y correspondencia de itinerarios.\\
+Memoria Caputo & ¿Qué historia determina la continuación? & Orden, terminal inferior,
+perfil, política de memoria y comparación de pasos.\\
+\bottomrule
+\end{longtable}
+
+\begin{activitybox}{Proyecto breve: una afirmación, tres niveles de evidencia}
+Elija uno de estos objetos: región atrapante de \eqref{eq:gt-normal-radial}, variedad
+de \eqref{eq:gt-silla-no-lineal}, retorno del ciclo radial o itinerarios del mapa
+logístico. Entregue una página con: definición; derivación analítica; experimento en
+Toolbox Chaos; dos refinamientos; interpretación de cada gráfica; y una frase precisa
+sobre el alcance que ya se estableció. Otra persona debe poder repetir el cálculo con
+la información escrita, sin instrucciones orales.
+\end{activitybox}
+
+\paragraph{Problemas de cierre.}
+\begin{enumerate}
+  \item Demuestre que la imagen de un conjunto conexo bajo una aplicación continua es
+  conexa. Explique cómo usaría el resultado para revisar una transformación de
+  coordenadas.
+  \item Para $\dot x=x(1-x)$, determine flujo implícito, equilibrios, cuencas y
+  conjuntos $\omega$-límite. Dibuje primero la línea de fase.
+  \item Construya una función $h$ cuya subnivel describa un disco y aplique
+  \eqref{eq:gt-derivada-lie} al sistema radial.
+  \item Verifique \eqref{eq:gt-liouville} para un sistema lineal diagonal y compare
+  con el producto de sus soluciones escalares.
+  \item En \eqref{eq:gt-silla-no-lineal}, busque el siguiente término de una gráfica
+  invariante $h(x)=a_2x^2+a_3x^3$ y explique por qué $a_3=0$.
+  \item Derive \eqref{eq:gt-multiplicador-planar} a partir de
+  \eqref{eq:gt-liouville} y del multiplicador tangencial igual a uno.
+  \item Para $P(x)=rx(1-x)$, determine la estabilidad de los puntos fijos y describa
+  qué cambia cuando un multiplicador cruza $-1$.
+  \item Justifique por qué un grado no nulo de $P-I$ demuestra existencia de un punto
+  fijo, pero no su estabilidad.
+  \item Compare recurrencia en el estado puntual con recurrencia del perfil
+  $m_t(\theta)$ de \eqref{eq:gt-perfil-memoria}.
+  \item Pruebe que los pesos $b_{j,n+1}$ de
+  \eqref{eq:gt-abm-predictor} son positivos y explique su comportamiento para datos
+  muy antiguos.
+\end{enumerate}
+
+\paragraph{Criterios de resolución para los problemas 1--10.}
+En el problema 1 use la caracterización de conexidad por separaciones. En el 2 separe
+variables y conserve los signos antes de integrar. En el 3 tome
+$h=x^2+y^2-R^2$. En el 4 use
+$M(t)=\operatorname{diag}(e^{\lambda_1t},\ldots,e^{\lambda_nt})$. En el 5 sustituya
+la serie en \eqref{eq:gt-invariancia-grafica}. En el 6 separe la dirección tangente de
+la transversal. En el 7 derive $P'(x^*)$. En el 8 recuerde que el grado no contiene
+tasas temporales. En el 9 construya dos perfiles con el mismo valor en cero. En el 10
+use que $u^q$ es creciente para $q>0$.
+
+\begin{evidencebox}{Criterio de avance}
+El capítulo está dominado cuando puede explicarse a partir de definiciones y teoremas por qué una
+frontera de píxeles requiere una definición de frontera matemática; la linealización es
+local; cómo un ciclo se convierte en punto fijo de retorno; qué aporta un grado no
+nulo; qué hipótesis geométrica precede a una herradura; y por qué en Caputo el valor
+actual requiere la historia necesaria para continuar.
+\end{evidencebox}

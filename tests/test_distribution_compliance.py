@@ -135,6 +135,8 @@ def test_pyinstaller_and_inno_include_required_notices_and_metadata():
     )
     assert 'InfoBeforeFile=..\\..\\THIRD_PARTY_NOTICES.md' in inno
     assert 'recursesubdirs' in inno
+    assert '[InstallDelete]' in inno
+    assert 'Type: filesandordirs; Name: "{app}\\_internal"' in inno
 
 
 def _valid_sbom() -> dict:

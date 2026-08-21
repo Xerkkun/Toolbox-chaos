@@ -56,6 +56,13 @@ def test_presets_load():
         assert len(initial) == 3
 
 
+def test_classic_sprott_i_and_s_sign_conventions():
+    """Guard the two signs that distinguish the canonical I and S flows."""
+    state = np.array([0.5, -0.3, 0.8], dtype=float)
+    assert vector_field('sprott_i', state, ())[0] == pytest.approx(0.06)
+    assert vector_field('sprott_s', state, ())[0] == pytest.approx(0.7)
+
+
 @pytest.mark.parametrize('system_key', CH01_SYSTEMS)
 def test_vector_field_python_vs_c(system_key):
     """Verify that Python vector field matches the C implementation at a test state.

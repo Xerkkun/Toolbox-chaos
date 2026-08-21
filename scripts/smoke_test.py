@@ -130,11 +130,15 @@ def main() -> int:
     # ── 8. SprottExplorerTab construction ─────────────────────────────────────
     tab = SprottExplorerTab()
 
-    # ── 8a. Test _make_pdf_viewer on both PDFs ────────────────────────────────
-    theory_pdf_path = REPO_ROOT / 'assets' / 'sprott' / 'sprott_theory.pdf'
-    dict_pdf_path = REPO_ROOT / 'assets' / 'chaos_dictionary.pdf'
-    
-    for pdf_p, title in [(theory_pdf_path, 'Teoría'), (dict_pdf_path, 'Diccionario')]:
+    # ── 8a. Test the three distributed pedagogical manuals ──────────────────
+    manual_dir = REPO_ROOT / 'assets' / 'manuals'
+    manual_specs = (
+        (manual_dir / 'manual_usuario_toolbox_chaos.pdf', 'Usuario'),
+        (manual_dir / 'manual_teorico_pedagogico.pdf', 'Teoría'),
+        (manual_dir / 'manual_explorador_sprott.pdf', 'Explorador Sprott'),
+    )
+
+    for pdf_p, title in manual_specs:
         pdf_widget = tab._make_pdf_viewer(pdf_p, title)
         _check(pdf_widget is not None, f"make_pdf_viewer returned None for {pdf_p}")
         

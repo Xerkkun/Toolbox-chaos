@@ -35,10 +35,13 @@ class StartupReadyProbe(QObject):
         window.installEventFilter(self)
 
     def eventFilter(self, watched, event):  # noqa: N802 - Qt API
+        window = getattr(self, "_window", None)
+        if window is None:
+            return False
         if (
-            watched is self._window
+            watched is window
             and event.type() == QEvent.Type.Paint
-            and not self._reported
+            and not getattr(self, "_reported", True)
         ):
             self._reported = True
             QTimer.singleShot(0, self._write_ready_record)
