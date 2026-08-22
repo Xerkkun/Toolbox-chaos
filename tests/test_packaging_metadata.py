@@ -17,7 +17,10 @@ from core.app_metadata import (
     APP_AUTHOR_DISPLAY,
     APP_BRAND,
     APP_DEVELOPER,
+    APP_DOI,
     APP_LICENSE,
+    APP_RELEASE_DATE,
+    APP_RELEASE_STATUS,
     APP_VERSION,
     DEFAULT_RELEASE_API_URL,
     RELEASE_API_ENV,
@@ -47,6 +50,45 @@ def test_version_metadata_is_semver():
     assert 'Maria Fernanda Moreno Lopez' in APP_AUTHOR_DISPLAY
     assert 'Fer Moreno' in APP_AUTHOR_DISPLAY
     assert APP_BRAND == 'Fyskode'
+    assert APP_RELEASE_STATUS == 'stable release'
+    assert APP_RELEASE_DATE == '2026-08-21'
+    assert APP_DOI == '10.17605/OSF.IO/GQMJR'
+
+
+def test_release_identity_is_synchronized_across_public_metadata():
+    root = Path(__file__).resolve().parents[1]
+    metadata = json.loads(
+        (root / 'docs' / 'project_metadata.json').read_text(encoding='utf-8')
+    )
+    citation = (root / 'CITATION.cff').read_text(encoding='utf-8')
+
+    assert metadata['version'] == APP_VERSION
+    assert metadata['latest_published_version'] == APP_VERSION
+    assert metadata['release_status'] == 'published_stable'
+    assert metadata['release_date'] == APP_RELEASE_DATE
+    assert metadata['osf_doi'] == APP_DOI
+    assert f'version: "{APP_VERSION}"' in citation
+    assert f'date-released: "{APP_RELEASE_DATE}"' in citation
+    assert f'doi: {APP_DOI}' in citation
+
+
+def test_user_manual_is_stable_and_packaged_copies_are_identical():
+    root = Path(__file__).resolve().parents[1]
+    source = (
+        root / 'assets' / 'manuals' / 'manual_usuario_toolbox_chaos.tex'
+    ).read_text(encoding='utf-8')
+    lowered = source.casefold()
+    assert 'referencia candidata' not in lowered
+    assert 'todavía no está publicada' not in lowered
+    assert 'no se crea un doi nuevo' in lowered
+
+    copies = [
+        root / 'assets' / 'manuals' / 'manual_usuario_toolbox_chaos.pdf',
+        root / 'output' / 'pdf' / 'manual_usuario_toolbox_chaos.pdf',
+        root / 'resources' / 'bundled' / 'docs' / 'manual_usuario_toolbox_chaos.pdf',
+    ]
+    assert all(path.is_file() for path in copies)
+    assert len({path.read_bytes() for path in copies}) == 1
 
 
 def test_update_version_comparison():

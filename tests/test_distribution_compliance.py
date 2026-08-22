@@ -283,7 +283,7 @@ def test_release_workflow_generates_and_retains_validated_sbom():
     assert '--check-build-pins' in workflow
     assert 'dist/python/*.cdx.json' in workflow
     assert workflow.count('retention-days: 90') >= 2
-    assert workflow.count('python-version: "3.14.6"') == 3
+    assert workflow.count('python-version: "3.14.6"') == 4
 
 
 def test_sdist_normalization_is_byte_reproducible(tmp_path):
