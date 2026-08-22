@@ -1,20 +1,44 @@
-# Release Notes - Fyskode Chaotic Systems Toolbox 0.1.0
+# Release Notes - Fyskode Chaotic Systems Toolbox 0.2.0
 
-Fyskode Chaotic Systems Toolbox is a PySide6 desktop application for simulating, analyzing, and exploring chaotic dynamical systems.
+Release date: 2026-08-21. This release retains the existing OSF project DOI;
+no new version-specific DOI is assigned.
 
 ## Added
-- Closed, registry-backed catalog of classical chaotic systems.
-- 2D and 3D trajectory rendering.
-- Numerical diagnostics: Lyapunov exponent estimation, Fast Fourier Transform (FFT) spectra, bifurcation sweeps, and coexisting attractors basins where supported.
-- Sprott Explorer loader to parse and study local `.DIC` files.
-- Integrated PDF dictionary viewer and updater interface.
+
+- No-code editor for safe expression-defined flows and maps through the
+  compatible Hidden Attractors FO engine.
+- Expanded trajectory, spectrum, Lyapunov, bifurcation, basin, coexistence,
+  custom-system, and Sprott exploration workflows.
+- Integrated stable-release updater with semantic-version comparison, release
+  notes, platform-specific installer selection, atomic download, SHA-256
+  verification, explicit launch confirmation, cancellation, and a total
+  download deadline.
+- Consolidated `SHA256SUMS` generation in release CI for the exact installer
+  asset basenames. GitHub Release publication remains manual.
 
 ## Changed
-- Build script with an explicit runtime-resource manifest under `resources/bundled`.
 
-## Fixed
-- Path resolution for relative executables.
+- Desktop UI and packaging use PySide6 consistently.
+- Windows packaging validates the frozen self-test before generating the Inno
+  Setup installer and preserves user configuration during upgrades.
+- Local manuals and generated educational resources are synchronized with the
+  0.2.0 release identity.
+
+## Security
+
+- Release metadata must identify one exact canonical installer for the current
+  version, platform, and architecture; drafts, prereleases, ambiguous assets,
+  unsafe names, and untrusted redirects are rejected.
+- Downloads are size-bounded, written through a temporary file, and discarded
+  after checksum, cancellation, timeout, or local-I/O failures. Hash and size
+  are checked again immediately before launch, narrowing but not eliminating
+  the time-of-check/time-of-use window.
 
 ## Notes
-- Numerical outputs produced by the toolbox are computational evidence and do not represent automatic mathematical proof.
-- Sprott Explorer operates locally at runtime and does not bundle or redistribute any copyrighted dictionaries, book figures, or executables.
+
+- Numerical outputs are computational evidence and do not represent automatic
+  mathematical proof.
+- Sprott Explorer operates locally and does not bundle or redistribute
+  copyrighted dictionaries, book figures, or executables.
+- The existing OSF DOI identifies the current project/archive record; no
+  additional version-specific DOI is assigned.

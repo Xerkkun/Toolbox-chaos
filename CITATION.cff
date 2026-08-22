@@ -1,8 +1,8 @@
 cff-version: 1.2.0
-message: "If you use Fyskode Chaotic Systems Toolbox in academic work, cite the software and the specific release."
+message: "Cite version 0.2.0 together with the existing OSF project DOI and the corresponding GitHub Release."
 title: "Fyskode Chaotic Systems Toolbox"
-version: "0.1.0"
-date-released: "2026-06-14"
+version: "0.2.0"
+date-released: "2026-08-21"
 doi: 10.17605/OSF.IO/GQMJR
 authors:
   - family-names: "Moreno Lopez"

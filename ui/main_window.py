@@ -5,6 +5,7 @@ import sys
 from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
+from threading import Event
 
 if __package__ in {None, ''}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -13,7 +14,7 @@ from core.qt_binding import configure_pyside6
 
 configure_pyside6()
 
-from PySide6.QtCore import QSettings, QTimer, QUrl
+from PySide6.QtCore import QProcess, QSettings, QTimer, QUrl
 from PySide6.QtGui import QAction, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
@@ -35,6 +36,8 @@ from core.app_metadata import (
     APP_LICENSE,
     APP_NAME,
     APP_ORGANIZATION,
+    APP_RELEASE_DATE,
+    APP_RELEASE_STATUS,
     APP_VERSION,
     APP_YEAR,
     APP_DOI,
@@ -46,7 +49,15 @@ from core.app_metadata import (
 )
 from core.paths import bundled_doc_path, ensure_user_data_dir, resource_path
 from core.time_policy import utc_today_iso
-from core.update_checker import UpdateCheckError, UpdateInfo, check_for_updates
+from core.update_checker import (
+    UpdateCheckError,
+    UpdateDownloadError,
+    UpdateInfo,
+    VerifiedUpdate,
+    check_for_updates,
+    download_verified_update,
+    verify_update_before_launch,
+)
 from core.hidden_engine import engine_status
 from ui.custom_system_tab import NoCodeSystemTab
 from ui.sprott_explorer_tab import SprottExplorerTab
@@ -71,6 +82,9 @@ class MainWindow(QMainWindow):
         self._update_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='chaos-updates')
         self._update_future: Future | None = None
         self._update_timer: QTimer | None = None
+        self._download_future: Future | None = None
+        self._download_timer: QTimer | None = None
+        self._update_cancel_event = Event()
         self.setWindowTitle(f'{APP_NAME} {APP_VERSION}')
 
         # Adaptive sizing — respect monitor boundaries
@@ -205,11 +219,14 @@ class MainWindow(QMainWindow):
             '<b>Dependencias de terceros:</b> conservan sus licencias; consulte '
             '<code>THIRD_PARTY_NOTICES.md</code> incluido con la aplicación.<br>'
             f'<b>Anio:</b> {APP_YEAR}<br>'
-            f'<b>DOI de archivo:</b> <a href="{APP_DOI_URL}">{APP_DOI}</a></p>'
+            f'<b>Estado:</b> {APP_RELEASE_STATUS} ({APP_RELEASE_DATE})<br>'
+            f'<b>DOI de proyecto/archivo actual:</b> <a href="{APP_DOI_URL}">{APP_DOI}</a></p>'
             f'<p>{APP_DESCRIPTION}</p>'
             f'<p><b>Cómo citar / How to cite:</b><br>'
             '<span style="font-family: Consolas, monospace; background-color: #f3f4f6; padding: 6px; display: block; border-left: 4px solid #3b82f6; font-size: 11px; color: #1f2937;">'
-            'Moreno Lopez, M. F. (2026). <i>Fyskode Chaotic Systems Toolbox</i> (Version 0.1.0). OSF. DOI: 10.17605/OSF.IO/GQMJR'
+            f'Moreno Lopez, M. F. (2026). <i>Fyskode Chaotic Systems Toolbox</i> '
+            f'(Version {APP_VERSION}). '
+            f'Project archive DOI: {APP_DOI}'
             '</span></p>'
             f'<p><b>Creditos principales:</b> Python, PySide6, NumPy, Matplotlib, pyqtgraph y PyInstaller.</p>'
             f'<p><b>Documentacion local:</b> {docs_path}</p>'
@@ -284,7 +301,6 @@ class MainWindow(QMainWindow):
             self._update_timer.stop()
             self._update_timer.deleteLater()
             self._update_timer = None
-        self.settings.setValue('updates/last_check_date', utc_today_iso())
         try:
             info = future.result()
         except UpdateCheckError as exc:
@@ -293,6 +309,7 @@ class MainWindow(QMainWindow):
             if not silent:
                 QMessageBox.warning(self, 'Actualizaciones', str(exc))
             return
+        self.settings.setValue('updates/last_check_date', utc_today_iso())
         self._handle_update_info(info, silent=silent)
 
     def _handle_update_info(self, info: UpdateInfo, *, silent: bool):
@@ -303,7 +320,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(
                     self,
                     'Actualizaciones',
-                    f'{APP_NAME} {info.installed_version} ya esta actualizado.',
+                    f'{APP_NAME} {info.installed_version} ya está actualizado. '
+                    f'La versión estable más reciente es {info.latest_version}.',
                 )
             return
 
@@ -318,20 +336,130 @@ class MainWindow(QMainWindow):
             f'Artefacto: {info.asset_name or "no encontrado para esta plataforma"}\n\n'
             f'{info.summary}'
         )
+        if info.download_url and not info.checksum_url:
+            details += (
+                '\n\nEl release no incluye SHA256SUMS. La descarga integrada está '
+                'deshabilitada para evitar ejecutar un archivo sin verificar.'
+            )
         message.setInformativeText(details)
         download_button = None
-        if info.download_url:
-            download_button = message.addButton('Descargar', QMessageBox.ButtonRole.AcceptRole)
-        notes_button = message.addButton('Release notes', QMessageBox.ButtonRole.ActionRole)
-        later_button = message.addButton('Recordar despues', QMessageBox.ButtonRole.RejectRole)
+        if info.download_url and info.checksum_url:
+            download_button = message.addButton(
+                'Descargar y verificar', QMessageBox.ButtonRole.AcceptRole
+            )
+        notes_button = None
+        if info.release_notes_url:
+            notes_button = message.addButton(
+                'Ver notas del release', QMessageBox.ButtonRole.ActionRole
+            )
+        later_button = message.addButton(
+            'Recordar después', QMessageBox.ButtonRole.RejectRole
+        )
         message.exec()
         clicked = message.clickedButton()
         if clicked is download_button:
-            QDesktopServices.openUrl(QUrl(info.download_url))
+            self._start_update_download(info)
         elif clicked is notes_button and info.release_notes_url:
             QDesktopServices.openUrl(QUrl(info.release_notes_url))
         elif clicked is later_button:
             return
+
+    def _start_update_download(self, info: UpdateInfo):
+        if self._download_future and not self._download_future.done():
+            QMessageBox.information(
+                self,
+                'Actualizaciones',
+                'Ya hay una descarga de actualización en curso.',
+            )
+            return
+        update_directory = ensure_user_data_dir() / 'updates'
+        self._update_cancel_event = Event()
+        if hasattr(self, 'info_label'):
+            self.info_label.setText(
+                f'Descargando y verificando {info.asset_name or "el instalador"}...'
+            )
+        self._download_future = self._update_executor.submit(
+            download_verified_update,
+            info=info,
+            destination_dir=update_directory,
+            cancel_event=self._update_cancel_event,
+        )
+        self._download_timer = QTimer(self)
+        self._download_timer.setInterval(250)
+        self._download_timer.timeout.connect(self._poll_update_download_future)
+        self._download_timer.start()
+
+    def _poll_update_download_future(self):
+        future = self._download_future
+        if future is None or not future.done():
+            return
+        if self._download_timer:
+            self._download_timer.stop()
+            self._download_timer.deleteLater()
+            self._download_timer = None
+        if hasattr(self, 'info_label'):
+            self.info_label.setText('Listo.')
+        try:
+            verified = future.result()
+        except (UpdateCheckError, UpdateDownloadError) as exc:
+            QMessageBox.warning(self, 'Actualización no descargada', str(exc))
+            return
+        self._offer_verified_installer(verified)
+
+    def _offer_verified_installer(self, verified: VerifiedUpdate):
+        message = QMessageBox(self)
+        message.setIcon(QMessageBox.Icon.Question)
+        message.setWindowTitle('Instalador verificado')
+        reused = ' (archivo local reutilizado)' if verified.reused_existing_file else ''
+        message.setText(
+            f'{APP_NAME} {verified.version} fue descargado y verificado con SHA-256{reused}.'
+        )
+        message.setInformativeText(
+            'SHA-256 verifica la integridad frente al manifiesto, pero no sustituye '
+            'una firma de código; los instaladores actuales aún no están '
+            'firmados. Guarda tu trabajo antes de continuar. ¿Deseas ejecutar ahora '
+            'el instalador? La instalación no se inicia automáticamente.'
+        )
+        message.setDetailedText(
+            f'Archivo: {verified.path}\n'
+            f'Tamaño: {verified.size} bytes\n'
+            f'SHA-256: {verified.sha256}'
+        )
+        run_button = message.addButton(
+            'Ejecutar instalador', QMessageBox.ButtonRole.AcceptRole
+        )
+        message.addButton('Más tarde', QMessageBox.ButtonRole.RejectRole)
+        message.exec()
+        if message.clickedButton() is not run_button:
+            return
+        try:
+            started = self._launch_verified_installer(verified)
+        except UpdateDownloadError as exc:
+            QMessageBox.warning(self, 'Instalador modificado', str(exc))
+            return
+        if not started:
+            QMessageBox.warning(
+                self,
+                'No se pudo iniciar el instalador',
+                f'El archivo verificado permanece disponible en:\n{verified.path}',
+            )
+            return
+        if hasattr(self, 'info_label'):
+            self.info_label.setText(
+                'Instalador iniciado con confirmación del usuario.'
+            )
+
+    @staticmethod
+    def _launch_verified_installer(verified: VerifiedUpdate) -> bool:
+        installer = verify_update_before_launch(verified)
+        if sys.platform.startswith('win'):
+            started = QProcess.startDetached(
+                str(installer), [], str(installer.parent)
+            )
+            if isinstance(started, tuple):
+                return bool(started[0])
+            return bool(started)
+        return QDesktopServices.openUrl(QUrl.fromLocalFile(str(installer)))
 
     def build_3d_tab(self):
         self.tab_3d_widget = Tab3DWidget(self, self)
@@ -473,6 +601,7 @@ class MainWindow(QMainWindow):
         )
 
     def closeEvent(self, event):
+        self._update_cancel_event.set()
         self._update_executor.shutdown(wait=False, cancel_futures=True)
         super().closeEvent(event)
 

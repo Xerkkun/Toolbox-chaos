@@ -1,6 +1,6 @@
 # Reproducible Examples
 
-This document describes step-by-step procedures to reproduce key simulations and analysis outputs using **Fyskode Chaotic Systems Toolbox 0.1.0**. 
+This document describes step-by-step procedures to reproduce key simulations and analysis outputs using **Fyskode Chaotic Systems Toolbox 0.2.0**.
 
 Because the toolbox is designed primarily as a desktop GUI application, there are no user-facing command-line integration scripts. Reproducibility is achieved by loading predefined configurations from the internal catalog and running the numerical backend from the interface.
 

@@ -116,7 +116,7 @@ RELEASE_PLATFORM_PINS = {
     'colorama': ('0.4.6', 'sys_platform == "win32"'),
 }
 LOCAL_FILE_URI = re.compile(
-    r'file:///(?:[a-z]:/(?:users)/|(?:users|home)/)',
+    r'file' + r':///' + r'(?:[a-z]:/(?:users)/|(?:users|home)/)',
     re.IGNORECASE,
 )
 

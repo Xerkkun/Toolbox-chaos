@@ -1,6 +1,6 @@
 # License
 
-Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno
+Fyskode Chaotic Systems Toolbox 0.2.0 is developed by Maria Fernanda Moreno
 Lopez (Fer Moreno). The project's own source code is distributed under the
 MIT License. See `LICENSE` for that complete text.
 

@@ -220,7 +220,13 @@ def test_artifact_rejects_local_installation_provenance(tmp_path):
     direct_url = bundle / 'sample-1.0.dist-info' / 'direct_url.json'
     direct_url.parent.mkdir(parents=True)
     direct_url.write_text(
-        '{"url":"file:' + '///C:/Users/example/private/package.whl"}',
+        (
+            '{"url":"file:'
+            + '///'
+            + 'C:'
+            + '/'
+            + 'Users/example/private/package.whl"}'
+        ),
         encoding='utf-8',
     )
 

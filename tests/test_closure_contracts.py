@@ -1157,7 +1157,7 @@ def test_built_wheel_installs_entrypoint_metadata_and_resources(tmp_path):
         "from core.system_ids import NATIVE_SYSTEM_CODES; "
         "from core.native import simulate_system_native; "
         "d=distribution('chaos-toolbox'); "
-        "assert APP_VERSION=='0.1.0'; "
+        "assert APP_VERSION=='0.2.0'; "
         "assert callable(main.main_entry); assert len(NATIVE_SYSTEM_CODES)==37; "
         "assert any(e.group=='gui_scripts' and e.name=='chaos-toolbox' and e.value=='main:main_entry' for e in d.entry_points); "
         "assert any(r.lower().replace(' ','').startswith('hidden-attractors-fo') and '>=1.1' in r for r in (d.requires or [])); "

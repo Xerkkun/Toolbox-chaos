@@ -15,9 +15,9 @@ dependencies retain their separate licenses. Installed packages include
 
 When a platform package is published for a release, install the matching artifact:
 
-- Windows: `chaos-toolbox-v0.1.0-windows-x64-setup.exe`.
-- macOS: `.app` inside `chaos-toolbox-v0.1.0-macos-arm64.dmg` or matching architecture.
-- Linux: `chaos-toolbox-v0.1.0-linux-x64.deb`, or the matching architecture when published.
+- Windows: `chaos-toolbox-v0.2.0-windows-x64-setup.exe`.
+- macOS: `.app` inside `chaos-toolbox-v0.2.0-macos-arm64.dmg` or matching architecture.
+- Linux: `chaos-toolbox-v0.2.0-linux-x64.deb`, or the matching architecture when published.
 
 Installing a newer version over an older version should not remove user configuration, generated results, configured external resources, or local galleries.
 

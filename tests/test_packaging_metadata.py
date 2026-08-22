@@ -41,7 +41,7 @@ from ui.main_window import MainWindow
 
 
 def test_version_metadata_is_semver():
-    assert parse_semver(APP_VERSION).release == (0, 1, 0)
+    assert parse_semver(APP_VERSION).release == (0, 2, 0)
     assert APP_DEVELOPER == 'Maria Fernanda Moreno Lopez'
     assert APP_LICENSE == 'MIT'
     assert 'Maria Fernanda Moreno Lopez' in APP_AUTHOR_DISPLAY
@@ -130,6 +130,9 @@ def test_update_check_available_and_unavailable_with_mock_fetcher():
     assert info.download_url.endswith('/chaos-toolbox.exe')
 
     payload['tag_name'] = 'v0.1.0'
+    payload['assets'][0]['name'] = (
+        'chaos-toolbox-v0.1.0-windows-x64-setup.exe'
+    )
     info = check_for_updates(
         installed_version='0.1.0',
         release_api_url='https://api.github.com/repos/Xerkkun/toolbox-chaos/releases/latest',

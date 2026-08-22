@@ -2,6 +2,21 @@
 
 All notable changes to Fyskode Chaotic Systems Toolbox are documented here. The project follows semantic versioning: `MAJOR.MINOR.PATCH`.
 
+## 0.2.0 - 2026-08-21
+
+### Added
+
+- Integrated stable-release updater with semantic-version comparison, release
+  notes, platform-specific installer selection, atomic download, consolidated
+  `SHA256SUMS` verification, and explicit confirmation before launch.
+- Release-workflow checksum manifest for the exact GitHub Release asset names.
+
+### Security
+
+- Reject draft/prerelease metadata, unsafe asset names, unapproved download
+  hosts and redirects, oversized responses, checksum mismatches, and installers
+  modified between download and launch.
+
 ## Added
 
 - PySide6 desktop application for simulating, analyzing, and visualizing chaotic dynamical systems.

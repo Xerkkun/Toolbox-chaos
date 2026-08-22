@@ -6,7 +6,7 @@ PySide6/Qt and other dependencies retain their separate licenses.
 
 Use the main tabs to simulate systems, visualize attractors, inspect time series, compare methods, calculate FFT/Lyapunov diagnostics, explore bifurcations, inspect basins where supported, and open the local PDF dictionary.
 
-Version 0.1.0 exposes 38 executable systems in its registry-backed selector.
+Version 0.2.0 exposes 38 executable systems in its registry-backed selector.
 Selecting a system loads its parameter and initial-condition defaults
 automatically. Users can then modify those values, the numerical method,
 colors, and visualization options.

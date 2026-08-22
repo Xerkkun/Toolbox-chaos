@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chaos-toolbox"
-version = "0.1.0"
+version = "0.2.0"
 description = "Desktop toolbox for chaotic systems, numerical analysis, visualization, and attractor exploration."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -78,7 +78,7 @@ core = ["csrc/*.c", "csrc/*.def"]
 [tool.setuptools.data-files]
 "share/chaos-toolbox" = ["README.md", "LICENSE", "NOTICE.md", "THIRD_PARTY_NOTICES.md", "AUTHORS.md", "RELEASE_NOTES.md"]
 "share/chaos-toolbox/LICENSES" = ["LICENSES/LGPL-3.0-only.txt", "LICENSES/GPL-3.0-only.txt", "LICENSES/Chromium-BSD-3-Clause.txt", "LICENSES/QtWebEngine-Third-Party-NOTICE.txt", "LICENSES/Qt-PySide-6.11.1-Corresponding-Source.txt", "LICENSES/Qt-6.11.1-Security-Inventory.txt"]
-"share/chaos-toolbox/docs" = ["docs/user-guide.md", "docs/installation.md", "docs/troubleshooting.md", "docs/license.md", "docs/distribution_policy.md", "docs/custom_systems.md"]
+"share/chaos-toolbox/docs" = ["docs/user-guide.md", "docs/installation.md", "docs/troubleshooting.md", "docs/license.md", "docs/distribution_policy.md", "docs/custom_systems.md", "docs/updates.md"]
 "share/chaos-toolbox/resources/bundled/data" = ["resources/bundled/data/*.yaml"]
 "share/chaos-toolbox/resources/bundled/data/systems" = ["resources/bundled/data/systems/*.yaml"]
 "share/chaos-toolbox/resources/bundled/data/wang2021" = ["resources/bundled/data/wang2021/*"]

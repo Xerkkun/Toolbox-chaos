@@ -1,8 +1,11 @@
 # Release Process
 
-Fyskode Chaotic Systems Toolbox 0.1.0 is developed by Maria Fernanda Moreno
+Fyskode Chaotic Systems Toolbox 0.2.0 is developed by Maria Fernanda Moreno
 Lopez (Fer Moreno). Its own source is MIT-licensed; bundled dependencies
 retain their separate licenses.
+
+Version 0.2.0 is the stable release dated 2026-08-21. It retains the existing
+OSF project DOI and does not use a new version-specific archive DOI.
 
 1. Update `pyproject.toml` using semantic versioning `MAJOR.MINOR.PATCH`.
 2. Update `CHANGELOG.md`, `RELEASE_NOTES.md`, `CITATION.cff`, and documentation references.
@@ -34,11 +37,29 @@ install Toolbox from the package index.
 5. Build platform artifacts on their native OS. The release workflow builds the Python wheel and source distribution once in a dedicated job, validates both with `twine`, and installs and executes the native self-test from each distribution independently.
 6. Preserve the Python-environment CycloneDX SBOM beside the wheel/source archive and the file-hash CycloneDX SBOM produced from each Windows, macOS, and Linux bundle. Verify PySide6-Essentials, PySide6-Addons, Shiboken6, the Python runtime, native files, and absence of the legacy Qt binding.
 7. Confirm by inspecting the wheel, sdist, PyInstaller bundle, installed Windows image, mounted DMG, and clean-installed DEB that they retain `THIRD_PARTY_NOTICES.md`, LGPLv3/GPLv3, Chromium notices, the source/security manifests, and the exact Python runtime license where Python is bundled. Also confirm that the unused GPL-only Qt module families named in `docs/license.md` are absent.
-8. Attach both verified Qt/PySide 6.11.1 source archives, `SHA256SUMS`, and their manifest to the same persistent GitHub Release as the binaries. The 90-day Actions artifact alone is not durable delivery and no written offer is asserted.
+8. Download the `chaos-toolbox-release-manifest` Actions artifact and attach its
+   consolidated `SHA256SUMS` to the same persistent GitHub Release as every
+   exact binary named by that manifest. Also attach both verified Qt/PySide
+   6.11.1 source archives and their source/security manifests. Do not substitute
+   the narrower corresponding-source checksum file for the consolidated
+   release-root `SHA256SUMS`. The 90-day Actions artifacts alone are not durable
+   delivery and no written offer is asserted.
 9. Review the Qt security inventory and record acceptance of the residual CVE-2026-8168 trusted-input risk; do not describe the public PySide6 6.11.1 binary as fully patched.
 10. Upload all remaining artifacts to the GitHub Release for that exact tag.
-11. A clean installation already uses the official GitHub latest-release API. `CHAOS_TOOLBOX_RELEASES_API_URL` is an optional controlled-deployment override.
-12. For release archiving, archive the stable release in OSF, create an OSF Registration for the frozen version, generate the OSF DOI, and add that DOI to `CITATION.cff` and `README.md` only after it exists.
+    Before publishing, confirm that each installable asset basename appears
+    exactly once in the consolidated `SHA256SUMS`; the updater disables its
+    integrated download when this contract is incomplete.
+11. A clean installation uses the official GitHub latest-stable-release API.
+    `CHAOS_TOOLBOX_RELEASES_API_URL` is an optional controlled-deployment
+    override. The app rejects drafts and prereleases, downloads atomically,
+    verifies SHA-256, rechecks the file before launch, and still requires the
+    user's explicit confirmation to execute it. That recheck narrows but does
+    not eliminate the time-of-check/time-of-use window: a process running as
+    the same user could replace the file afterward. SHA-256 verifies integrity
+    relative to the release manifest; it is not code signing, and the current
+    release installers remain unsigned.
+12. Retain the existing OSF project DOI in `CITATION.cff` and `README.md`; this
+    release does not claim a new version-specific DOI.
 
 The exact interpreter, runtime, Qt, HAFO, and PyInstaller pins constrain version
 resolution, and the SBOM records every delivered file. The project still does

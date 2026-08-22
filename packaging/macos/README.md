@@ -1,6 +1,6 @@
 # macOS Packaging
 
-Chaos Toolbox 0.1.0 uses PyInstaller to create a `.app` bundle on macOS.
+Chaos Toolbox 0.2.0 uses PyInstaller to create a `.app` bundle on macOS.
 
 Create the `.app` on a macOS build host:
 
