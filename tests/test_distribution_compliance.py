@@ -111,6 +111,8 @@ def test_pyinstaller_and_inno_include_required_notices_and_metadata():
         'b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231'
         in spec
     )
+    attributes = (ROOT / '.gitattributes').read_text(encoding='utf-8')
+    assert 'LICENSES/Python/LICENSE.txt text eol=lf' in attributes
     assert "'LICENSES/Python'" in spec
     assert 'upx=False' in spec
     assert 'upx=True' not in spec
