@@ -345,6 +345,15 @@ def test_ci_checks_real_pyside6_distribution_names():
     assert workflow.count('python -m pip install build setuptools wheel') == 3
     assert workflow.count('--no-build-isolation') == 3
     assert workflow.count('libxcb-cursor0') == 3
+    for package in (
+        'libx11-xcb1',
+        'libxcb-shape0',
+        'libxcb-shm0',
+        'libxcb-sync1',
+        'libxcb-util1',
+        'libxcb-xkb1',
+    ):
+        assert workflow.count(package) == 3
 
 
 def test_build_pin_gate_rejects_installed_version_drift(monkeypatch):
