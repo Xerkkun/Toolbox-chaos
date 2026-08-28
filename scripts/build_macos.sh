@@ -52,7 +52,16 @@ if ! find "$app" -type f -name libchaos_core.dylib -print -quit | grep -q .; the
 fi
 
 self_test_output="build/pyinstaller/macos-self-test.json"
-"$executable" --self-test-output "$self_test_output"
+if ! "$executable" --self-test-output "$self_test_output"; then
+    echo "The packaged macOS self-test failed." >&2
+    if [[ -f "$self_test_output" ]]; then
+        echo "Packaged self-test evidence:" >&2
+        cat "$self_test_output" >&2
+    else
+        echo "The packaged executable did not create $self_test_output." >&2
+    fi
+    exit 1
+fi
 python scripts/validate_self_test_output.py "$self_test_output"
 python scripts/verify_distribution_compliance.py --artifact "$app" \
     --write-bundle-sbom "$app" "dist/chaos-toolbox-macos-bundle.cdx.json"

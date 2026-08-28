@@ -393,6 +393,39 @@ def test_numba_cache_accepts_writable_path_outside_frozen_application(
     assert target.is_dir()
 
 
+def test_macos_frozen_source_roots_accept_only_frameworks_and_resources(
+    tmp_path, monkeypatch
+):
+    from main import _frozen_source_roots, _relative_frozen_source
+
+    contents = tmp_path / 'Chaos Toolbox.app' / 'Contents'
+    frameworks = contents / 'Frameworks'
+    resources = contents / 'Resources'
+    source = resources / 'hidden_attractors' / 'simulation.py'
+    frameworks.mkdir(parents=True)
+    source.parent.mkdir(parents=True)
+    source.write_text('# packaged source\n', encoding='utf-8')
+    outside = tmp_path / 'outside.py'
+    outside.write_text('# outside bundle\n', encoding='utf-8')
+
+    monkeypatch.setattr(sys, 'frozen', True, raising=False)
+    monkeypatch.setattr(sys, '_MEIPASS', str(frameworks), raising=False)
+    monkeypatch.setattr(sys, 'platform', 'darwin')
+
+    roots = _frozen_source_roots()
+    assert roots == (frameworks.resolve(), resources.resolve())
+    assert (
+        _relative_frozen_source(source, roots)
+        == 'hidden_attractors/simulation.py'
+    )
+    assert _relative_frozen_source(outside, roots) is None
+
+    monkeypatch.setattr(sys, 'platform', 'win32')
+    non_macos_roots = _frozen_source_roots()
+    assert non_macos_roots == (frameworks.resolve(),)
+    assert _relative_frozen_source(source, non_macos_roots) is None
+
+
 def test_importing_entrypoint_does_not_initialize_numba():
     root = Path(__file__).resolve().parents[1]
     environment = os.environ.copy()
@@ -450,6 +483,9 @@ def test_platform_build_scripts_gate_real_packaged_self_test():
         source = script.read_text(encoding='utf-8')
         assert '--self-test-output' in source, script
         assert 'validate_self_test_output.py' in source, script
+    macos_source = scripts[1].read_text(encoding='utf-8')
+    assert 'Packaged self-test evidence:' in macos_source
+    assert 'cat "$self_test_output" >&2' in macos_source
     workflow = (root / '.github' / 'workflows' / 'release.yml').read_text(
         encoding='utf-8'
     )

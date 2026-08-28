@@ -298,6 +298,8 @@ def test_release_workflow_generates_and_retains_validated_sbom():
     assert 'compression-level: 0' in workflow
     assert 'ubuntu:24.04 bash -euo pipefail' in workflow
     assert 'linux-deb-self-test.json' in workflow
+    assert 'python3 /artifacts/*.deb' in workflow
+    assert 'python3-minimal /artifacts/*.deb' not in workflow
     assert '--check-build-pins' in workflow
     assert 'dist/python/*.cdx.json' in workflow
     assert workflow.count('retention-days: 90') >= 2

@@ -9,6 +9,43 @@ import logging
 from core.app_metadata import APP_NAME, APP_VERSION
 
 
+def _frozen_source_roots() -> tuple[Path, ...]:
+    """Return the resolved roots allowed to contain frozen Python sources."""
+
+    if not getattr(sys, "frozen", False):
+        return ()
+    raw_meipass = str(getattr(sys, "_MEIPASS", "")).strip()
+    if not raw_meipass:
+        return ()
+
+    primary = Path(raw_meipass).resolve()
+    roots = [primary]
+    if (
+        sys.platform == "darwin"
+        and primary.name == "Frameworks"
+        and primary.parent.name == "Contents"
+    ):
+        resources = primary.parent / "Resources"
+        if resources.is_dir():
+            resolved_resources = resources.resolve()
+            contents = primary.parent.resolve()
+            if resolved_resources.is_relative_to(contents):
+                roots.append(resolved_resources)
+    return tuple(dict.fromkeys(roots))
+
+
+def _relative_frozen_source(
+    path: Path, roots: tuple[Path, ...]
+) -> str | None:
+    """Return a bundle-relative source path, rejecting escaped symlinks."""
+
+    resolved = path.resolve()
+    for root in roots:
+        if resolved.is_relative_to(root):
+            return resolved.relative_to(root).as_posix()
+    return None
+
+
 def configure_numba_cache() -> Path:
     """Select a writable cache outside the read-only frozen application."""
 
@@ -77,11 +114,7 @@ def run_packaged_self_test(arguments: list[str]) -> int | None:
         )
 
         frozen_runtime = bool(getattr(sys, "frozen", False))
-        frozen_root = (
-            Path(getattr(sys, "_MEIPASS", "")).resolve()
-            if frozen_runtime
-            else None
-        )
+        frozen_source_roots = _frozen_source_roots()
 
         hafo_status = engine_status(refresh=True)
         if not hafo_status.available:
@@ -170,11 +203,15 @@ def run_packaged_self_test(arguments: list[str]) -> int | None:
         }
         hafo_module_origins = {
             name: (
-                path.relative_to(frozen_root).as_posix()
-                if frozen_root is not None and path.is_relative_to(frozen_root)
+                _relative_frozen_source(path, frozen_source_roots)
+                if frozen_runtime
                 else str(path)
             )
             for name, path in hafo_source_paths.items()
+        }
+        hafo_module_origins = {
+            name: origin if origin is not None else str(hafo_source_paths[name])
+            for name, origin in hafo_module_origins.items()
         }
         hafo_spec_paths = {
             name: Path(getattr(getattr(module, "__spec__", None), "origin", ""))
@@ -183,11 +220,15 @@ def run_packaged_self_test(arguments: list[str]) -> int | None:
         }
         hafo_module_spec_origins = {
             name: (
-                path.relative_to(frozen_root).as_posix()
-                if frozen_root is not None and path.is_relative_to(frozen_root)
+                _relative_frozen_source(path, frozen_source_roots)
+                if frozen_runtime
                 else str(path)
             )
             for name, path in hafo_spec_paths.items()
+        }
+        hafo_module_spec_origins = {
+            name: origin if origin is not None else str(hafo_spec_paths[name])
+            for name, origin in hafo_module_spec_origins.items()
         }
         hafo_module_loaders = {
             name: (
@@ -200,12 +241,18 @@ def run_packaged_self_test(arguments: list[str]) -> int | None:
         hafo_modules_collected_as_source = all(
             path.is_file()
             and path.suffix.casefold() == ".py"
-            and (frozen_root is None or path.is_relative_to(frozen_root))
+            and (
+                not frozen_runtime
+                or _relative_frozen_source(path, frozen_source_roots) is not None
+            )
             for path in hafo_source_paths.values()
         ) and all(
             path.is_file()
             and path.suffix.casefold() == ".py"
-            and (frozen_root is None or path.is_relative_to(frozen_root))
+            and (
+                not frozen_runtime
+                or _relative_frozen_source(path, frozen_source_roots) is not None
+            )
             for path in hafo_spec_paths.values()
         )
         active_threading_layer = numba.threading_layer()
@@ -237,15 +284,22 @@ def run_packaged_self_test(arguments: list[str]) -> int | None:
         bundled_tbbpool_files: list[Path] = []
         numba_cache_outside_bundle = True
         if frozen_runtime:
-            numba_cache_outside_bundle = not numba_cache_dir.is_relative_to(
-                frozen_root
+            numba_cache_outside_bundle = bool(frozen_source_roots) and all(
+                not numba_cache_dir.is_relative_to(root)
+                for root in frozen_source_roots
             )
             if not numba_cache_outside_bundle:
                 raise RuntimeError(
                     "NUMBA_CACHE_DIR must be outside the frozen application."
                 )
             bundled_tbbpool_files = sorted(
-                (frozen_root / "numba" / "np" / "ufunc").glob("tbbpool*.pyd")
+                {
+                    path.resolve()
+                    for root in frozen_source_roots
+                    for path in (root / "numba" / "np" / "ufunc").glob(
+                        "tbbpool*.pyd"
+                    )
+                }
             )
             if bundled_tbbpool_files:
                 raise RuntimeError(

@@ -324,7 +324,7 @@ jobs:
             ubuntu:24.04 bash -euo pipefail -c '
               apt-get update
               apt-get install -y --no-install-recommends \
-                python3-minimal /artifacts/*.deb
+                python3 /artifacts/*.deb
               dpkg-query -W -f="\${Status}\n" chaos-toolbox |
                 grep -Fx "install ok installed"
               export QT_QPA_PLATFORM=offscreen
