@@ -339,6 +339,9 @@ jobs:
               export CHAOS_BENCHMARK_EXIT_AFTER_READY=1
               xvfb-run -a /usr/bin/chaos-toolbox
               python3 -c "import json; payload=json.load(open(\"/evidence/linux-deb-startup-ready.json\", encoding=\"utf-8\")); assert payload.get(\"status\") == \"ready\""
+              chmod 0644 \
+                /evidence/linux-deb-self-test.json \
+                /evidence/linux-deb-startup-ready.json
             '
           python scripts/validate_self_test_output.py \
             "$probe_evidence/linux-deb-self-test.json"
