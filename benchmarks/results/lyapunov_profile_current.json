@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "integer_qr_benettin_lyapunov baseline; no speedup claim",
-  "captured_at_utc": "2026-08-15T06:15:57.668163+00:00",
+  "captured_at_utc": "2026-08-28T08:07:21.294352+00:00",
   "configuration": {
     "system_key": "lorenz",
     "initial": [
@@ -41,25 +41,26 @@
     "numpy": "2.3.5"
   },
   "source": {
-    "commit": "43a65ddd936cf03602f7d4e34b3a851c67ecdfc6",
-    "commit_status": "dirty",
+    "commit": "76edc8e77442d63fb4cdd50a1c592bdc5053fc69",
+    "commit_status": "clean",
+    "hash_policy": "UTF-8 text normalized to LF before SHA-256",
     "sha256": {
-      "core/diagnostics.py": "39ee4fc88b6df41d0edd552bdf5cb3a819cca6aeda58b14f825a66046db07875",
-      "core/lorenz.py": "d09ce119faa90397675f5b496db9de1f0663b202a0f7c8452bb28940dde493a5",
-      "benchmarks/profile_lyapunov.py": "16b743cd52992dda8c00bff81c480aa143efda5bba4a30a1c6668c41319a24ab"
+      "core/diagnostics.py": "2dab9b86850e40284af3fd17beb83f35e1ccc8372db1dd05a5de515a805e734f",
+      "core/lorenz.py": "36bed00e35146c9cb7184a5c3a7371761b2dfe50b5609ebcd64533777975c02c",
+      "benchmarks/profile_lyapunov.py": "059ec56add2518f05879ddf4a4717ccda36d9daa153fa9d82f5151bc0c90e8ac"
     }
   },
   "timings_seconds": {
     "raw": [
-      0.5164487000438385,
-      0.5166628999868408,
-      0.5134252999559976,
-      0.5160919000045396,
-      0.5153947999933735
+      0.5986067999619991,
+      0.5986385999713093,
+      0.6199165000580251,
+      0.7032247999450192,
+      0.626269800006412
     ],
-    "median": 0.5160919000045396,
-    "minimum": 0.5134252999559976,
-    "maximum": 0.5166628999868408
+    "median": 0.6199165000580251,
+    "minimum": 0.5986067999619991,
+    "maximum": 0.7032247999450192
   },
   "result": {
     "status": "ok",
@@ -79,106 +80,106 @@
       "function": "benchmarks/profile_lyapunov.py:62:_run_diagnostic",
       "primitive_calls": 1,
       "total_calls": 1,
-      "own_seconds": 5.9600000000000005e-05,
-      "cumulative_seconds": 0.7452329000000001
+      "own_seconds": 6.42e-05,
+      "cumulative_seconds": 0.8966574
     },
     {
       "function": "core/diagnostics.py:107:integer_qr_benettin_lyapunov",
       "primitive_calls": 1,
       "total_calls": 1,
-      "own_seconds": 0.025813000000000003,
-      "cumulative_seconds": 0.7451733
+      "own_seconds": 0.030809200000000002,
+      "cumulative_seconds": 0.8965932000000001
     },
     {
       "function": "core/diagnostics.py:161:rk4_variational_step",
       "primitive_calls": 4000,
       "total_calls": 4000,
-      "own_seconds": 0.0897807,
-      "cumulative_seconds": 0.5970692000000001
+      "own_seconds": 0.1059129,
+      "cumulative_seconds": 0.7188436
     },
     {
       "function": "core/diagnostics.py:162:coupled_derivative",
       "primitive_calls": 16000,
       "total_calls": 16000,
-      "own_seconds": 0.0454767,
-      "cumulative_seconds": 0.5072885
+      "own_seconds": 0.0550847,
+      "cumulative_seconds": 0.6129307
     },
     {
       "function": "core/lorenz.py:562:_as_params",
       "primitive_calls": 34000,
       "total_calls": 34000,
-      "own_seconds": 0.11808830000000001,
-      "cumulative_seconds": 0.3222743
+      "own_seconds": 0.1406037,
+      "cumulative_seconds": 0.38590030000000003
     },
     {
       "function": "core/diagnostics.py:151:rhs",
       "primitive_calls": 18000,
       "total_calls": 18000,
-      "own_seconds": 0.0156437,
-      "cumulative_seconds": 0.2727713
+      "own_seconds": 0.0205182,
+      "cumulative_seconds": 0.3298614
     },
     {
       "function": "core/lorenz.py:743:vector_field",
       "primitive_calls": 18000,
       "total_calls": 18000,
-      "own_seconds": 0.06439460000000001,
-      "cumulative_seconds": 0.2535471
+      "own_seconds": 0.0764916,
+      "cumulative_seconds": 0.3049324
     },
     {
-      "function": "core/lorenz.py:1305:jacobian_for_system",
+      "function": "core/lorenz.py:1333:jacobian_for_system",
       "primitive_calls": 16000,
       "total_calls": 16000,
-      "own_seconds": 0.0447072,
-      "cumulative_seconds": 0.2178189
+      "own_seconds": 0.0559184,
+      "cumulative_seconds": 0.2628128
     },
     {
       "function": "numpy/_core/fromnumeric.py:2589:all",
       "primitive_calls": 42502,
       "total_calls": 42502,
-      "own_seconds": 0.0318709,
-      "cumulative_seconds": 0.1634998
+      "own_seconds": 0.0364487,
+      "cumulative_seconds": 0.19923600000000002
     },
     {
       "function": "numpy/_core/fromnumeric.py:89:_wrapreduction_any_all",
       "primitive_calls": 42502,
       "total_calls": 42502,
-      "own_seconds": 0.054236900000000005,
-      "cumulative_seconds": 0.13162890000000002
+      "own_seconds": 0.0674038,
+      "cumulative_seconds": 0.16278730000000002
     },
     {
       "function": "~:0:<method 'reduce' of 'numpy.ufunc' objects>",
       "primitive_calls": 42502,
       "total_calls": 42502,
-      "own_seconds": 0.066503,
-      "cumulative_seconds": 0.066503
+      "own_seconds": 0.0828084,
+      "cumulative_seconds": 0.0828084
     },
     {
       "function": "~:0:<built-in method numpy.asarray>",
       "primitive_calls": 124905,
       "total_calls": 124905,
-      "own_seconds": 0.038522400000000005,
-      "cumulative_seconds": 0.038522400000000005
-    },
-    {
-      "function": "core/diagnostics.py:154:rk4_state_step",
-      "primitive_calls": 500,
-      "total_calls": 500,
-      "own_seconds": 0.0056245,
-      "cumulative_seconds": 0.0344029
+      "own_seconds": 0.0456932,
+      "cumulative_seconds": 0.0456932
     },
     {
       "function": "~:0:<built-in method numpy.array>",
       "primitive_calls": 34000,
       "total_calls": 34000,
-      "own_seconds": 0.033227,
-      "cumulative_seconds": 0.033227
+      "own_seconds": 0.0414577,
+      "cumulative_seconds": 0.0414577
+    },
+    {
+      "function": "core/diagnostics.py:154:rk4_state_step",
+      "primitive_calls": 500,
+      "total_calls": 500,
+      "own_seconds": 0.006620900000000001,
+      "cumulative_seconds": 0.0414491
     },
     {
       "function": "core/diagnostics.py:212:record_qr",
       "primitive_calls": 400,
       "total_calls": 400,
-      "own_seconds": 0.004737300000000001,
-      "cumulative_seconds": 0.029446000000000003
+      "own_seconds": 0.005414700000000001,
+      "cumulative_seconds": 0.0348112
     }
   ]
 }
