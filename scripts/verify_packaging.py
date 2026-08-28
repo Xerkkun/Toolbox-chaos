@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 import re
 import sys
@@ -61,6 +62,13 @@ def verify() -> None:
 
     license_text = _read(ROOT / 'LICENSE')
     _check('MIT License' in license_text and 'Permission is hereby granted' in license_text, 'LICENSE is not MIT.')
+    python_license = ROOT / 'LICENSES' / 'Python' / 'LICENSE.txt'
+    _check(python_license.is_file(), 'Reviewed CPython runtime license is missing.')
+    _check(
+        hashlib.sha256(python_license.read_bytes()).hexdigest()
+        == 'b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231',
+        'Reviewed CPython 3.14.6 license does not match the official source.',
+    )
 
     changelog = ROOT / 'CHANGELOG.md'
     _check(changelog.exists(), 'CHANGELOG.md is missing.')

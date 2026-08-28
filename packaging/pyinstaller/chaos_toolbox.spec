@@ -98,17 +98,29 @@ except (NativeChaosError, OSError) as exc:
 
 binaries = [(str(native_library), 'core/bin')]
 
+reviewed_python_license = ROOT / 'LICENSES' / 'Python' / 'LICENSE.txt'
 python_license = next(
     (candidate for candidate in (
         Path(sys.base_prefix) / 'LICENSE.txt',
         Path(sys.base_prefix) / 'LICENSE',
         Path(sys.prefix) / 'LICENSE.txt',
         Path(sys.prefix) / 'LICENSE',
+        reviewed_python_license,
     ) if candidate.is_file()),
     None,
 )
 if python_license is None:
-    print(f"CRITICAL: Python runtime license not found under {sys.base_prefix}")
+    print(
+        'CRITICAL: Python runtime license not found under the interpreter '
+        'or in the reviewed CPython fallback.'
+    )
+    sys.exit(1)
+if (
+    python_license == reviewed_python_license
+    and hashlib.sha256(python_license.read_bytes()).hexdigest()
+    != 'b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231'
+):
+    print('CRITICAL: Reviewed CPython 3.14.6 license hash mismatch.')
     sys.exit(1)
 
 # HAFO's Numba ``cache=True`` dispatchers require physical modules instead of

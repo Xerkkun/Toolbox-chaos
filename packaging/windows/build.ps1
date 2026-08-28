@@ -191,7 +191,8 @@ Invoke-Checked -FilePath $venvPython -Arguments @(
     $dll
 )
 
-$pyInstallerWorkApp = Join-Path $repoRoot "build\pyinstaller\Chaos Toolbox"
+$pyInstallerWorkRoot = Join-Path $repoRoot "build\pyinstaller"
+$pyInstallerWorkApp = Join-Path $pyInstallerWorkRoot "Chaos Toolbox"
 $distApp = Join-Path $repoRoot "dist\Chaos Toolbox"
 
 Write-Host "Verifying release cleanliness..."
@@ -205,6 +206,7 @@ Set-Content -LiteralPath $versionInclude -Encoding ASCII -Value "#define MyAppVe
 
 Clear-GeneratedDirectory -Path $pyInstallerWorkApp
 Clear-GeneratedDirectory -Path $distApp
+New-Item -ItemType Directory -Force -Path $pyInstallerWorkRoot | Out-Null
 
 $pyInstallerArgs = @(
     "--noconfirm",

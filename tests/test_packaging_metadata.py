@@ -469,6 +469,11 @@ def test_windows_build_waits_for_isolated_packaged_self_test():
     assert 'Start-Process -FilePath $exePath' in source
     assert '-PassThru -Wait -WindowStyle Hidden' in source
     assert '[Environment]::SetEnvironmentVariable(' in source
+    assert '$pyInstallerWorkRoot = Join-Path $repoRoot "build\\pyinstaller"' in source
+    assert (
+        'New-Item -ItemType Directory -Force -Path $pyInstallerWorkRoot'
+        in source
+    )
 
 
 def test_windows_native_build_uses_reproducible_pe_flags():

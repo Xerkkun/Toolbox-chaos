@@ -106,6 +106,11 @@ def test_pyinstaller_and_inno_include_required_notices_and_metadata():
     assert "'numba.np.ufunc.tbbpool'" in spec
     assert "'PyQt" + "6'" in spec
     assert 'Path(sys.base_prefix)' in spec
+    assert "ROOT / 'LICENSES' / 'Python' / 'LICENSE.txt'" in spec
+    assert (
+        'b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231'
+        in spec
+    )
     assert "'LICENSES/Python'" in spec
     assert 'upx=False' in spec
     assert 'upx=True' not in spec
@@ -295,6 +300,16 @@ def test_release_workflow_generates_and_retains_validated_sbom():
     assert 'dist/python/*.cdx.json' in workflow
     assert workflow.count('retention-days: 90') >= 2
     assert workflow.count('python-version: "3.14.6"') == 4
+    for package in (
+        'libegl1',
+        'libx11-xcb1',
+        'libxcb-cursor0',
+        'libxcb-shape0',
+        'libxcb-shm0',
+        'libxcb-sync1',
+        'libxcb-xkb1',
+    ):
+        assert package in workflow
 
 
 def test_sdist_normalization_is_byte_reproducible(tmp_path):
