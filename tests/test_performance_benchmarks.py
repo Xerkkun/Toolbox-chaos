@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
@@ -11,6 +10,7 @@ from benchmarks.run_benchmarks import (
     _array_signature,
     _percentiles,
 )
+from benchmarks.profile_lyapunov import _source_sha256
 from core.performance_metrics import (
     power_status,
     process_memory_snapshot,
@@ -87,8 +87,11 @@ def test_lyapunov_profile_baseline_records_protocol_hotspots_and_sources():
     assert payload['result']['status'] == 'ok'
     assert payload['result']['convergence_shape'][1] == 3
     assert payload['cprofile_hotspots_by_cumulative_time']
-    assert payload['source']['commit_status'] in {'clean', 'dirty', 'unavailable'}
+    assert payload['source']['commit_status'] == 'clean'
+    assert payload['source']['hash_policy'] == (
+        'UTF-8 text normalized to LF before SHA-256'
+    )
     assert 'core/diagnostics.py' in payload['source']['sha256']
     for relative_path, expected_digest in payload['source']['sha256'].items():
-        actual_digest = hashlib.sha256((ROOT / relative_path).read_bytes()).hexdigest()
+        actual_digest = _source_sha256(ROOT / relative_path)
         assert actual_digest == expected_digest, relative_path

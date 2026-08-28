@@ -6,7 +6,7 @@ visualization, and diagnostic analysis. It is developed and maintained by
 Maria Fernanda Moreno Lopez (Fer Moreno). Its own source code is distributed
 under MIT; PySide6/Qt and other dependencies retain their separate licenses.
 
-Version 0.2.0 is the stable release dated 2026-08-21. The project retains its
+Version 0.2.0 is the stable release dated 2026-08-28. The project retains its
 existing OSF project DOI; no new version-specific DOI is assigned.
 
 

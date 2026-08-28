@@ -2,7 +2,7 @@
 
 All notable changes to Fyskode Chaotic Systems Toolbox are documented here. The project follows semantic versioning: `MAJOR.MINOR.PATCH`.
 
-## 0.2.0 - 2026-08-21
+## 0.2.0 - 2026-08-28
 
 ### Added
 

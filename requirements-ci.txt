@@ -1,0 +1,11 @@
+# Reproducible CI subset of the audited Python 3.14 release constraints.
+# These pins also support the Python 3.11 compatibility matrix.  Runtime
+# packages that require the official release interpreter remain in
+# requirements-release.txt only.
+PySide6-Essentials==6.11.1
+PySide6-Addons==6.11.1
+shiboken6==6.11.1
+hidden-attractors-fo==1.2.0
+build==1.4.0
+setuptools==84.0.0
+wheel==0.46.3

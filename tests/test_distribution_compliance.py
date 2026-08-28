@@ -60,6 +60,17 @@ def test_source_distribution_contract_is_pyside6_only():
         assert requirement in constraints
     bootstrap = (ROOT / 'requirements-bootstrap.txt').read_text(encoding='utf-8')
     assert bootstrap.splitlines()[-1] == 'pip==26.2.1'
+    ci_constraints = (ROOT / 'requirements-ci.txt').read_text(encoding='utf-8')
+    for requirement in (
+        'PySide6-Essentials==6.11.1',
+        'PySide6-Addons==6.11.1',
+        'shiboken6==6.11.1',
+        'hidden-attractors-fo==1.2.0',
+        'build==1.4.0',
+        'setuptools==84.0.0',
+        'wheel==0.46.3',
+    ):
+        assert requirement in ci_constraints
     requirements = (ROOT / 'requirements.txt').read_text(encoding='utf-8')
     assert 'PySide6-Addons>=6.7' in requirements
     assert 'Pillow>=10' in requirements
@@ -330,6 +341,10 @@ def test_ci_checks_real_pyside6_distribution_names():
     assert 'verify_distribution_compliance.py --check-installed' in workflow
     assert '.[test,webengine]' in workflow
     assert workflow.count('requirements-bootstrap.txt') >= 4
+    assert workflow.count('PIP_CONSTRAINT: requirements-ci.txt') == 1
+    assert workflow.count('python -m pip install build setuptools wheel') == 3
+    assert workflow.count('--no-build-isolation') == 3
+    assert workflow.count('libxcb-cursor0') == 3
 
 
 def test_build_pin_gate_rejects_installed_version_drift(monkeypatch):
@@ -351,6 +366,12 @@ def test_release_pin_gate_rejects_installed_version_drift(monkeypatch):
     versions['pip'] = '26.2.1'
     versions['pyside6-addons'] = '6.11.2'
 
+    # Exercise dependency drift independently of the production Python gate.
+    monkeypatch.setattr(
+        compliance,
+        'RELEASE_PYTHON_VERSION',
+        compliance.sys.version_info[:3],
+    )
     monkeypatch.setattr(
         compliance.metadata,
         'version',

@@ -1,6 +1,6 @@
 # Release Notes - Fyskode Chaotic Systems Toolbox 0.2.0
 
-Release date: 2026-08-21. This release retains the existing OSF project DOI;
+Release date: 2026-08-28. This release retains the existing OSF project DOI;
 no new version-specific DOI is assigned.
 
 ## Added

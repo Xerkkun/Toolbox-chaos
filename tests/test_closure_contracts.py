@@ -945,18 +945,27 @@ def test_webengine_runtime_creates_page_on_viable_platform():
     platform_name = os.environ.get('QT_QPA_PLATFORM', '').strip().lower()
     if platform_name in {'offscreen', 'minimal'}:
         pytest.skip(f'Qt WebEngine runtime is unavailable on {platform_name}.')
-    preparation = prepare_webengine()
-    assert preparation.available, preparation.reason
-    from PySide6.QtWidgets import QApplication
-    from PySide6.QtWebEngineCore import QWebEnginePage
-
-    app = QApplication.instance() or QApplication([])
-    view, status = create_webengine_view()
-    assert status.available, status.reason
-    assert view is not None
-    assert isinstance(view.page(), QWebEnginePage)
-    view.deleteLater()
-    app.processEvents()
+    probe = (
+        "from core.qt_capabilities import prepare_webengine,create_webengine_view;"
+        "s=prepare_webengine(); assert s.available,s.reason;"
+        "from PySide6.QtWidgets import QApplication;"
+        "from PySide6.QtWebEngineCore import QWebEnginePage;"
+        "app=QApplication([]); view,status=create_webengine_view();"
+        "assert status.available,status.reason; assert view is not None;"
+        "assert isinstance(view.page(),QWebEnginePage);"
+        "view.deleteLater(); app.processEvents();"
+        "print('WEBENGINE_PAGE_OK')"
+    )
+    completed = subprocess.run(
+        [sys.executable, '-B', '-c', probe],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert 'WEBENGINE_PAGE_OK' in completed.stdout
 
 
 def test_scratch_smoke_modules_have_no_import_side_effects(monkeypatch):
@@ -1090,13 +1099,14 @@ def test_built_wheel_installs_entrypoint_metadata_and_resources(tmp_path):
         )
 
     wheelhouse = tmp_path / 'wheelhouse'
-    subprocess.run(
+    completed = subprocess.run(
         [sys.executable, '-m', 'build', '--wheel', '--no-isolation', '--outdir', str(wheelhouse)],
         cwd=source,
-        check=True,
+        check=False,
         capture_output=True,
         text=True,
     )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
     wheel = next(wheelhouse.glob('chaos_toolbox-*.whl'))
     assert wheel.name.endswith('-py3-none-any.whl')
     with zipfile.ZipFile(wheel) as archive:

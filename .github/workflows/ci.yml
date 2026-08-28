@@ -3,6 +3,9 @@ name: CI
 permissions:
   contents: read
 
+env:
+  PIP_CONSTRAINT: requirements-ci.txt
+
 on:
   push:
     branches:
@@ -56,6 +59,7 @@ jobs:
             libxcb-icccm4 \
             libxcb-image0 \
             libxcb-keysyms1 \
+            libxcb-cursor0 \
             libxcb-randr0 \
             libxcb-render-util0 \
             libxcb-xinerama0 \
@@ -63,7 +67,7 @@ jobs:
             xvfb
 
       - name: Install Toolbox and runtime dependencies
-        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install ".[test]" && python -m pip check
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install build setuptools wheel && python -m pip install --no-build-isolation ".[test]" && python -m pip check
 
       - name: Verify PySide6-only runtime environment
         run: python scripts/verify_distribution_compliance.py --check-installed
@@ -173,13 +177,14 @@ jobs:
             libxcb-icccm4 \
             libxcb-image0 \
             libxcb-keysyms1 \
+            libxcb-cursor0 \
             libxcb-randr0 \
             libxcb-render-util0 \
             libxcb-xinerama0 \
             libxcb-xfixes0
 
       - name: Install Toolbox and test dependencies
-        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install ".[test,webengine]" && python -m pip check
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install build setuptools wheel && python -m pip install --no-build-isolation ".[test,webengine]" && python -m pip check
 
       - name: Verify full PySide6 test environment
         run: python scripts/verify_distribution_compliance.py --check-installed --require-webengine
@@ -264,11 +269,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             libglib2.0-0 libgl1 libegl1 libdbus-1-3 libnss3 \
             libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+            libxcb-cursor0 \
             libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0 \
             libxcomposite1 libxdamage1 libxrandr2 libxtst6 xvfb
 
       - name: Install Toolbox with WebEngine
-        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install ".[test,webengine]" && python -m pip check
+        run: python -m pip install --upgrade -r requirements-bootstrap.txt && python -m pip install build setuptools wheel && python -m pip install --no-build-isolation ".[test,webengine]" && python -m pip check
 
       - name: Verify PySide6 WebEngine environment
         run: python scripts/verify_distribution_compliance.py --check-installed --require-webengine

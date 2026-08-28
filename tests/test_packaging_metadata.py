@@ -51,7 +51,7 @@ def test_version_metadata_is_semver():
     assert 'Fer Moreno' in APP_AUTHOR_DISPLAY
     assert APP_BRAND == 'Fyskode'
     assert APP_RELEASE_STATUS == 'stable release'
-    assert APP_RELEASE_DATE == '2026-08-21'
+    assert APP_RELEASE_DATE == '2026-08-28'
     assert APP_DOI == '10.17605/OSF.IO/GQMJR'
 
 

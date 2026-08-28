@@ -39,12 +39,12 @@ WARMUPS = 1
 REPETITIONS = 5
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open('rb') as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b''):
-            digest.update(block)
-    return digest.hexdigest()
+def _source_sha256(path: Path) -> str:
+    """Hash UTF-8 source text independently of checkout line endings."""
+
+    source = path.read_text(encoding='utf-8')
+    canonical = source.replace('\r\n', '\n').replace('\r', '\n').encode('utf-8')
+    return hashlib.sha256(canonical).hexdigest()
 
 
 def _git_value(*arguments: str) -> str | None:
@@ -155,7 +155,11 @@ def build_payload() -> dict:
         'source': {
             'commit': commit,
             'commit_status': 'dirty' if porcelain else ('clean' if commit else 'unavailable'),
-            'sha256': {path.relative_to(ROOT).as_posix(): _sha256(path) for path in source_paths},
+            'hash_policy': 'UTF-8 text normalized to LF before SHA-256',
+            'sha256': {
+                path.relative_to(ROOT).as_posix(): _source_sha256(path)
+                for path in source_paths
+            },
         },
         'timings_seconds': {
             'raw': durations,

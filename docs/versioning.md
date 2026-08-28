@@ -1,6 +1,6 @@
 # Versioning
 
-Fyskode Chaotic Systems Toolbox 0.2.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License. Version 0.2.0 is the stable release dated 2026-08-21 and retains the existing OSF project DOI.
+Fyskode Chaotic Systems Toolbox 0.2.0 is developed by Maria Fernanda Moreno Lopez (Fer Moreno) and distributed under the MIT License. Version 0.2.0 is the stable release dated 2026-08-28 and retains the existing OSF project DOI.
 
 The source of truth for the software version is:
 

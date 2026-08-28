@@ -4,7 +4,7 @@ Fyskode Chaotic Systems Toolbox 0.2.0 is developed by Maria Fernanda Moreno
 Lopez (Fer Moreno). Its own source is MIT-licensed; bundled dependencies
 retain their separate licenses.
 
-Version 0.2.0 is the stable release dated 2026-08-21. It retains the existing
+Version 0.2.0 is the stable release dated 2026-08-28. It retains the existing
 OSF project DOI and does not use a new version-specific archive DOI.
 
 1. Update `pyproject.toml` using semantic versioning `MAJOR.MINOR.PATCH`.
